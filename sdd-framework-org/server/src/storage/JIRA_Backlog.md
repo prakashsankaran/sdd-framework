@@ -1,0 +1,13 @@
+# JIRA Backlog Export
+
+| Summary | Description | Issue Type | Priority | Story Points | Labels |
+| --- | --- | --- | --- | --- | --- |
+| JIRA-001: Implement PostgreSQL Schema and Vector Extensions | Configure the database schema including 'meetings' and 'action_items' tables. Enable pgvector extension for the 'vector_embedding' field (1536 dimensions). Include migration scripts for AuditLog table to track state changes. | Task | High | 3 | Backend, Database, Setup |
+| JIRA-002: Integrate Whisper API for Audio Transcription | Develop a service worker to ingest MP3/WAV files, interface with the OpenAI Whisper API, and parse the output into the required JSON format containing timestamps, speaker IDs, and raw text. | Story | High | 8 | Backend, AI, Transcription |
+| JIRA-003: Setup OIDC Middleware and RBAC Guard | Implement authentication middleware for Azure AD/Okta via OIDC. Enforce RBAC constraints: Admin (CRUD), Manager (Project-level write), Employee (Action-item update) based on JWT claims. | Story | High | 5 | Security, Auth, Middleware |
+| JIRA-004: Develop Calendar Sync Cron Service | Create a background worker to periodically poll linked calendar APIs (Microsoft Graph/Google), create 'meeting' records, and trigger automated processing jobs for upcoming events. | Task | Medium | 5 | Backend, Integration, Cron |
+| JIRA-005: Qdrant Vector Collection and Semantic Search API | Initialize Qdrant collection for meeting embeddings. Implement an endpoint to transform user natural language queries into vectors and retrieve ranked relevant meeting excerpts. | Task | High | 5 | Backend, VectorDB, Search |
+| JIRA-006: Executive Dashboard UI Components | Build the Executive view in React/Next.js. Include data visualization for Risk/KPI trends and a search bar component that consumes the Semantic Search API. | Story | Medium | 8 | Frontend, UI, Executive |
+| JIRA-007: PM Meeting/Action Item Management UI | Develop the PM interface for linking meetings to external tools (Jira/DevOps). Implement the UI to review AI-generated MoMs and manually override action item assignments. | Story | High | 8 | Frontend, UI, ProjectManagement |
+| JIRA-008: Implement Action Item Status Workflow | Create API endpoints for updating 'action_items' statuses. Ensure transitions validate against the allowed state machine (Open -> In Progress -> Completed/Blocked). | Task | Medium | 3 | Backend, API, CRUD |
+| JIRA-009: Fix: Ensure AES-256 Encryption at Rest | Configure cloud-provider managed encryption (KMS) for the database volume and S3 buckets storing raw audio to meet compliance mandates. | Bug | High | 3 | Security, Compliance, Infrastructure |

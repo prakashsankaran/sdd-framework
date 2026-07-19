@@ -1,0 +1,40 @@
+{
+  "matrix": [
+    {
+      "reqId": "FSD-REQ-01",
+      "userStoryId": "US-001: Transcription Service",
+      "techSpec": "Section 3: Transcription Functional Requirement",
+      "dbTables": "meetings",
+      "testCases": "TC-TRANS-001 (Audio parsing), TC-TRANS-002 (Timestamp accuracy)"
+    },
+    {
+      "reqId": "FSD-REQ-02",
+      "userStoryId": "US-002: Action Item Management",
+      "techSpec": "Section 3: Action Extraction & Section 4: POST /api/v1/meetings/summary",
+      "dbTables": "action_items",
+      "testCases": "TC-ACT-001 (Extraction logic), TC-ACT-002 (Status update workflow)"
+    },
+    {
+      "reqId": "FSD-REQ-03",
+      "userStoryId": "US-003: Semantic Search",
+      "techSpec": "Section 3: Semantic Search",
+      "dbTables": "meetings (vector_embedding)",
+      "testCases": "TC-SEARCH-001 (Query relevance), TC-SEARCH-002 (Latency check)"
+    },
+    {
+      "reqId": "FSD-REQ-04",
+      "userStoryId": "US-004: Security & Access Control",
+      "techSpec": "Section 6: RBAC & Data Residency",
+      "dbTables": "AuditLog, users",
+      "testCases": "TC-SEC-001 (Unauthorized access block), TC-SEC-002 (Audit log verification)"
+    },
+    {
+      "reqId": "FSD-REQ-05",
+      "userStoryId": "US-005: Executive Dashboard",
+      "techSpec": "Section 4: GET /api/v1/actions",
+      "dbTables": "action_items, meetings",
+      "testCases": "TC-DASH-001 (Filter logic), TC-DASH-002 (Data integrity)"
+    }
+  ],
+  "coverage": "100% Traceability Coverage"
+}

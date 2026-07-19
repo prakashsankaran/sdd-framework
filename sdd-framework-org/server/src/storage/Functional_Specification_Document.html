@@ -1,0 +1,73 @@
+<article style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 40px; border: 1px solid #e1e4e8; border-radius: 8px;">
+    
+    <header style="border-bottom: 2px solid #2c3e50; margin-bottom: 30px;">
+        <h1 style="color: #2c3e50; margin-bottom: 10px;">Functional Specification Document: Intelligent Meeting & Action Management Platform</h1>
+        <p style="font-style: italic; color: #7f8c8d;">Version 1.0 | Prepared by: Principal Business Analyst</p>
+    </header>
+
+    <section>
+        <h2 style="color: #2980b9;">1. Project Overview & Scope</h2>
+        <p>The Intelligent Meeting & Action Management Platform is designed to mitigate the inefficiency inherent in enterprise meeting lifecycle management. By integrating LLM-driven intelligence with secure RAG (Retrieval-Augmented Generation) architectures, the system automates documentation, ensures organizational accountability, and surfaces actionable business intelligence.</p>
+        <p><strong>Scope:</strong> The project covers the end-to-end meeting lifecycle, from audio ingestion and automated transcription to AI-driven action item tracking and cross-platform integration (Jira/DevOps/Azure AD).</p>
+    </section>
+
+    <section>
+        <h2 style="color: #2980b9;">2. Detailed Functional Requirements & Features</h2>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+            <tr style="background-color: #f8f9fa;">
+                <th style="padding: 12px; border: 1px solid #dee2e6; text-align: left;">Feature</th>
+                <th style="padding: 12px; border: 1px solid #dee2e6; text-align: left;">Requirement Specification</th>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid #dee2e6;"><strong>Transcription Engine</strong></td>
+                <td style="padding: 12px; border: 1px solid #dee2e6;">Implementation of Whisper API/ASR to generate JSON-formatted transcripts including speaker diarization and high-fidelity timestamps.</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid #dee2e6;"><strong>Action Extraction</strong></td>
+                <td style="padding: 12px; border: 1px solid #dee2e6;">LLM-based parsing of natural language text to map entities: <code>Owner</code>, <code>Due Date</code>, <code>Priority</code>, and <code>Task Description</code>.</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid #dee2e6;"><strong>Semantic Retrieval</strong></td>
+                <td style="padding: 12px; border: 1px solid #dee2e6;">Utilization of Qdrant vector database for embedding-based search, allowing users to query decision history using natural language.</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid #dee2e6;"><strong>Audit Trail</strong></td>
+                <td style="padding: 12px; border: 1px solid #dee2e6;">Mandatory logging of every state-change interaction for compliance and accountability.</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <h2 style="color: #2980b9;">3. User Persona and Target Audience</h2>
+        <ul style="list-style-type: square;">
+            <li><strong>Executive:</strong> Requires high-level visibility into KPIs and strategic decision history via the Executive Dashboard.</li>
+            <li><strong>Project Manager:</strong> Responsible for operational oversight, managing Jira/DevOps integration, and assigning action item ownership.</li>
+            <li><strong>Employee:</strong> The primary executor, responsible for status updates on assigned action items and reviewing meeting outcomes.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2 style="color: #2980b9;">4. Process Flow & Business Logic</h2>
+        <p>The platform follows an asynchronous processing architecture:</p>
+        <ol>
+            <li><strong>Ingestion:</strong> Audio is uploaded; status moves to "Processing."</li>
+            <li><strong>Intelligence Layer:</strong> System triggers transcription followed by AI extraction of action items and decision points.</li>
+            <li><strong>Synchronization:</strong> Extracted data is committed to the database; notifications are sent to action owners.</li>
+            <li><strong>Refinement:</strong> Users interact with the dashboard to finalize summaries or update status, triggering the audit trail API.</li>
+        </ol>
+    </section>
+
+    <section>
+        <h2 style="color: #2980b9;">5. Error Handling & Edge Cases</h2>
+        <ul style="list-style-type: disc;">
+            <li><strong>Audio Quality Issues:</strong> If ASR confidence scores fall below 70%, the system must flag the meeting for "Human Review" rather than auto-generating potentially inaccurate minutes.</li>
+            <li><strong>PII Leakage:</strong> Integration of automated PII scrubbing (e.g., regex/NER models) before any transcript enters the RAG vector store.</li>
+            <li><strong>API Timeouts:</strong> Implement exponential backoff for external LLM API calls to ensure system resilience during high-load periods.</li>
+            <li><strong>Unauthorized Access:</strong> Any attempt to access resources outside of the authenticated user's RBAC scope must trigger an immediate security event log in the AuditLog table.</li>
+        </ul>
+    </section>
+
+    <footer style="margin-top: 50px; font-size: 0.8em; color: #95a5a6; border-top: 1px solid #eee; padding-top: 10px;">
+        Confidential: Internal Use Only. This document contains proprietary architecture specifications for the Intelligent Meeting & Action Management Platform.
+    </footer>
+</article>

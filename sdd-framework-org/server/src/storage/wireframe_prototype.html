@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent Meeting & Action Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: { slate: { 950: '#020617' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .glow { box-shadow: 0 0 20px rgba(56, 189, 248, 0.15); }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 font-sans min-h-screen">
+
+<nav class="glass sticky top-0 z-50 px-8 py-4 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center"><i class="fas fa-brain text-white"></i></div>
+        <h1 class="text-xl font-bold tracking-tight">Intelligent Meeting Manager</h1>
+    </div>
+    <div class="flex gap-6 text-sm font-medium">
+        <a href="#" class="text-sky-400 border-b-2 border-sky-400 pb-1">Dashboard</a>
+        <a href="#" class="hover:text-sky-400 transition">Meetings</a>
+        <a href="#" class="hover:text-sky-400 transition">Actions</a>
+    </div>
+</nav>
+
+<main class="p-8 max-w-7xl mx-auto">
+    <!-- Stats Row -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="glass p-6 rounded-2xl">
+            <p class="text-slate-400 text-sm">Action Closure Rate</p>
+            <h2 class="text-3xl font-bold mt-2 text-emerald-400">84% <span class="text-sm font-normal text-slate-500">+4% this week</span></h2>
+        </div>
+        <div class="glass p-6 rounded-2xl">
+            <p class="text-slate-400 text-sm">Open Action Items</p>
+            <h2 class="text-3xl font-bold mt-2 text-white">12</h2>
+        </div>
+        <div class="glass p-6 rounded-2xl">
+            <p class="text-slate-400 text-sm">AI Insights Generated</p>
+            <h2 class="text-3xl font-bold mt-2 text-sky-400">48</h2>
+        </div>
+    </div>
+
+    <!-- Action Table -->
+    <div class="glass rounded-2xl overflow-hidden">
+        <div class="p-6 border-b border-white/5 flex justify-between items-center">
+            <h3 class="font-semibold text-lg">Active Action Items</h3>
+            <button onclick="toggleModal()" class="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 rounded-lg text-sm transition">
+                <i class="fas fa-plus mr-2"></i>New Action
+            </button>
+        </div>
+        <table class="w-full text-left text-sm">
+            <thead class="bg-white/5 uppercase text-slate-400">
+                <tr>
+                    <th class="px-6 py-4">Title</th>
+                    <th class="px-6 py-4">Priority</th>
+                    <th class="px-6 py-4">Due Date</th>
+                    <th class="px-6 py-4">Status</th>
+                    <th class="px-6 py-4">Action</th>
+                </tr>
+            </thead>
+            <tbody id="action-table-body">
+                <!-- JS populated -->
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<!-- Modal -->
+<div id="modal" class="fixed inset-0 bg-black/80 hidden z-[100] flex items-center justify-center p-4">
+    <div class="glass w-full max-w-lg p-8 rounded-2xl animate-in fade-in zoom-in duration-300">
+        <h2 class="text-xl font-bold mb-6">Create Action Item</h2>
+        <form id="actionForm" class="space-y-4">
+            <input type="text" id="a_title" placeholder="Action Title" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg focus:outline-none focus:border-sky-500" required>
+            <select id="a_priority" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg">
+                <option>Critical</option>
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
+            </select>
+            <input type="date" id="a_due" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg">
+            <div class="flex gap-4 pt-4">
+                <button type="button" onclick="toggleModal()" class="flex-1 px-4 py-2 border border-slate-700 rounded-lg">Cancel</button>
+                <button type="submit" class="flex-1 bg-sky-600 px-4 py-2 rounded-lg">Confirm</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let actions = [
+        { id: 1, title: 'Architectural Review', priority: 'Critical', due: '2023-12-01', status: 'In Progress' },
+        { id: 2, title: 'Compliance Audit Update', priority: 'High', due: '2023-12-05', status: 'Open' }
+    ];
+
+    function renderTable() {
+        const body = document.getElementById('action-table-body');
+        body.innerHTML = actions.map(a => `
+            <tr class="border-b border-white/5 hover:bg-white/5 transition">
+                <td class="px-6 py-4 font-medium">${a.title}</td>
+                <td class="px-6 py-4"><span class="px-2 py-1 rounded bg-rose-500/10 text-rose-400 text-xs">${a.priority}</span></td>
+                <td class="px-6 py-4">${a.due}</td>
+                <td class="px-6 py-4"><span class="text-sky-400">${a.status}</span></td>
+                <td class="px-6 py-4"><button onclick="deleteAction(${a.id})" class="text-slate-500 hover:text-red-400"><i class="fas fa-trash"></i></button></td>
+            </tr>
+        `).join('');
+    }
+
+    function toggleModal() {
+        document.getElementById('modal').classList.toggle('hidden');
+    }
+
+    document.getElementById('actionForm').onsubmit = (e) => {
+        e.preventDefault();
+        actions.push({
+            id: Date.now(),
+            title: document.getElementById('a_title').value,
+            priority: document.getElementById('a_priority').value,
+            due: document.getElementById('a_due').value,
+            status: 'Open'
+        });
+        renderTable();
+        toggleModal();
+        e.target.reset();
+    };
+
+    function deleteAction(id) {
+        actions = actions.filter(a => a.id !== id);
+        renderTable();
+    }
+
+    renderTable();
+</script>
+</body>
+</html>

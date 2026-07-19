@@ -1,0 +1,94 @@
+{
+  "stories": [
+    {
+      "id": "US-SYS-01",
+      "title": "Automated Calendar Synchronization",
+      "asA": "Project Manager",
+      "iWantTo": "Integrate my Outlook or G-Suite calendar with the platform",
+      "soThat": "Meeting data is automatically ingested without manual entry and linked to relevant projects",
+      "criteria": [
+        "System successfully authenticates via OAuth2 with calendar provider",
+        "System creates 'Meeting' entities for events in the calendar",
+        "Events are periodically polled for updates (start time, participants)"
+      ],
+      "priority": "High",
+      "points": 5,
+      "techNotes": "Use Microsoft Graph API / Google Calendar API; implement webhooks for real-time sync updates."
+    },
+    {
+      "id": "US-SYS-02",
+      "title": "Audio Transcription and Diarization",
+      "asA": "Employee",
+      "iWantTo": "Have meeting audio files processed into text",
+      "soThat": "I can reference accurate meeting transcripts instead of manual note-taking",
+      "criteria": [
+        "Audio uploaded is processed by Whisper API",
+        "Output includes timestamps and distinct speaker labels",
+        "JSON output follows the schema defined in Section 3"
+      ],
+      "priority": "High",
+      "points": 8,
+      "techNotes": "Utilize Whisper API or equivalent; ensure audio is pre-processed to mono 16kHz for optimal diarization performance."
+    },
+    {
+      "id": "US-SYS-03",
+      "title": "AI-Driven Summarization and Action Extraction",
+      "asA": "Project Manager",
+      "iWantTo": "Automatically generate meeting summaries and extract action items",
+      "soThat": "I can quickly identify outcomes and assign tasks without reviewing the full transcript",
+      "criteria": [
+        "System identifies action items including owner, due date, and priority",
+        "Summary includes key decisions made during the meeting",
+        "Action items are persisted in the action_items table"
+      ],
+      "priority": "High",
+      "points": 8,
+      "techNotes": "Use GPT-4o with a structured prompt requesting JSON output matching the ActionItem entity schema."
+    },
+    {
+      "id": "US-SYS-04",
+      "title": "Semantic Cross-Meeting Search",
+      "asA": "Executive",
+      "iWantTo": "Perform semantic searches across historical meeting data",
+      "soThat": "I can retrieve decision history based on natural language queries instead of keywords",
+      "criteria": [
+        "System supports semantic search via natural language queries",
+        "Results return a ranked list of relevant meeting excerpts",
+        "Search functionality is restricted by RBAC access"
+      ],
+      "priority": "Medium",
+      "points": 5,
+      "techNotes": "Implement RAG pipeline using Qdrant vector database; store meeting text embeddings (1536 dimensions)."
+    },
+    {
+      "id": "US-SYS-05",
+      "title": "External Project Management Tool Sync",
+      "asA": "Project Manager",
+      "iWantTo": "Push extracted action items directly to Jira or Azure DevOps",
+      "soThat": "I can manage the action item lifecycle within our existing team workflow",
+      "criteria": [
+        "Ability to map meeting action items to project issues",
+        "Bidirectional status updates between our platform and external tool",
+        "Authentication via API Key/Service Token for third-party systems"
+      ],
+      "priority": "Medium",
+      "points": 8,
+      "techNotes": "Implement a provider-pattern integration layer for Jira/ADO REST APIs; handle mapping tables between local UUIDs and external issue IDs."
+    },
+    {
+      "id": "US-SYS-06",
+      "title": "Enterprise SSO and Audit Logging",
+      "asA": "Admin",
+      "iWantTo": "Authenticate users via OIDC/SAML and maintain an audit log",
+      "soThat": "The system adheres to corporate security compliance and enables tracking of all state changes",
+      "criteria": [
+        "Login is exclusively handled by Okta/Azure AD",
+        "All state-changing API calls log the actor_id, resource_id, and timestamp",
+        "Audit logs are immutable and stored for compliance auditing"
+      ],
+      "priority": "High",
+      "points": 5,
+      "techNotes": "Use Passport.js/Auth0 for OIDC; implement middleware to intercept requests and perform asynchronous audit log writes."
+    }
+  ]
+}

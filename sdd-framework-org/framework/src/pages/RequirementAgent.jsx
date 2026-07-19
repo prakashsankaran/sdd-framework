@@ -1,0 +1,332 @@
+import React, { useState, useEffect } from 'react';
+import { api } from '../services/api';
+
+export default function RequirementAgent() {
+  const [requirements, setRequirements] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [logs, setLogs] = useState([]);
+  const [result, setResult] = useState(null);
+  const [activeTab, setActiveTab] = useState('spec.md');
+  const [tabContent, setTabContent] = useState('');
+  const [isLoadingContent, setIsLoadingContent] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState('');
+  const [notification, setNotification] = useState(null);
+
+  useEffect(() => {
+    // Load currently active spec details on mount
+    const fetchActiveSpec = async () => {
+      try {
+        const res = await fetch('http://localhost:7001/api/specs/active');
+        const data = await res.json();
+        if (data.success && data.activeSpec && data.files && data.files.length > 0) {
+          setResult({
+            success: true,
+            folderName: data.activeSpec,
+            files: data.files
+          });
+          // Load default tab content
+          loadDocContent(data.activeSpec, 'spec.md');
+        }
+      } catch (err) {
+        console.error('Failed to load active spec details on mount:', err);
+      }
+    };
+    fetchActiveSpec();
+  }, []);
+
+  // Handle requirement file upload
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setUploadedFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setRequirements(event.target.result);
+    };
+    reader.readAsText(file);
+  };
+
+  // Run the Spec Kit scaffolding process
+  const handleExecute = async () => {
+    if (!requirements.trim() || isGenerating) return;
+    
+    setIsGenerating(true);
+    setResult(null);
+    setLogs(['[SpecKit] Starting Spec-Driven Development cycle...', '[SpecKit] Preparing prompt context...']);
+
+    try {
+      const response = await fetch('http://localhost:7001/api/specs/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ requirements })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server returned status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setLogs(prev => [...prev, ...data.log, '🎉 Spec Kit directory created successfully!']);
+        setResult(data);
+        // Load default tab
+        loadDocContent(data.folderName, 'spec.md');
+      } else {
+        throw new Error(data.error || 'Unknown generation error');
+      }
+    } catch (err) {
+      console.error(err);
+      setLogs(prev => [...prev, `❌ Error: ${err.message}`]);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Load content of generated specification files
+  async function loadDocContent(folder, file) {
+    setActiveTab(file);
+    setIsLoadingContent(true);
+    setTabContent('');
+    try {
+      // Fetch spec file details or content
+      // We can use a raw document download route on the backend or write a custom loader.
+      // Since we have a general file reading endpoint or can load via /api/documents/download,
+      // let's fetch the file using the server's static or download endpoint.
+      const downloadUrl = `http://localhost:7001/api/specs/download/${encodeURIComponent(folder)}/${encodeURIComponent(file)}`;
+      const res = await fetch(downloadUrl);
+      if (res.ok) {
+        const text = await res.text();
+        setTabContent(text);
+      } else {
+        setTabContent(`Failed to load file contents: ${res.statusText}`);
+      }
+    } catch (err) {
+      setTabContent(`Error reading file: ${err.message}`);
+    } finally {
+      setIsLoadingContent(false);
+    }
+  }
+
+  // Switch active spec manually
+  const handleSelectActive = async (folderName) => {
+    try {
+      const response = await fetch('http://localhost:7001/api/specs/active', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ activeSpec: folderName })
+      });
+      if (response.ok) {
+        setNotification({
+          type: 'success',
+          message: `Active spec changed to: ${folderName}`
+        });
+        
+        localStorage.removeItem('orchestrator_thread_id');
+
+        // Trigger window reload after 2 seconds to reload header dropdown
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        throw new Error(`Failed to update status: ${response.statusText}`);
+      }
+    } catch (err) {
+      setNotification({
+        type: 'error',
+        message: `Failed to set active spec: ${err.message}`
+      });
+    }
+  };
+
+  return (
+    <div class="space-y-6">
+      
+      {/* Toast Notification */}
+      {notification && (
+        <div class={`fixed top-6 right-6 z-[99999] flex items-center space-x-3 bg-slate-900/95 border ${
+          notification.type === 'success' ? 'border-green-500/30' : 'border-red-500/30'
+        } text-slate-100 px-4 py-3 rounded-xl shadow-2xl backdrop-blur-md animate-fade-in`}>
+          <div class={`w-6 h-6 rounded-full ${
+            notification.type === 'success' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
+          } flex items-center justify-center shrink-0`}>
+            <i class={`fas ${notification.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} text-xs`}></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold">{notification.type === 'success' ? 'Workspace Updated' : 'System Alert'}</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">{notification.message}</p>
+          </div>
+          <button 
+            onClick={() => setNotification(null)}
+            class="text-slate-500 hover:text-slate-350 transition ml-2"
+          >
+            <i class="fas fa-times text-[10px]"></i>
+          </button>
+        </div>
+      )}
+      
+      {/* Page Title & Intro */}
+      <div class="flex justify-between items-center bg-slate-900/40 p-6 rounded-2xl border border-slate-800/80">
+        <div>
+          <h1 class="text-xl font-black text-white uppercase tracking-wider flex items-center">
+            <i class="fas fa-file-signature text-indigo-500 mr-3"></i> Requirement Specifier Agent
+          </h1>
+          <p class="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+            Feed raw functional requirement briefs or upload a <code class="text-indigo-400 font-bold font-mono">Requirement.md</code> file. 
+            This agent executes GitHub Spec Kit prompts to auto-compile the five foundational project files and initializes a new active spec workspace.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        
+        {/* Left Column: Requirements Input */}
+        <div class="lg:col-span-2 space-y-6">
+          
+          {/* Input Panel */}
+          <div class="bg-[#0b0f19] border border-slate-800 rounded-2xl p-5 space-y-4">
+            <div class="flex justify-between items-center">
+              <h3 class="text-xs font-black text-white uppercase tracking-wider">Requirements Input</h3>
+              <label class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 font-semibold rounded-lg border border-slate-750 cursor-pointer flex items-center space-x-1.5 transition">
+                <i class="fas fa-upload"></i>
+                <span>Upload File</span>
+                <input
+                  type="file"
+                  accept=".txt,.md"
+                  onChange={handleFileUpload}
+                  class="hidden"
+                />
+              </label>
+            </div>
+
+            {uploadedFileName && (
+              <div class="flex items-center space-x-2 text-[10px] bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-indigo-400 font-mono">
+                <i class="fas fa-file-alt"></i>
+                <span class="truncate">{uploadedFileName}</span>
+              </div>
+            )}
+
+            <textarea
+              value={requirements}
+              onChange={(e) => setRequirements(e.target.value)}
+              placeholder="Paste raw requirements here... E.g., 'We need a portal where users can register using email and password, hash passwords, and view profile dashboards...'"
+              rows={12}
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs focus:outline-none focus:border-indigo-500 text-slate-300 font-mono transition"
+            />
+
+            <button
+              onClick={handleExecute}
+              disabled={isGenerating || !requirements.trim()}
+              class={`w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition ${
+                isGenerating || !requirements.trim()
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:from-indigo-500 hover:to-indigo-400 hover:shadow-lg hover:shadow-indigo-500/20'
+              }`}
+            >
+              {isGenerating ? (
+                <>
+                  <i class="fas fa-spinner animate-spin"></i>
+                  <span>Executing Spec Kit Scaffolding...</span>
+                </>
+              ) : (
+                <>
+                  <i class="fas fa-magic"></i>
+                  <span>Execute Spec Scaffolder</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Execution Log */}
+          {(isGenerating || logs.length > 0) && (
+            <div class="bg-slate-950 border border-slate-900 rounded-2xl p-4 space-y-2">
+              <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Execution Log Console</h4>
+              <div class="h-40 overflow-y-auto font-mono text-[9px] text-slate-400 space-y-1 scrollbar-thin">
+                {logs.map((log, idx) => (
+                  <div key={idx} class={`${log.startsWith('❌') ? 'text-red-400' : log.startsWith('🎉') || log.startsWith('All') ? 'text-green-400' : 'text-slate-400'}`}>
+                    {log}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+        </div>
+
+        {/* Right Column: Spec Kit Documents Viewer */}
+        <div class="lg:col-span-3">
+          {result ? (
+            <div class="bg-[#0b0f19] border border-slate-800 rounded-2xl p-5 flex flex-col h-[580px] overflow-hidden">
+              
+              {/* Folder Header */}
+              <div class="flex justify-between items-center border-b border-slate-850 pb-4 mb-4 shrink-0">
+                <div class="space-y-0.5">
+                  <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Active Workspace Folder</span>
+                  <div class="flex items-center space-x-2">
+                    <i class="fas fa-folder text-amber-500 text-sm"></i>
+                    <span class="text-xs font-bold text-white font-mono">{result.folderName}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleSelectActive(result.folderName)}
+                  class="px-3.5 py-1.5 bg-indigo-950 hover:bg-indigo-900 border border-indigo-900 hover:border-indigo-800 text-[10px] text-indigo-400 font-bold rounded-lg transition"
+                >
+                  <i class="fas fa-check mr-1.5"></i> Set as Active Spec
+                </button>
+              </div>
+
+              {/* Tabs list */}
+              <div class="flex border-b border-slate-850 overflow-x-auto shrink-0 mb-4 pb-0.5">
+                {result.files.map((file) => (
+                  <button
+                    key={file}
+                    onClick={() => loadDocContent(result.folderName, file)}
+                    class={`px-3 py-1.5 text-[10px] font-bold border-b-2 whitespace-nowrap transition -mb-0.5 ${
+                      activeTab === file
+                        ? 'border-indigo-500 text-indigo-400'
+                        : 'border-transparent text-slate-500 hover:text-slate-300'
+                    }`}
+                  >
+                    {file}
+                  </button>
+                ))}
+              </div>
+
+              {/* File contents viewer panel */}
+              <div class="flex-1 overflow-y-auto p-4 bg-slate-950 border border-slate-900 rounded-xl font-mono text-[10px] text-slate-300 leading-relaxed custom-scroll relative">
+                {isLoadingContent ? (
+                  <div class="absolute inset-0 bg-slate-950/80 flex items-center justify-center">
+                    <div class="flex flex-col items-center space-y-2">
+                      <i class="fas fa-spinner animate-spin text-indigo-500 text-lg"></i>
+                      <span class="text-[10px] text-slate-400">Loading document content...</span>
+                    </div>
+                  </div>
+                ) : (
+                  <pre class="whitespace-pre-wrap">{tabContent}</pre>
+                )}
+              </div>
+
+            </div>
+          ) : (
+            <div class="bg-[#0b0f19] border border-slate-800 rounded-2xl p-5 flex flex-col items-center justify-center text-center h-[580px] border-dashed">
+              <div class="w-16 h-16 rounded-full bg-slate-900/60 border border-slate-800 flex items-center justify-center mb-4 text-slate-600">
+                <i class="fas fa-file-invoice text-2xl"></i>
+              </div>
+              <h3 class="text-xs font-black text-white uppercase tracking-wider">Spec Kit Workspace Viewer</h3>
+              <p class="text-[10px] text-slate-500 mt-2 max-w-sm leading-relaxed">
+                Provide requirement details on the left and execute the spec builder. 
+                The compiled Spec Kit files will be rendered here interactively.
+              </p>
+            </div>
+          )}
+        </div>
+
+      </div>
+
+    </div>
+  );
+}

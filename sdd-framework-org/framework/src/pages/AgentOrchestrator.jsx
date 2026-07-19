@@ -1,0 +1,415 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { usePageContext } from '../context/PageContext';
+
+export default function AgentOrchestrator() {
+  const navigate = useNavigate();
+  const { loadSavedOutputs } = usePageContext();
+  const [activeSpec, setActiveSpec] = useState('');
+  const [threadId, setThreadId] = useState(localStorage.getItem('orchestrator_thread_id') || '');
+  const [graphState, setGraphState] = useState(null);
+  const [isStarting, setIsStarting] = useState(false);
+  const [isResponding, setIsResponding] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
+
+  // List of stages in orchestrator loop
+  const stagesOrder = [
+    { key: 'spec-to-story', label: 'Spec to Story', icon: 'fas fa-exchange-alt' },
+    { key: 'user-stories', label: 'User Stories', icon: 'fas fa-clipboard-list' },
+    { key: 'ux-wireframe', label: 'UX Wireframe', icon: 'fas fa-desktop' },
+    { key: 'functional-spec', label: 'Functional Spec', icon: 'fas fa-file-invoice' },
+    { key: 'tech-architecture', label: 'Tech Architecture', icon: 'fas fa-sitemap' },
+    { key: 'database-design', label: 'Database Design', icon: 'fas fa-database' },
+    { key: 'test-cases', label: 'Test Cases', icon: 'fas fa-tasks' },
+    { key: 'traceability-matrix', label: 'Traceability Matrix', icon: 'fas fa-link' }
+  ];
+
+  // Fetch active spec workspace on mount
+  useEffect(() => {
+    fetch('http://localhost:7001/api/specs/active')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setActiveSpec(data.activeSpec);
+        }
+      })
+      .catch(err => console.error(err));
+  }, []);
+
+  // Poll state status periodically if thread is active
+  useEffect(() => {
+    if (!threadId) return;
+
+    const pollStatus = async () => {
+      try {
+        const res = await fetch(`http://localhost:7001/api/orchestrator/status/${threadId}`);
+        const data = await res.json();
+        if (data.success && data.state) {
+          setGraphState(data.state);
+          loadSavedOutputs();
+        }
+      } catch (err) {
+        console.error('Failed to poll orchestrator status:', err);
+      }
+    };
+
+    pollStatus();
+    const interval = setInterval(pollStatus, 4000);
+    return () => clearInterval(interval);
+  }, [threadId]);
+
+  // Start Orchestrator Graph
+  const handleStartOrchestrator = async () => {
+    if (!activeSpec || isStarting) return;
+    setIsStarting(true);
+    try {
+      const res = await fetch('http://localhost:7001/api/orchestrator/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activeSpec })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setThreadId(data.threadId);
+        setGraphState(data.state);
+        localStorage.setItem('orchestrator_thread_id', data.threadId);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsStarting(false);
+    }
+  };
+
+  // Submit Approval/Reject response (HITL Action)
+  const handleReviewResponse = async (action) => {
+    if (!threadId || isResponding || !graphState) return;
+    setIsResponding(true);
+
+    const currentStage = graphState.currentStage || 'functional-spec';
+    try {
+      const res = await fetch('http://localhost:7001/api/orchestrator/respond', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          threadId,
+          stage: currentStage,
+          action,
+          feedbackText: action === 'reject' ? feedbackText : ''
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.state) {
+        setGraphState(data.state);
+        setFeedbackText('');
+        if (action === 'approve') {
+          loadSavedOutputs();
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsResponding(false);
+    }
+  };
+
+  // Reset Thread
+  // Reset Thread and Clean Artifacts
+  const handleResetThread = async () => {
+    try {
+      if (threadId) {
+        await fetch('http://localhost:7001/api/orchestrator/reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ threadId })
+        });
+      }
+    } catch (err) {
+      console.error('Failed to reset orchestrator session:', err);
+    } finally {
+      setThreadId('');
+      setGraphState(null);
+      localStorage.removeItem('orchestrator_thread_id');
+      // Reload page context to clean all local states
+      loadSavedOutputs();
+    }
+  };
+
+  // Helper: Get stage approval status
+  const getStageStatus = (stageKey) => {
+    if (stageKey === 'completed') return 'completed';
+    if (!graphState) return 'pending';
+    
+    // Check if stage has been completed/approved
+    if (graphState.approvalStatus[stageKey] === 'approved') return 'approved';
+    if (graphState.approvalStatus[stageKey] === 'rejected') return 'rejected';
+    
+    // If it's the current running stage
+    if (graphState.currentStage === stageKey) {
+      if (graphState.results[stageKey]) return 'pending_review';
+      return 'running';
+    }
+    
+    return 'pending';
+  };
+
+  const currentStage = graphState?.currentStage || 'spec-to-story';
+  const isStageAwaitingReview = graphState && graphState.results[currentStage] && graphState.approvalStatus[currentStage] !== 'approved';
+
+  return (
+    <div class="space-y-6">
+      
+      {/* Page Title Header */}
+      <div class="flex justify-between items-center bg-slate-900/40 p-6 rounded-2xl border border-slate-800/80">
+        <div>
+          <h1 class="text-xl font-black text-white uppercase tracking-wider flex items-center">
+            <i class="fas fa-project-diagram text-indigo-500 mr-3"></i> LangGraph Agent Orchestrator
+          </h1>
+          <p class="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+            Central orchestration board powered by LangGraph. Routes compilation tasks dynamically using the Selector Agent and gates key phases for Human-in-the-Loop verification.
+          </p>
+        </div>
+        
+        <div class="flex items-center space-x-3">
+          {(graphState || threadId) && (
+            <button
+              onClick={handleResetThread}
+              class="px-4 py-2 bg-red-950/20 border border-red-900/50 text-red-400 hover:bg-red-900/10 hover:text-red-300 text-xs font-bold rounded-xl transition cursor-pointer"
+            >
+              Stop & Reset Session
+            </button>
+          )}
+          {!graphState && (
+            <button
+              onClick={handleStartOrchestrator}
+              disabled={!activeSpec || isStarting}
+              class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:from-indigo-500 hover:to-indigo-400 hover:shadow-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isStarting ? 'Starting Orchestrator...' : 'Start Orchestration'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Left Column: Stages & Live Logs (4 cols) */}
+        <div class="lg:col-span-5 space-y-6">
+          
+          {/* Stages List */}
+          <div class="bg-[#0b0f19] border border-slate-800 rounded-2xl p-5 space-y-4">
+            <h3 class="text-xs font-black text-white uppercase tracking-wider">Pipeline Execution Plan</h3>
+            <div class="space-y-3">
+              {stagesOrder.map((stage) => {
+                const status = getStageStatus(stage.key);
+                const decision = graphState?.modelDecision[stage.key];
+                
+                return (
+                  <div key={stage.key} class="flex items-center justify-between p-3 bg-slate-950/20 border border-slate-800 rounded-xl">
+                    <div class="flex items-center space-x-3 min-w-0">
+                      <div class={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                        status === 'approved' ? 'bg-green-500/10 text-green-400' :
+                        status === 'rejected' ? 'bg-red-500/10 text-red-400' :
+                        status === 'pending_review' ? 'bg-amber-500/10 text-amber-400 animate-pulse' :
+                        status === 'running' ? 'bg-indigo-500/10 text-indigo-400 animate-pulse' :
+                        'bg-slate-900 text-slate-500'
+                      }`}>
+                        <i class={`${stage.icon} text-xs`}></i>
+                      </div>
+                      <div class="truncate">
+                        <p class="text-xs font-bold text-slate-200">{stage.label}</p>
+                        {decision && (
+                          <p class="text-[9px] text-indigo-400 font-semibold truncate max-w-[170px]" title={decision.reasoning}>
+                            {decision.model === 'gemini-3.5-flash' ? 'LLM: 3.5-Flash' : decision.model === 'gemini-3.1-flash-lite' ? 'SLM: Flash-Lite' : decision.model}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Status Badge */}
+                    <div>
+                      {status === 'approved' && (
+                        <span class="text-[9px] px-2 py-0.5 bg-green-500/10 border border-green-500/30 text-green-400 font-bold rounded-full">Approved</span>
+                      )}
+                      {status === 'rejected' && (
+                        <span class="text-[9px] px-2 py-0.5 bg-red-500/10 border border-red-500/30 text-red-400 font-bold rounded-full">Refining</span>
+                      )}
+                      {status === 'pending_review' && (
+                        <span class="text-[9px] px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold rounded-full">Awaiting Review</span>
+                      )}
+                      {status === 'running' && (
+                        <span class="text-[9px] px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 font-bold rounded-full">Processing</span>
+                      )}
+                      {status === 'pending' && (
+                        <span class="text-[9px] px-2 py-0.5 bg-slate-900 border border-slate-800 text-slate-500 font-bold rounded-full">Queued</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Live Execution Console Logs */}
+          <div class="bg-[#0b0f19] border border-slate-800 rounded-2xl p-5 space-y-4">
+            <h3 class="text-xs font-black text-white uppercase tracking-wider flex items-center">
+              <i class="fas fa-terminal mr-2 text-pink-500"></i> Execution log console
+            </h3>
+            
+            <div class="bg-slate-950 font-mono text-[10px] p-3 rounded-xl border border-slate-900 h-64 overflow-y-auto custom-scroll flex flex-col space-y-1">
+              {!graphState ? (
+                <div class="text-slate-500 text-center py-20">Console idle. Start orchestration to view live traces.</div>
+              ) : (
+                graphState.logs.map((log, idx) => (
+                  <div key={idx} class={`whitespace-pre-wrap ${
+                    log.includes('[Error]') || log.includes('failed') ? 'text-red-400' :
+                    log.includes('[Selector]') ? 'text-indigo-400 font-semibold' :
+                    log.includes('[Generator]') ? 'text-emerald-400 font-medium' :
+                    log.includes('[Gating]') ? 'text-amber-400' :
+                    'text-slate-400'
+                  }`}>
+                    {log}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+        </div>
+
+        {/* Right Column: Approval Console & Preview (7 cols) */}
+        <div class="lg:col-span-7">
+          {graphState ? (
+            <div class="bg-[#0b0f19] border border-slate-800 rounded-2xl p-5 flex flex-col h-[670px] overflow-hidden">
+              
+              {/* Header */}
+              <div class="border-b border-slate-850 pb-4 mb-4 shrink-0 flex justify-between items-center">
+                <div>
+                  <h3 class="text-sm font-bold text-white uppercase flex items-center">
+                    <span class="w-1.5 h-3 bg-indigo-500 rounded-full mr-2"></span> Orchestration Viewport
+                  </h3>
+                  <p class="text-[10px] text-slate-500 font-medium mt-0.5">Active stage: <span class="text-indigo-400 font-bold capitalize font-mono">{currentStage.replace('-', ' ')}</span></p>
+                </div>
+                
+                {/* Selector Agent routing details */}
+                {graphState.modelDecision[currentStage] && (
+                  <div class="text-right">
+                    <span class="text-[9px] px-2 py-1 bg-indigo-950 border border-indigo-900 text-indigo-400 font-bold rounded-lg uppercase">
+                      {graphState.modelDecision[currentStage].model}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Viewport content draft preview */}
+              <div class="flex-1 overflow-y-auto p-4 bg-slate-950 border border-slate-900 rounded-xl font-mono text-[10px] text-slate-350 leading-relaxed custom-scroll relative mb-4">
+                {currentStage === 'completed' ? (
+                  <div class="flex flex-col items-center justify-center h-full text-center p-8 space-y-6">
+                    <div class="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-400 animate-bounce">
+                      <i class="fas fa-check text-2xl"></i>
+                    </div>
+                    <div class="max-w-md space-y-2">
+                      <h3 class="text-sm font-bold text-white uppercase tracking-wider">Orchestration Pipeline Completed!</h3>
+                      <p class="text-[11px] text-slate-400 leading-relaxed font-sans">
+                        All 8 software development specification stages have been processed, approved, and indexed in the Qdrant database.
+                        Please navigate to the specific submenu dashboards in the sidebar to review and export the individual agent artifacts.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => navigate('/spec-to-story')}
+                      class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:shadow-lg transition cursor-pointer"
+                    >
+                      Go to Spec to Story Dashboard
+                    </button>
+                  </div>
+                ) : getStageStatus(currentStage) === 'running' ? (
+                  <div class="absolute inset-0 bg-slate-950/80 flex items-center justify-center">
+                    <div class="flex flex-col items-center space-y-2">
+                      <i class="fas fa-circle-notch animate-spin text-indigo-500 text-lg"></i>
+                      <span class="text-[10px] text-slate-400">Agent generating draft output...</span>
+                    </div>
+                  </div>
+                ) : graphState.results[currentStage] ? (
+                  currentStage === 'functional-spec' || (typeof graphState.results[currentStage] === 'string' && graphState.results[currentStage].startsWith('<!DOCTYPE')) ? (
+                    <iframe
+                      srcDoc={typeof graphState.results[currentStage] === 'string' ? graphState.results[currentStage] : JSON.stringify(graphState.results[currentStage], null, 2)}
+                      class="w-full h-full border-none bg-white rounded"
+                      title="FSD Preview"
+                    />
+                  ) : (
+                    <pre class="whitespace-pre-wrap">
+                      {typeof graphState.results[currentStage] === 'string' 
+                        ? graphState.results[currentStage] 
+                        : JSON.stringify(graphState.results[currentStage], null, 2)}
+                    </pre>
+                  )
+                ) : (
+                  <div class="text-slate-500 text-center py-40">Awaiting agent execution results.</div>
+                )}
+              </div>
+
+              {/* Human-in-the-Loop review pane */}
+              {isStageAwaitingReview ? (
+                <div class="bg-amber-950/20 border border-amber-900/40 p-4 rounded-xl space-y-3 shrink-0">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+                    <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider">Human-In-The-Loop Quality Gate</h4>
+                  </div>
+                  <p class="text-[10px] text-slate-400">Review the generated draft enqueued above. You can either approve and trigger the next pipeline agent, or provide feedback comments to refine the output.</p>
+                  
+                  <div class="flex space-x-3">
+                    <input
+                      type="text"
+                      value={feedbackText}
+                      onChange={(e) => setFeedbackText(e.target.value)}
+                      placeholder="Add refinement feedback (e.g. Include SLA timelines table, change PG port to 5432)..."
+                      class="flex-1 bg-slate-950 border border-slate-900 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-amber-500 text-slate-200 outline-none placeholder-slate-600"
+                    />
+                    
+                    <button
+                      onClick={() => handleReviewResponse('reject')}
+                      disabled={isResponding || !feedbackText.trim()}
+                      class="px-4 py-2 bg-slate-900 border border-slate-800 text-red-400 hover:text-red-300 text-xs font-bold rounded-xl transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Refine Draft
+                    </button>
+                    
+                    <button
+                      onClick={() => handleReviewResponse('approve')}
+                      disabled={isResponding}
+                      class="px-4 py-2 bg-gradient-to-r from-green-600 to-green-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl hover:from-green-500 hover:to-green-400 transition cursor-pointer disabled:opacity-50"
+                    >
+                      Approve & Proceed
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                graphState.approvalStatus[currentStage] === 'approved' && (
+                  <div class="bg-green-950/20 border border-green-950 p-3 rounded-xl flex items-center justify-between shrink-0">
+                    <span class="text-xs text-green-400 font-bold flex items-center">
+                      <i class="fas fa-check-circle mr-2"></i> Stage Approved! Proceeding in background...
+                    </span>
+                  </div>
+                )
+              )}
+
+            </div>
+          ) : (
+            <div class="bg-[#0b0f19] border border-slate-800 rounded-2xl p-5 flex flex-col items-center justify-center text-center h-[670px] border-dashed">
+              <div class="w-16 h-16 rounded-full bg-slate-900/60 border border-slate-800 flex items-center justify-center mb-4 text-slate-600">
+                <i class="fas fa-project-diagram text-2xl"></i>
+              </div>
+              <h3 class="text-xs font-black text-white uppercase tracking-wider">Multi-Agent Workflow Viewport</h3>
+              <p class="text-[10px] text-slate-500 mt-2 max-w-sm leading-relaxed">
+                Click **"Start Orchestration"** at the top right. 
+                The LangGraph orchestrator will trigger sequential agent processing and highlight selector model routing decisions here.
+              </p>
+            </div>
+          )}
+        </div>
+
+      </div>
+
+    </div>
+  );
+}

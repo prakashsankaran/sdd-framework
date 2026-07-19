@@ -1,0 +1,41 @@
+{
+  "active_llm": "gemini-3.5-flash",
+  "active_slm": "gemini-3.1-flash-lite",
+  "models": [
+    {
+      "id": "gemini-3.5-flash",
+      "name": "Gemini 3.5 Flash",
+      "provider": "google",
+      "type": "LLM",
+      "apiKeyEnv": "GEMINI_API_KEY"
+    },
+    {
+      "id": "gemini-3.1-flash-lite",
+      "name": "Gemini 3.1 Flash Lite",
+      "provider": "google",
+      "type": "SLM",
+      "apiKeyEnv": "GEMINI_API_KEY"
+    },
+    {
+      "id": "gpt-4o",
+      "name": "GPT-4o",
+      "provider": "openai",
+      "type": "LLM",
+      "apiKeyEnv": "OPENAI_API_KEY"
+    },
+    {
+      "id": "gpt-4o-mini",
+      "name": "GPT-4o-Mini",
+      "provider": "openai",
+      "type": "SLM",
+      "apiKeyEnv": "OPENAI_API_KEY"
+    },
+    {
+      "id": "claude-3-5-sonnet",
+      "name": "Claude 3.5 Sonnet",
+      "provider": "anthropic",
+      "type": "LLM",
+      "apiKeyEnv": "ANTHROPIC_API_KEY"
+    }
+  ]
+}

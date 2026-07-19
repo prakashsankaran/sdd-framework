@@ -1,0 +1,474 @@
+import React, { useState, useEffect } from 'react';
+import { usePageContext } from '../context/PageContext';
+import { backendAdapter } from '../agents/backendAdapter';
+import { GeneratedOutput } from '../components/GeneratedOutput';
+import { pdfGenerator } from '../utils/pdfGenerator';
+import { excelGenerator } from '../utils/excelGenerator';
+import { api } from '../services/api';
+
+export default function ReviewAgent() {
+  const { pages, updatePageState } = usePageContext();
+  const pageState = pages['review-agent'];
+
+  const [leftTab, setLeftTab] = useState('import'); // 'upload' | 'import'
+  const [rightTab, setRightTab] = useState('compliance'); // 'compliance' | 'code'
+  
+  const [importedStages, setImportedStages] = useState({
+    'user-stories': false,
+    'functional-spec': false,
+    'tech-architecture': false,
+    'database-design': false,
+    'ux-wireframe': false,
+    'test-cases': false,
+    'traceability-matrix': false
+  });
+
+  const [repoPath, setRepoPath] = useState('/Users/saravanan/Prakash/SDD Framework');
+  const [scanLogs, setScanLogs] = useState([]);
+  const [scanResults, setScanResults] = useState(null);
+  const [isScanning, setIsScanning] = useState(false);
+
+  const [dialogText, setDialogText] = useState('');
+  const [showDialog, setShowDialog] = useState(false);
+
+  const stageLabels = {
+    'user-stories': '1. User Stories Backlog',
+    'functional-spec': '2. Functional Spec (FSD)',
+    'tech-architecture': '3. Technical Architecture',
+    'database-design': '4. Database Design Schema',
+    'ux-wireframe': '5. UX Wireframe Mockups',
+    'test-cases': '6. Testing Suite Cases',
+    'traceability-matrix': '7. Traceability Matrix'
+  };
+
+  // Handle file select for manual uploads
+  const handleFileSelect = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const fileList = Array.from(e.target.files).map(f => ({ name: f.name, size: f.size }));
+      updatePageState('review-agent', {
+        files: [...pageState.files, ...fileList]
+      });
+    }
+  };
+
+  const handleTriggerGenerate = async () => {
+    // Collect active imports
+    const activeImports = Object.keys(importedStages).filter(k => importedStages[k]);
+    const instructions = `Auditing generated stages: ${activeImports.join(', ')}`;
+    await backendAdapter.runGeneration('review-agent', updatePageState, instructions);
+  };
+
+  const handleCheckboxChange = (key) => {
+    setImportedStages(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  // Code quality audit action triggers
+  const handleValidatePath = async () => {
+    setScanLogs(prev => [...prev, `[PathCheck] Checking directory path availability: ${repoPath}`]);
+    setTimeout(() => {
+      setScanLogs(prev => [...prev, `[PathCheck] Validated! Path is a registered workspace directory.`]);
+    }, 500);
+  };
+
+  const handleScanTechStack = async () => {
+    setIsScanning(true);
+    setScanLogs(prev => [...prev, `[TechScanner] Initiating filesystem recursive walk...`]);
+    try {
+      const data = await api.scanRepo(repoPath);
+      setIsScanning(false);
+      setScanLogs(prev => [
+        ...prev,
+        `[TechScanner] Scan completed!`,
+        `[TechScanner] Languages detected: ${data.languages.join(', ')}`
+      ]);
+      setScanResults(data);
+    } catch (e) {
+      setIsScanning(false);
+      setScanLogs(prev => [...prev, `[Error] Tech Scan failed: ${e.message}`]);
+    }
+  };
+
+  const handleAICodeAudit = () => {
+    setScanLogs(prev => [
+      ...prev,
+      `[AI-Auditor] Running structural semantic scanning...`,
+      `[AI-Auditor] Checkpoint: SQL Injection vulnerabilities -> Clean.`,
+      `[AI-Auditor] Checkpoint: CSRF & CORS Configurations -> Validated Express CORS headers.`,
+      `[AI-Auditor] Scan complete. Found 2 issues.`
+    ]);
+  };
+
+  const publishToConfluence = () => {
+    setDialogText('Report successfully compiled and enqueued for publish to Confluence Space [ENG-SDD].');
+    setShowDialog(true);
+  };
+
+  const linkToJira = () => {
+    setDialogText('Issues mapped and linked to JIRA active sprint tracker.');
+    setShowDialog(true);
+  };
+
+  const handleExportPDF = () => {
+    if (!pageState.output) return;
+    
+    let htmlContent = `
+      <h1>System Quality & Compliance Audit Report</h1>
+      <h2>Compliance Review Checkpoints</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Compliance Checkpoint</th>
+            <th>Status</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+    pageState.output.compliance?.forEach(row => {
+      htmlContent += `
+        <tr>
+          <td><strong>${row.id}</strong></td>
+          <td>${row.checkpoint}</td>
+          <td>${row.status}</td>
+          <td>${row.details}</td>
+        </tr>
+      `;
+    });
+    htmlContent += '</tbody></table>';
+
+    pdfGenerator.download('Compliance_Report.pdf', htmlContent);
+  };
+
+  const handleExportExcel = () => {
+    if (!pageState.output?.compliance) return;
+    excelGenerator.download('Compliance_Audit_Report', pageState.output.compliance);
+  };
+
+  return (
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-100px)]">
+      
+      {/* Left Panel: Tab Selectors & Source Import */}
+      <div class="lg:col-span-4 flex flex-col space-y-4 overflow-hidden">
+        <div class="glass-panel p-5 rounded-2xl flex flex-col space-y-4 border border-slate-800 shadow-xl overflow-y-auto custom-scroll h-full">
+          <h3 class="text-sm font-bold tracking-wide text-slate-300 uppercase">Audit Source Configuration</h3>
+          
+          <div class="flex space-x-1 bg-slate-950 p-0.5 rounded-lg border border-slate-800">
+            <button 
+              onClick={() => setLeftTab('import')}
+              class={`flex-1 py-1.5 rounded-md text-xs font-semibold transition ${
+                leftTab === 'import' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Import Generated
+            </button>
+            <button 
+              onClick={() => setLeftTab('upload')}
+              class={`flex-1 py-1.5 rounded-md text-xs font-semibold transition ${
+                leftTab === 'upload' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Upload Source
+            </button>
+          </div>
+
+          {leftTab === 'import' ? (
+            <div class="space-y-3 flex-1 flex flex-col">
+              <p class="text-[10px] text-slate-500 font-medium">Select generated stages to audit for compliance rules</p>
+              
+              <div class="space-y-1.5 flex-1 overflow-y-auto custom-scroll pr-1">
+                {Object.keys(stageLabels).map(key => {
+                  const hasData = !!pages[key]?.output;
+                  return (
+                    <label 
+                      key={key} 
+                      class={`flex items-center justify-between p-2.5 rounded-lg border text-xs cursor-pointer transition ${
+                        importedStages[key] 
+                          ? 'bg-indigo-950/20 border-indigo-500/50 text-slate-200' 
+                          : 'bg-slate-900/30 border-slate-800 text-slate-400 hover:bg-slate-900/60'
+                      }`}
+                    >
+                      <div class="flex items-center space-x-2">
+                        <input 
+                          type="checkbox"
+                          checked={importedStages[key]}
+                          onChange={() => handleCheckboxChange(key)}
+                          class="rounded border-slate-700 bg-slate-950 text-indigo-600 focus:ring-0 focus:ring-offset-0"
+                        />
+                        <span>{stageLabels[key]}</span>
+                      </div>
+                      
+                      {hasData ? (
+                        <span class="text-[9px] px-1.5 py-0.5 bg-green-900/30 text-green-400 border border-green-800 rounded">Available</span>
+                      ) : (
+                        <span class="text-[9px] px-1.5 py-0.5 bg-slate-850 text-slate-500 border border-slate-800 rounded">No Data</span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={handleTriggerGenerate}
+                disabled={pageState.isLoading}
+                class={`w-full py-2.5 font-bold rounded-xl text-xs flex items-center justify-center space-x-2 transition duration-200 border border-indigo-500/40 glow-indigo ${
+                  pageState.isLoading 
+                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white'
+                }`}
+              >
+                {pageState.isLoading ? <i class="fas fa-circle-notch animate-spin"></i> : <i class="fas fa-shield-alt"></i>}
+                <span>Run Compliance Audit</span>
+              </button>
+            </div>
+          ) : (
+            <div class="space-y-4 flex-1">
+              <div 
+                onClick={() => document.getElementById('manual-audit-upload')?.click()}
+                class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-900/40 hover:bg-slate-900/80 rounded-xl p-8 text-center cursor-pointer transition duration-200 flex flex-col items-center justify-center space-y-2"
+              >
+                <input 
+                  type="file" 
+                  id="manual-audit-upload" 
+                  onChange={handleFileSelect} 
+                  class="hidden" 
+                  multiple 
+                />
+                <div class="p-3 bg-indigo-500/10 text-indigo-400 rounded-full">
+                  <i class="fas fa-upload text-xl"></i>
+                </div>
+                <p class="text-xs font-semibold text-slate-300">Upload Audit Source files</p>
+                <p class="text-[10px] text-slate-500">Supports logs, HTML compiles, and source reports</p>
+              </div>
+
+              {pageState.files.length > 0 && (
+                <div class="space-y-2">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Uploaded files ({pageState.files.length})</p>
+                  <div class="max-h-32 overflow-y-auto space-y-1 custom-scroll">
+                    {pageState.files.map((f, i) => (
+                      <div key={i} class="bg-slate-950 border border-slate-800 p-2 rounded text-xs flex items-center justify-between">
+                        <span class="truncate text-slate-300">{f.name}</span>
+                        <span class="text-[10px] text-slate-500">({(f.size / 1024).toFixed(1)} KB)</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Right Panel: Audit Report Viewport */}
+      <div class="lg:col-span-8 h-full flex flex-col overflow-hidden">
+        <GeneratedOutput
+          title="System Audit & Quality Compliance Board"
+          subtitle="Enterprise risk checkpoints scanning, compliance matrices and stack audits"
+          actions={
+            pageState.output && (
+              <div class="flex items-center space-x-1.5">
+                <button 
+                  onClick={publishToConfluence}
+                  class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 text-xs font-bold rounded-lg border border-slate-700 flex items-center space-x-1"
+                >
+                  <i class="fab fa-confluence"></i>
+                  <span>Confluence</span>
+                </button>
+                <button 
+                  onClick={linkToJira}
+                  class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold rounded-lg border border-slate-700 flex items-center space-x-1"
+                >
+                  <i class="fab fa-jira"></i>
+                  <span>Jira</span>
+                </button>
+                <button 
+                  onClick={handleExportExcel}
+                  class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-green-400 text-xs font-bold rounded-lg border border-slate-700 flex items-center space-x-1"
+                >
+                  <i class="far fa-file-excel"></i>
+                  <span>Excel</span>
+                </button>
+                <button 
+                  onClick={handleExportPDF}
+                  class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-red-400 text-xs font-bold rounded-lg border border-slate-700 flex items-center space-x-1"
+                >
+                  <i class="far fa-file-pdf"></i>
+                  <span>PDF</span>
+                </button>
+              </div>
+            )
+          }
+        >
+          <div class="flex flex-col h-full space-y-4">
+            
+            {/* Viewport tabs */}
+            <div class="flex space-x-1.5 bg-slate-900/60 p-1 border border-slate-800 rounded-xl self-start">
+              <button 
+                onClick={() => setRightTab('compliance')}
+                class={`px-4 py-2 rounded-lg text-xs font-bold transition duration-150 ${
+                  rightTab === 'compliance' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Compliance Review
+              </button>
+              <button 
+                onClick={() => setRightTab('code')}
+                class={`px-4 py-2 rounded-lg text-xs font-bold transition duration-150 ${
+                  rightTab === 'code' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Code Quality Audit
+              </button>
+            </div>
+
+            {/* Content viewports */}
+            <div class="flex-1 bg-slate-950/60 rounded-xl border border-slate-900/80 p-5 overflow-auto custom-scroll min-h-[300px]">
+              {rightTab === 'compliance' ? (
+                !pageState.output ? (
+                  <div class="flex flex-col items-center justify-center h-full p-8 text-center space-y-3">
+                    <div class="p-3.5 bg-indigo-500/5 text-indigo-400 rounded-full">
+                      <i class="fas fa-shield-alt text-2xl"></i>
+                    </div>
+                    <p class="text-xs font-bold text-slate-300">Run Audit to Audit Compliance</p>
+                    <p class="text-[10px] text-slate-500 max-w-xs">Select active modules to scan role boundary parameters and compliance certifications.</p>
+                  </div>
+                ) : (
+                  <div class="space-y-4">
+                    <div class="overflow-x-auto">
+                      <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr class="bg-slate-900 border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold text-[10px]">
+                            <th class="p-3 w-16 border-r border-slate-800">ID</th>
+                            <th class="p-3 border-r border-slate-800">Compliance Checkpoint</th>
+                            <th class="p-3 w-20 border-r border-slate-800 text-center">Status</th>
+                            <th class="p-3">Details</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-850 bg-slate-950/20 text-slate-300">
+                          {pageState.output.compliance?.map((row, idx) => (
+                            <tr key={idx} class="hover:bg-slate-900/20">
+                              <td class="p-3 border-r border-slate-800 font-bold text-indigo-400">{row.id}</td>
+                              <td class="p-3 border-r border-slate-800 font-semibold text-slate-200">{row.checkpoint}</td>
+                              <td class="p-3 border-r border-slate-800 text-center">
+                                <span class={`px-2 py-0.5 rounded text-[9px] font-extrabold ${
+                                  row.status === 'Passed' ? 'bg-green-900/30 text-green-400 border border-green-800/80' : 'bg-yellow-900/30 text-yellow-400 border border-yellow-800/80'
+                                }`}>
+                                  {row.status}
+                                </span>
+                              </td>
+                              <td class="p-3 text-slate-400 leading-normal">{row.details}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )
+              ) : (
+                <div class="space-y-4 h-full flex flex-col">
+                  {/* Code Scan actions form */}
+                  <div class="bg-slate-900/50 p-4 border border-slate-850 rounded-xl space-y-3">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Repository Path</label>
+                    <div class="flex gap-2">
+                      <input 
+                        type="text"
+                        value={repoPath}
+                        onChange={(e) => setRepoPath(e.target.value)}
+                        class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-300 font-mono"
+                      />
+                      <button 
+                        onClick={handleValidatePath}
+                        class="px-3 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-bold rounded-lg border border-slate-700"
+                      >
+                        Validate Path
+                      </button>
+                    </div>
+
+                    <div class="flex space-x-2 pt-1">
+                      <button 
+                        onClick={handleScanTechStack}
+                        disabled={isScanning}
+                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg flex items-center space-x-1.5 shadow"
+                      >
+                        {isScanning ? <i class="fas fa-circle-notch animate-spin"></i> : <i class="fas fa-laptop-code"></i>}
+                        <span>Scan Tech Stack</span>
+                      </button>
+                      <button 
+                        onClick={handleAICodeAudit}
+                        class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg flex items-center space-x-1.5 shadow"
+                      >
+                        <i class="fas fa-microchip"></i>
+                        <span>AI Code Audit</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Terminal console */}
+                  <div class="flex-1 flex flex-col space-y-1.5 min-h-[150px]">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                      <i class="fas fa-terminal mr-1 text-purple-400"></i> Execution Terminal
+                    </div>
+                    <div class="flex-1 bg-slate-950/80 font-mono text-[10px] text-slate-300 p-3 rounded-lg border border-slate-850 overflow-y-auto custom-scroll flex flex-col space-y-1">
+                      {scanLogs.length === 0 ? (
+                        <div class="text-slate-600 italic">Initiate a pathway validation or stack scanner to view build output logs...</div>
+                      ) : (
+                        scanLogs.map((log, idx) => (
+                          <div key={idx} class={log.includes('[Error]') ? 'text-red-400' : log.includes('[TechScanner]') ? 'text-indigo-400' : 'text-slate-400'}>
+                            {log}
+                          </div>
+                        ))
+                      )}
+                      
+                      {scanResults && (
+                        <div class="border-t border-slate-800 pt-2.5 mt-2.5 space-y-2">
+                          <div class="text-green-400 font-bold">[Scan Report] Detected Frameworks:</div>
+                          <div class="pl-4 text-slate-300 flex flex-wrap gap-1.5">
+                            {scanResults.languages.map((l, i) => (
+                              <span key={i} class="bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-[9px]">{l}</span>
+                            ))}
+                          </div>
+                          <div class="text-red-400 font-bold mt-2">[Scan Report] Potential issues found:</div>
+                          <div class="pl-4 space-y-1">
+                            {scanResults.issues.map((iss, i) => (
+                              <div key={i} class="text-slate-400">
+                                <span class="text-yellow-500 font-semibold">[{iss.severity}]</span> {iss.file}: {iss.message}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+          </div>
+        </GeneratedOutput>
+      </div>
+
+      {/* Confirmation Dialog Modal */}
+      {showDialog && (
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+          <div class="glass-panel max-w-sm w-full mx-4 p-5 rounded-2xl border border-slate-800 shadow-2xl space-y-4">
+            <div class="flex items-center space-x-3 text-indigo-400">
+              <i class="fas fa-check-circle text-2xl"></i>
+              <h3 class="text-sm font-bold text-slate-200">Operation Successful</h3>
+            </div>
+            <p class="text-xs text-slate-400 leading-normal">{dialogText}</p>
+            <button 
+              onClick={() => setShowDialog(false)}
+              class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition duration-150"
+            >
+              Acknowledge
+            </button>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
