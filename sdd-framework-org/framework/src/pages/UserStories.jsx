@@ -18,6 +18,10 @@ export default function UserStories() {
   
   const [isSyncing, setIsSyncing] = useState(false);
   const [showSyncSuccess, setShowSyncSuccess] = useState(false);
+  
+  const [isJiraUploading, setIsJiraUploading] = useState(false);
+  const [jiraUploadResult, setJiraUploadResult] = useState(null);
+  const [jiraError, setJiraError] = useState('');
 
   // Load workspace specification on mount
   useEffect(() => {
@@ -61,6 +65,30 @@ export default function UserStories() {
       setShowSyncSuccess(true);
       setTimeout(() => setShowSyncSuccess(false), 3000);
     }, 1200);
+  };
+
+  const handleUploadToJira = async () => {
+    setIsJiraUploading(true);
+    setJiraError('');
+    setJiraUploadResult(null);
+    try {
+      const response = await fetch('http://localhost:7001/api/jira/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setJiraUploadResult(data.createdIssues);
+      } else {
+        throw new Error(data.error || 'Failed to upload user stories to JIRA board.');
+      }
+    } catch (err) {
+      setJiraError(err.message);
+    } finally {
+      setIsJiraUploading(false);
+    }
   };
 
   const startEditCell = (rowIdx, colKey, val) => {
@@ -248,6 +276,14 @@ export default function UserStories() {
               {isSyncing ? <i class="fas fa-circle-notch animate-spin"></i> : <i class="fas fa-cloud-upload-alt"></i>}
               <span>Save Changes & Sync</span>
             </button>
+            <button 
+              onClick={handleUploadToJira}
+              disabled={isJiraUploading || !pageState.output}
+              class="px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-bold rounded-lg border border-indigo-500/30 shadow-lg flex items-center space-x-1.5"
+            >
+              {isJiraUploading ? <i class="fas fa-circle-notch animate-spin"></i> : <i class="fab fa-jira"></i>}
+              <span>Upload to JIRA</span>
+            </button>
           </div>
         </div>
 
@@ -432,6 +468,72 @@ export default function UserStories() {
           </div>
         )}
       </div>
+
+      {/* JIRA Upload Result Modal */}
+      {(jiraUploadResult || jiraError) && (
+        <div class="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+          <div class="glass-panel max-w-lg w-full mx-4 p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-850 pb-3">
+              <h3 class="text-sm font-bold text-slate-200 flex items-center">
+                <i class="fab fa-jira mr-2 text-indigo-400"></i> JIRA Push Status
+              </h3>
+              <button 
+                onClick={() => { setJiraUploadResult(null); setJiraError(''); }}
+                class="text-slate-400 hover:text-white transition"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+
+            {jiraError ? (
+              <div class="bg-red-950/20 border border-red-900/60 p-4 rounded-xl text-red-400 text-xs flex items-start space-x-2">
+                <i class="fas fa-exclamation-triangle mt-0.5 shrink-0"></i>
+                <div class="space-y-1">
+                  <p class="font-bold">Sync Failed</p>
+                  <p class="leading-normal">{jiraError}</p>
+                </div>
+              </div>
+            ) : (
+              <div class="space-y-3">
+                <div class="bg-green-950/20 border border-green-900/60 p-3 rounded-xl text-green-400 text-xs flex items-center space-x-2">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Successfully generated separate user story cards on JIRA board!</span>
+                </div>
+
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Created JIRA Cards ({jiraUploadResult.length})</p>
+                <div class="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scroll">
+                  {jiraUploadResult.map((issue) => (
+                    <div key={issue.key} class="bg-slate-950/80 border border-slate-850 p-2.5 rounded-lg flex justify-between items-center text-xs">
+                      <div class="flex flex-col min-w-0 pr-2">
+                        <span class="text-slate-200 font-semibold truncate">{issue.summary}</span>
+                        <span class="text-[10px] text-slate-500">Key: <span class="text-indigo-400 font-mono">{issue.key}</span> | Status: {issue.status}</span>
+                      </div>
+                      <a 
+                        href={issue.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        class="text-indigo-400 hover:text-indigo-300 font-bold shrink-0 flex items-center space-x-1"
+                      >
+                        <span>Open</span>
+                        <i class="fas fa-external-link-alt text-[9px]"></i>
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div class="flex justify-end pt-2">
+              <button 
+                onClick={() => { setJiraUploadResult(null); setJiraError(''); }}
+                class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition"
+              >
+                Acknowledge
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

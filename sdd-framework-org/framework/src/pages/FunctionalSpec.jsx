@@ -1,14 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePageContext } from '../context/PageContext';
 import { backendAdapter } from '../agents/backendAdapter';
 import { FileUpload } from '../components/FileUpload';
 import { GeneratedOutput } from '../components/GeneratedOutput';
 import { pdfGenerator } from '../utils/pdfGenerator';
 import { api } from '../services/api';
+import { ConfluencePublishModal } from '../components/ConfluencePublishModal';
 
 export default function FunctionalSpec() {
   const { pages, updatePageState } = usePageContext();
   const pageState = pages['functional-spec'];
+  const [isConfluenceOpen, setIsConfluenceOpen] = useState(false);
 
   // Auto load latest workspace spec as reference on load
   useEffect(() => {
@@ -73,13 +75,22 @@ export default function FunctionalSpec() {
           subtitle="High fidelity 2-pass compiled specification sheet"
           actions={
             pageState.output && (
-              <button 
-                onClick={handleDownloadPDF}
-                class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-red-400 text-xs font-bold rounded-lg border border-slate-700 flex items-center space-x-1.5"
-              >
-                <i class="far fa-file-pdf"></i>
-                <span>Download PDF</span>
-              </button>
+              <div class="flex items-center space-x-1.5">
+                <button 
+                  onClick={() => setIsConfluenceOpen(true)}
+                  class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 text-xs font-bold rounded-lg border border-slate-700 flex items-center space-x-1.5"
+                >
+                  <i class="fab fa-confluence"></i>
+                  <span>Confluence</span>
+                </button>
+                <button 
+                  onClick={handleDownloadPDF}
+                  class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-red-400 text-xs font-bold rounded-lg border border-slate-700 flex items-center space-x-1.5"
+                >
+                  <i class="far fa-file-pdf"></i>
+                  <span>Download PDF</span>
+                </button>
+              </div>
             )
           }
         >
@@ -102,6 +113,12 @@ export default function FunctionalSpec() {
           )}
         </GeneratedOutput>
       </div>
+
+      <ConfluencePublishModal 
+        isOpen={isConfluenceOpen}
+        onClose={() => setIsConfluenceOpen(false)}
+        stageType="functional-spec"
+      />
 
     </div>
   );

@@ -1267,6 +1267,249 @@ app.get('/api/output/:type', (req, res) => {
   }
 });
 
+// Helper for converting markdown to simple HTML for Confluence
+function convertMdToHtml(md) {
+  if (!md) return '';
+  let html = md;
+  // escape HTML entities just in case
+  html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // headers
+  html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+  html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+  // bold / code / list
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+  html = html.replace(/^- (.*?)$/gm, '<li>$1</li>');
+  html = html.replace(/^\* (.*?)$/gm, '<li>$1</li>');
+  // line breaks
+  html = html.replace(/\n/g, '<br/>');
+  return html;
+}
+
+// Jira Issues Bulk Upload
+app.post('/api/jira/upload', async (req, res) => {
+  const host = process.env.JIRA_HOST;
+  const email = process.env.JIRA_EMAIL;
+  const token = process.env.JIRA_API_TOKEN;
+  const projectKey = process.env.JIRA_PROJECT_KEY || 'SDD';
+
+  if (!host || !email || !token) {
+    return res.status(400).json({ error: 'Jira authentication details are missing in .env' });
+  }
+
+  const filePath = path.join(__dirname, 'storage', 'JIRA_Backlog.json');
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: 'No user stories found. Please run the User Stories agent generation first.' });
+  }
+
+  try {
+    const raw = fs.readFileSync(filePath, 'utf8');
+    const data = JSON.parse(raw);
+    const issues = data.spreadsheet || [];
+
+    if (issues.length === 0) {
+      return res.status(400).json({ error: 'User stories list is empty.' });
+    }
+
+    const createdIssues = [];
+    const errors = [];
+    const isMock = token.includes('mock-token');
+
+    if (isMock) {
+      console.log(`[Jira Sync Demo Mode] Mocking push of ${issues.length} issues to ${host}`);
+      for (const issue of issues) {
+        createdIssues.push({
+          key: `${projectKey}-${100 + issue.id}`,
+          summary: issue.summary,
+          status: 'Created (Demo Mode)',
+          link: `https://${host}/browse/${projectKey}-${100 + issue.id}`
+        });
+      }
+      return res.json({ success: true, mode: 'demo', createdIssues });
+    }
+
+    const axios = require('axios');
+    const authHeader = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
+
+    for (const issue of issues) {
+      try {
+        const payload = {
+          fields: {
+            project: {
+              key: projectKey
+            },
+            summary: issue.summary,
+            description: issue.description || '',
+            issuetype: {
+              name: issue.issueType || 'Story'
+            },
+            labels: issue.labels ? issue.labels.split(',').map(l => l.trim()) : []
+          }
+        };
+
+        const response = await axios.post(`https://${host}/rest/api/2/issue`, payload, {
+          headers: {
+            'Authorization': authHeader,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.data && response.data.key) {
+          createdIssues.push({
+            key: response.data.key,
+            summary: issue.summary,
+            status: 'Success',
+            link: `https://${host}/browse/${response.data.key}`
+          });
+        }
+      } catch (err) {
+        const errMsg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+        errors.push({ summary: issue.summary, error: errMsg });
+        console.error(`[Jira Sync Error] Failed to create issue "${issue.summary}":`, errMsg);
+      }
+    }
+
+    res.json({
+      success: errors.length < issues.length,
+      createdIssues,
+      errors,
+      totalIssues: issues.length,
+      pushedCount: createdIssues.length
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to process Jira upload: ' + err.message });
+  }
+});
+
+// Confluence Page Publishing
+app.post('/api/confluence/upload', async (req, res) => {
+  const host = process.env.JIRA_HOST;
+  const email = process.env.JIRA_EMAIL;
+  const token = process.env.JIRA_API_TOKEN;
+  
+  const { stageType, spaceKey = 'SDD', parentPageId } = req.body;
+
+  if (!host || !email || !token) {
+    return res.status(400).json({ error: 'Atlassian authentication details are missing in .env' });
+  }
+
+  let filename = '';
+  let format = 'md';
+  let pageTitle = '';
+
+  switch (stageType) {
+    case 'functional-spec': 
+      filename = 'Functional_Specification_Document.html'; 
+      format = 'html';
+      pageTitle = 'Functional Specification Document';
+      break;
+    case 'ux-wireframe': 
+      filename = 'wireframe_prototype.html'; 
+      format = 'html';
+      pageTitle = 'UX Wireframe Prototype';
+      break;
+    case 'tech-architecture': 
+      filename = 'Technical_Specification.md'; 
+      format = 'md';
+      pageTitle = 'Technical Architecture Specification';
+      break;
+    case 'database-design': 
+      filename = 'Database_Specification.md'; 
+      format = 'md';
+      pageTitle = 'Database Schema Design';
+      break;
+    case 'test-cases': 
+      filename = 'Testing_Specs_Blueprint.md'; 
+      format = 'md';
+      pageTitle = 'Testing Specification & QA Suite';
+      break;
+    case 'traceability-matrix': 
+      filename = 'Traceability_Matrix.md'; 
+      format = 'md';
+      pageTitle = 'Requirements Traceability Matrix';
+      break;
+    default:
+      return res.status(400).json({ error: 'Invalid stage type: ' + stageType });
+  }
+
+  const filePath = path.join(__dirname, 'storage', filename);
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: `File ${filename} not found. Please run the corresponding agent generation first.` });
+  }
+
+  try {
+    let rawContent = fs.readFileSync(filePath, 'utf8');
+    let htmlContent = '';
+    
+    if (format === 'md') {
+      htmlContent = convertMdToHtml(rawContent);
+    } else {
+      htmlContent = rawContent;
+    }
+
+    const isMock = token.includes('mock-token');
+    
+    if (isMock) {
+      console.log(`[Confluence Sync Demo Mode] Mocking page upload of "${pageTitle}" to Space [${spaceKey}] under Parent [${parentPageId || 'Root'}]`);
+      return res.json({ 
+        success: true, 
+        mode: 'demo', 
+        pageTitle,
+        spaceKey,
+        pageUrl: `https://${host}/wiki/spaces/${spaceKey}/pages/mock-page-id-12345` 
+      });
+    }
+
+    const axios = require('axios');
+    const authHeader = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
+    
+    const payload = {
+      type: 'page',
+      title: `${pageTitle} - ${Date.now()}`,
+      space: {
+        key: spaceKey
+      },
+      body: {
+        storage: {
+          value: htmlContent,
+          representation: 'storage'
+        }
+      }
+    };
+
+    if (parentPageId) {
+      payload.ancestors = [{ id: parentPageId }];
+    }
+
+    const response = await axios.post(`https://${host}/wiki/rest/api/content`, payload, {
+      headers: {
+        'Authorization': authHeader,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const pageUrl = response.data && response.data._links && response.data._links.webui
+      ? `https://${host}/wiki${response.data._links.webui}`
+      : `https://${host}/wiki/spaces/${spaceKey}/pages/${response.data.id}`;
+
+    res.json({
+      success: true,
+      pageTitle: payload.title,
+      spaceKey,
+      pageUrl
+    });
+
+  } catch (err) {
+    const errMsg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    console.error(`[Confluence Sync Error] Failed to publish "${pageTitle}":`, errMsg);
+    res.status(500).json({ error: 'Failed to publish to Confluence: ' + errMsg });
+  }
+});
+
 // Serve frontend build static files if needed
 app.use(express.static(path.join(__dirname, '../../framework/dist')));
 

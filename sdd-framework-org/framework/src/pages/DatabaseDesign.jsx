@@ -7,6 +7,8 @@ import { pdfGenerator } from '../utils/pdfGenerator';
 import { markdownGenerator } from '../utils/markdownGenerator';
 import { api } from '../services/api';
 
+import { ConfluencePublishModal } from '../components/ConfluencePublishModal';
+
 export default function DatabaseDesign() {
   const { pages, updatePageState } = usePageContext();
   const pageState = pages['database-design'];
@@ -14,6 +16,7 @@ export default function DatabaseDesign() {
   const [activeTab, setActiveTab] = useState('erd'); // 'erd' | 'sql' | 'fsd'
   const [zoomScale, setZoomScale] = useState(1);
   const diagramRef = useRef(null);
+  const [isConfluenceOpen, setIsConfluenceOpen] = useState(false);
 
   // Auto load latest workspace spec as reference on load
   useEffect(() => {
@@ -153,6 +156,13 @@ export default function DatabaseDesign() {
             pageState.output && (
               <div class="flex items-center space-x-1.5">
                 <button 
+                  onClick={() => setIsConfluenceOpen(true)}
+                  class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 text-xs font-bold rounded-lg border border-slate-700 flex items-center space-x-1"
+                >
+                  <i class="fab fa-confluence"></i>
+                  <span>Confluence</span>
+                </button>
+                <button 
                   onClick={handleExportSQL}
                   class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 text-xs font-bold rounded-lg border border-slate-700 flex items-center space-x-1"
                 >
@@ -263,6 +273,12 @@ export default function DatabaseDesign() {
           )}
         </GeneratedOutput>
       </div>
+
+      <ConfluencePublishModal 
+        isOpen={isConfluenceOpen}
+        onClose={() => setIsConfluenceOpen(false)}
+        stageType="database-design"
+      />
 
     </div>
   );

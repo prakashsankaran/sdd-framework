@@ -6,11 +6,14 @@ import { GeneratedOutput } from '../components/GeneratedOutput';
 import { pdfGenerator } from '../utils/pdfGenerator';
 import { api } from '../services/api';
 
+import { ConfluencePublishModal } from '../components/ConfluencePublishModal';
+
 export default function TestCases() {
   const { pages, updatePageState } = usePageContext();
   const pageState = pages['test-cases'];
 
   const [activeTab, setActiveTab] = useState('suite'); // 'suite' | 'gherkin'
+  const [isConfluenceOpen, setIsConfluenceOpen] = useState(false);
 
   // Load workspace spec on load to default files list
   useEffect(() => {
@@ -106,13 +109,22 @@ export default function TestCases() {
           subtitle="Manual test verification sheets & Gherkin scripts"
           actions={
             pageState.output && (
-              <button 
-                onClick={handleDownloadPDF}
-                class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-red-400 text-xs font-bold rounded-lg border border-slate-700 flex items-center space-x-1.5"
-              >
-                <i class="far fa-file-pdf"></i>
-                <span>Download PDF</span>
-              </button>
+              <div class="flex items-center space-x-1.5">
+                <button 
+                  onClick={() => setIsConfluenceOpen(true)}
+                  class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 text-xs font-bold rounded-lg border border-slate-700 flex items-center space-x-1"
+                >
+                  <i class="fab fa-confluence"></i>
+                  <span>Confluence</span>
+                </button>
+                <button 
+                  onClick={handleDownloadPDF}
+                  class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-red-400 text-xs font-bold rounded-lg border border-slate-700 flex items-center space-x-1.5"
+                >
+                  <i class="far fa-file-pdf"></i>
+                  <span>Download PDF</span>
+                </button>
+              </div>
             )
           }
         >
@@ -190,6 +202,12 @@ export default function TestCases() {
           )}
         </GeneratedOutput>
       </div>
+
+      <ConfluencePublishModal 
+        isOpen={isConfluenceOpen}
+        onClose={() => setIsConfluenceOpen(false)}
+        stageType="test-cases"
+      />
 
     </div>
   );
