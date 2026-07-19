@@ -5,6 +5,7 @@ import { api } from '../services/api';
 import { pdfGenerator } from '../utils/pdfGenerator';
 import { excelGenerator } from '../utils/excelGenerator';
 import { markdownGenerator } from '../utils/markdownGenerator';
+import { JiraPublishModal } from '../components/JiraPublishModal';
 
 export default function UserStories() {
   const { pages, updatePageState } = usePageContext();
@@ -22,6 +23,7 @@ export default function UserStories() {
   const [isJiraUploading, setIsJiraUploading] = useState(false);
   const [jiraUploadResult, setJiraUploadResult] = useState(null);
   const [jiraError, setJiraError] = useState('');
+  const [isJiraModalOpen, setIsJiraModalOpen] = useState(false);
 
   // Load workspace specification on mount
   useEffect(() => {
@@ -67,28 +69,18 @@ export default function UserStories() {
     }, 1200);
   };
 
-  const handleUploadToJira = async () => {
-    setIsJiraUploading(true);
+  const handleUploadToJira = () => {
+    setIsJiraModalOpen(true);
+  };
+
+  const handleJiraSuccess = (createdIssues) => {
+    setJiraUploadResult(createdIssues);
     setJiraError('');
+  };
+
+  const handleJiraError = (errorMsg) => {
+    setJiraError(errorMsg);
     setJiraUploadResult(null);
-    try {
-      const response = await fetch('http://localhost:7001/api/jira/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      const data = await response.json();
-      if (response.ok && data.success) {
-        setJiraUploadResult(data.createdIssues);
-      } else {
-        throw new Error(data.error || 'Failed to upload user stories to JIRA board.');
-      }
-    } catch (err) {
-      setJiraError(err.message);
-    } finally {
-      setIsJiraUploading(false);
-    }
   };
 
   const startEditCell = (rowIdx, colKey, val) => {
@@ -534,6 +526,13 @@ export default function UserStories() {
           </div>
         </div>
       )}
+
+      <JiraPublishModal 
+        isOpen={isJiraModalOpen}
+        onClose={() => setIsJiraModalOpen(false)}
+        onSuccess={handleJiraSuccess}
+        onError={handleJiraError}
+      />
 
     </div>
   );

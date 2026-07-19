@@ -1287,12 +1287,105 @@ function convertMdToHtml(md) {
   return html;
 }
 
+// Get Jira Boards for Project
+app.get('/api/jira/boards', async (req, res) => {
+  const host = process.env.JIRA_HOST;
+  const email = process.env.JIRA_EMAIL;
+  const token = process.env.JIRA_API_TOKEN;
+  const projectKey = process.env.JIRA_PROJECT_KEY || 'SDD';
+
+  if (!host || !email || !token) {
+    return res.status(400).json({ error: 'Jira authentication details are missing in .env' });
+  }
+
+  const isMock = token.includes('mock-token');
+  if (isMock) {
+    return res.json({
+      success: true,
+      boards: [
+        { id: 1, name: 'SDD Scrum Board', type: 'scrum' },
+        { id: 2, name: 'SDD Kanban Board', type: 'kanban' }
+      ]
+    });
+  }
+
+  try {
+    const axios = require('axios');
+    const authHeader = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
+    
+    const response = await axios.get(`https://${host}/rest/agile/1.0/board`, {
+      headers: {
+        'Authorization': authHeader,
+        'Accept': 'application/json'
+      },
+      params: {
+        projectKeyOrId: projectKey
+      }
+    });
+
+    res.json({
+      success: true,
+      boards: response.data.values || []
+    });
+  } catch (err) {
+    const errMsg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    res.status(500).json({ error: 'Failed to fetch Jira boards: ' + errMsg });
+  }
+});
+
+// Get Jira Sprints for Board
+app.get('/api/jira/board/:boardId/sprints', async (req, res) => {
+  const host = process.env.JIRA_HOST;
+  const email = process.env.JIRA_EMAIL;
+  const token = process.env.JIRA_API_TOKEN;
+  const { boardId } = req.params;
+
+  if (!host || !email || !token) {
+    return res.status(400).json({ error: 'Jira authentication details are missing in .env' });
+  }
+
+  const isMock = token.includes('mock-token');
+  if (isMock) {
+    return res.json({
+      success: true,
+      sprints: [
+        { id: 10, name: 'SDD Sprint 1 (Active)', state: 'active' },
+        { id: 11, name: 'SDD Sprint 2 (Future)', state: 'future' }
+      ]
+    });
+  }
+
+  try {
+    const axios = require('axios');
+    const authHeader = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
+    
+    const response = await axios.get(`https://${host}/rest/agile/1.0/board/${boardId}/sprint`, {
+      headers: {
+        'Authorization': authHeader,
+        'Accept': 'application/json'
+      },
+      params: {
+        state: 'active,future'
+      }
+    });
+
+    res.json({
+      success: true,
+      sprints: response.data.values || []
+    });
+  } catch (err) {
+    const errMsg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    res.status(500).json({ error: 'Failed to fetch sprints: ' + errMsg });
+  }
+});
+
 // Jira Issues Bulk Upload
 app.post('/api/jira/upload', async (req, res) => {
   const host = process.env.JIRA_HOST;
   const email = process.env.JIRA_EMAIL;
   const token = process.env.JIRA_API_TOKEN;
   const projectKey = process.env.JIRA_PROJECT_KEY || 'SDD';
+  const { sprintId } = req.body;
 
   if (!host || !email || !token) {
     return res.status(400).json({ error: 'Jira authentication details are missing in .env' });
@@ -1317,12 +1410,12 @@ app.post('/api/jira/upload', async (req, res) => {
     const isMock = token.includes('mock-token');
 
     if (isMock) {
-      console.log(`[Jira Sync Demo Mode] Mocking push of ${issues.length} issues to ${host}`);
+      console.log(`[Jira Sync Demo Mode] Mocking push of ${issues.length} issues to ${host} (Sprint ID: ${sprintId || 'None'})`);
       for (const issue of issues) {
         createdIssues.push({
           key: `${projectKey}-${100 + issue.id}`,
           summary: issue.summary,
-          status: 'Created (Demo Mode)',
+          status: sprintId ? `Created & Added to Sprint ${sprintId}` : 'Created (Demo Mode)',
           link: `https://${host}/browse/${projectKey}-${100 + issue.id}`
         });
       }
@@ -1331,9 +1424,11 @@ app.post('/api/jira/upload', async (req, res) => {
 
     const axios = require('axios');
     const authHeader = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
+    const issueKeys = [];
 
     for (const issue of issues) {
       try {
+        let issuetypeName = issue.issueType || 'Story';
         const payload = {
           fields: {
             project: {
@@ -1342,21 +1437,50 @@ app.post('/api/jira/upload', async (req, res) => {
             summary: issue.summary,
             description: issue.description || '',
             issuetype: {
-              name: issue.issueType || 'Story'
+              name: issuetypeName
             },
             labels: issue.labels ? issue.labels.split(',').map(l => l.trim()) : []
           }
         };
 
-        const response = await axios.post(`https://${host}/rest/api/2/issue`, payload, {
-          headers: {
-            'Authorization': authHeader,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
+        let response;
+        try {
+          response = await axios.post(`https://${host}/rest/api/2/issue`, payload, {
+            headers: {
+              'Authorization': authHeader,
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          });
+        } catch (postErr) {
+          // If the issue type is invalid/unsupported, retry as 'Task'
+          if (postErr.response?.data?.errors?.issuetype && issuetypeName !== 'Task') {
+            console.log(`[Jira Sync Retry] Retrying issue "${issue.summary}" with 'Task' type due to invalid issuetype: ${issuetypeName}`);
+            payload.fields.issuetype.name = 'Task';
+            response = await axios.post(`https://${host}/rest/api/2/issue`, payload, {
+              headers: {
+                'Authorization': authHeader,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              }
+            });
+          } else if (postErr.response?.data?.errors?.issuetype && issuetypeName !== 'Story') {
+            console.log(`[Jira Sync Retry] Retrying issue "${issue.summary}" with 'Story' type`);
+            payload.fields.issuetype.name = 'Story';
+            response = await axios.post(`https://${host}/rest/api/2/issue`, payload, {
+              headers: {
+                'Authorization': authHeader,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              }
+            });
+          } else {
+            throw postErr;
           }
-        });
+        }
 
-        if (response.data && response.data.key) {
+        if (response && response.data && response.data.key) {
+          issueKeys.push(response.data.key);
           createdIssues.push({
             key: response.data.key,
             summary: issue.summary,
@@ -1368,6 +1492,30 @@ app.post('/api/jira/upload', async (req, res) => {
         const errMsg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
         errors.push({ summary: issue.summary, error: errMsg });
         console.error(`[Jira Sync Error] Failed to create issue "${issue.summary}":`, errMsg);
+      }
+    }
+
+    // Link created issues to the selected Sprint
+    if (sprintId && issueKeys.length > 0) {
+      try {
+        console.log(`[Jira Sync] Linking issues to Sprint ${sprintId}:`, issueKeys);
+        await axios.post(`https://${host}/rest/agile/1.0/sprint/${sprintId}/issue`, {
+          issues: issueKeys
+        }, {
+          headers: {
+            'Authorization': authHeader,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        createdIssues.forEach(issue => {
+          issue.status = 'Success (Added to Sprint)';
+        });
+      } catch (err) {
+        const errMsg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+        console.error(`[Jira Sync Error] Failed to move issues to Sprint ${sprintId}:`, errMsg);
+        errors.push({ summary: 'Sprint Linkage', error: 'Created issues but failed to link to sprint: ' + errMsg });
       }
     }
 
