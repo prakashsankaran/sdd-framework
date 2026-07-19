@@ -77,6 +77,7 @@ async function generateSpecKit(requirementsText, logCallback = () => {}) {
       fs.mkdirSync(targetDir, { recursive: true });
     }
     logCallback(`Scaffolding directory created: specs/${folderName}`);
+    fs.writeFileSync(path.join(targetDir, 'requirements.md'), requirementsText, 'utf8');
 
     // 2. Generate Constitution
     logCallback('1/5: Generating Project Constitution (Guiding Principles)...');
@@ -157,7 +158,7 @@ Return only the markdown document.`;
     return {
       success: true,
       folderName,
-      files: ['constitution.md', 'spec.md', 'plan.md', 'tasks.md', 'research.md']
+      files: ['requirements.md', 'constitution.md', 'spec.md', 'plan.md', 'tasks.md', 'research.md']
     };
   } catch (err) {
     console.error('[SpecKit] Scaffolding generation failed:', err.message);

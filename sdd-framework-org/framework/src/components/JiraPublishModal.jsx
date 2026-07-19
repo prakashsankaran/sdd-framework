@@ -109,7 +109,7 @@ export const JiraPublishModal = ({ isOpen, onClose, onSuccess, onError }) => {
   return (
     <div class="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
       <div class="glass-panel max-w-md w-full mx-4 p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-4">
-        
+
         {/* Header */}
         <div class="flex justify-between items-center border-b border-slate-850 pb-3">
           <h3 class="text-sm font-bold text-slate-200 flex items-center">
@@ -122,7 +122,7 @@ export const JiraPublishModal = ({ isOpen, onClose, onSuccess, onError }) => {
 
         {/* Configuration Screen */}
         <div class="space-y-4">
-          
+
           {/* Choose Account */}
           <div class="space-y-1.5">
             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jira Account & Project</label>
@@ -147,7 +147,7 @@ export const JiraPublishModal = ({ isOpen, onClose, onSuccess, onError }) => {
               <p class="text-xs text-red-400">No boards found for project key {projectKey}</p>
             ) : (
               <div class="relative">
-                <select 
+                <select
                   value={selectedBoardId}
                   onChange={(e) => handleBoardChange(e.target.value)}
                   class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-250 font-semibold appearance-none"
@@ -182,7 +182,7 @@ export const JiraPublishModal = ({ isOpen, onClose, onSuccess, onError }) => {
                 </div>
               ) : (
                 <div class="relative">
-                  <select 
+                  <select
                     value={selectedSprintId}
                     onChange={(e) => setSelectedSprintId(e.target.value)}
                     class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-250 font-semibold appearance-none"
@@ -204,14 +204,14 @@ export const JiraPublishModal = ({ isOpen, onClose, onSuccess, onError }) => {
 
           {/* Action Buttons */}
           <div class="flex space-x-2 pt-2 justify-end border-t border-slate-850">
-            <button 
+            <button
               onClick={onClose}
               disabled={isSyncing}
               class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition"
             >
               Cancel
             </button>
-            <button 
+            <button
               onClick={handleSync}
               disabled={isSyncing || isLoadingBoards || boards.length === 0}
               class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-lg border border-indigo-500/30 transition flex items-center space-x-1.5"

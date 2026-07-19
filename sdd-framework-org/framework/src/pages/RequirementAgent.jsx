@@ -11,6 +11,7 @@ export default function RequirementAgent() {
   const [isLoadingContent, setIsLoadingContent] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState('');
   const [notification, setNotification] = useState(null);
+  const [isSavingDocument, setIsSavingDocument] = useState(false);
 
   useEffect(() => {
     // Load currently active spec details on mount
@@ -143,6 +144,41 @@ export default function RequirementAgent() {
     }
   };
 
+  const handleSaveDocument = async () => {
+    if (!result || !activeTab) return;
+    setIsSavingDocument(true);
+    try {
+      const response = await fetch('http://localhost:7001/api/specs/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          folder: result.folderName,
+          file: activeTab,
+          content: tabContent
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setNotification({
+          type: 'success',
+          message: `${activeTab} has been successfully updated on disk.`
+        });
+      } else {
+        throw new Error(data.error || 'Failed to save document.');
+      }
+    } catch (err) {
+      setNotification({
+        type: 'error',
+        message: err.message
+      });
+    } finally {
+      setIsSavingDocument(false);
+    }
+  };
+
   return (
     <div class="space-y-6">
       
@@ -271,12 +307,23 @@ export default function RequirementAgent() {
                     <span class="text-xs font-bold text-white font-mono">{result.folderName}</span>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleSelectActive(result.folderName)}
-                  class="px-3.5 py-1.5 bg-indigo-950 hover:bg-indigo-900 border border-indigo-900 hover:border-indigo-800 text-[10px] text-indigo-400 font-bold rounded-lg transition"
-                >
-                  <i class="fas fa-check mr-1.5"></i> Set as Active Spec
-                </button>
+                <div class="flex items-center space-x-2">
+                  <button
+                    onClick={handleSaveDocument}
+                    disabled={isSavingDocument}
+                    class="px-3.5 py-1.5 bg-green-950 hover:bg-green-900 border border-green-900 hover:border-green-800 text-[10px] text-green-400 font-bold rounded-lg transition flex items-center space-x-1.5 shadow"
+                  >
+                    {isSavingDocument ? <i class="fas fa-circle-notch animate-spin"></i> : <i class="fas fa-save"></i>}
+                    <span>Save Document</span>
+                  </button>
+                  <button
+                    onClick={() => handleSelectActive(result.folderName)}
+                    class="px-3.5 py-1.5 bg-indigo-950 hover:bg-indigo-900 border border-indigo-900 hover:border-indigo-800 text-[10px] text-indigo-400 font-bold rounded-lg transition flex items-center space-x-1.5 shadow"
+                  >
+                    <i class="fas fa-check"></i>
+                    <span>Set as Active Spec</span>
+                  </button>
+                </div>
               </div>
 
               {/* Tabs list */}
@@ -306,7 +353,11 @@ export default function RequirementAgent() {
                     </div>
                   </div>
                 ) : (
-                  <pre class="whitespace-pre-wrap">{tabContent}</pre>
+                  <textarea
+                    value={tabContent}
+                    onChange={(e) => setTabContent(e.target.value)}
+                    class="w-full h-full bg-transparent text-slate-300 font-mono text-[10px] leading-relaxed resize-none focus:outline-none min-h-[440px] custom-scroll select-text"
+                  />
                 )}
               </div>
 

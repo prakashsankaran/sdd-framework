@@ -163,7 +163,7 @@ export default function AgentOrchestrator() {
       <div class="flex justify-between items-center bg-slate-900/40 p-6 rounded-2xl border border-slate-800/80">
         <div>
           <h1 class="text-xl font-black text-white uppercase tracking-wider flex items-center">
-            <i class="fas fa-project-diagram text-indigo-500 mr-3"></i> LangGraph Agent Orchestrator
+            <i class="fas fa-project-diagram text-indigo-500 mr-3"></i> LangGraph Orchestrator Agent
           </h1>
           <p class="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
             Central orchestration board powered by LangGraph. Routes compilation tasks dynamically using the Selector Agent and gates key phases for Human-in-the-Loop verification.

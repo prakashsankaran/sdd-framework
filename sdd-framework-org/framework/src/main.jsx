@@ -15,6 +15,7 @@ import TraceabilityMatrix from './pages/TraceabilityMatrix';
 import ReviewAgent from './pages/ReviewAgent';
 import Repository from './pages/Repository';
 import RequirementAgent from './pages/RequirementAgent';
+import ValidatorAgent from './pages/ValidatorAgent';
 import AgentOrchestrator from './pages/AgentOrchestrator';
 import ChatbotWidget from './components/ChatbotWidget';
 
@@ -156,21 +157,21 @@ function Layout({ children }) {
       {/* Main Workspace Frame */}
       <main class="flex-1 flex flex-col min-w-0 bg-[#070a13] relative">
         {/* Top bar header */}
-        <header class="h-14 border-b border-slate-800 bg-[#0b0f19]/80 backdrop-blur flex justify-between items-center px-6 shrink-0">
-          <div class="flex items-center space-x-6">
-            <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest">Workspace Spec Board</h2>
-            <div class="h-5 w-px bg-slate-850"></div>
+        <header class="h-14 border-b border-slate-800 bg-[#0b0f19]/80 backdrop-blur flex justify-between items-center px-6 shrink-0 min-w-0">
+          <div class="flex items-center space-x-3 min-w-0">
+            <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest hidden lg:block shrink-0">Workspace Spec Board</h2>
+            <div class="h-5 w-px bg-slate-850 hidden lg:block shrink-0"></div>
             
             {/* Step 1: Requirement Agent */}
             <Link
               to="/requirements"
-              class={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl border text-xs font-black uppercase tracking-wider transition duration-300 ${
+              class={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wider transition duration-300 whitespace-nowrap shrink-0 ${
                 location.pathname === '/requirements'
                   ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-500/20'
                   : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
               }`}
             >
-              <span class={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-black font-mono transition duration-300 ${
+              <span class={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-black font-mono transition duration-300 ${
                 location.pathname === '/requirements'
                   ? 'bg-white text-indigo-600'
                   : 'bg-slate-800 text-slate-400'
@@ -178,29 +179,46 @@ function Layout({ children }) {
               <span>Requirement Agent</span>
             </Link>
 
-            {/* Step 2: Agent Orchestrator */}
+            {/* Step 2: Validator */}
+            <Link
+              to="/validator"
+              class={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wider transition duration-300 whitespace-nowrap shrink-0 ${
+                location.pathname === '/validator'
+                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-500/20'
+                  : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <span class={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-black font-mono transition duration-300 ${
+                location.pathname === '/validator'
+                  ? 'bg-white text-indigo-600'
+                  : 'bg-slate-800 text-slate-400'
+              }`}>2</span>
+              <span>Validator Agent</span>
+            </Link>
+
+            {/* Step 3: Agent Orchestrator */}
             <Link
               to="/orchestrator"
-              class={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl border text-xs font-black uppercase tracking-wider transition duration-300 ${
+              class={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wider transition duration-300 whitespace-nowrap shrink-0 ${
                 location.pathname === '/orchestrator'
                   ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-500/20'
                   : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
               }`}
             >
-              <span class={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-black font-mono transition duration-300 ${
+              <span class={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-black font-mono transition duration-300 ${
                 location.pathname === '/orchestrator'
                   ? 'bg-white text-indigo-600'
                   : 'bg-slate-800 text-slate-400'
-              }`}>2</span>
-              <span>Agent Orchestrator</span>
+              }`}>3</span>
+              <span>Orchestrator Agent</span>
             </Link>
           </div>
-          <div class="flex items-center space-x-3 text-xs">
-            <span class="text-slate-500 font-bold uppercase tracking-wider">Selected Spec:</span>
+          <div class="flex items-center space-x-2 text-[10px] shrink-0 ml-4">
+            <span class="text-slate-500 font-bold uppercase tracking-wider hidden sm:inline">Selected Spec:</span>
             <select
               value={activeSpec}
               onChange={(e) => handleSpecChange(e.target.value)}
-              class="bg-indigo-950/60 border border-indigo-900/60 text-indigo-400 hover:text-indigo-300 px-3.5 py-1.5 rounded-xl font-bold font-mono text-[10px] focus:outline-none focus:border-indigo-500 cursor-pointer"
+              class="bg-indigo-950/60 border border-indigo-900/60 text-indigo-400 hover:text-indigo-300 px-2.5 py-1 rounded-lg font-bold font-mono text-[9px] focus:outline-none focus:border-indigo-500 cursor-pointer"
             >
               {specs.map(spec => (
                 <option key={spec.name} value={spec.name} class="bg-[#0b0f19] text-slate-350">
@@ -239,6 +257,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/" element={<Navigate to="/requirements" replace />} />
             <Route path="/orchestrator" element={<AgentOrchestrator />} />
             <Route path="/requirements" element={<RequirementAgent />} />
+            <Route path="/validator" element={<ValidatorAgent />} />
             <Route path="/spec-to-story" element={<SpecToStory />} />
             <Route path="/user-stories" element={<UserStories />} />
             <Route path="/ux-wireframe" element={<UXWireframe />} />

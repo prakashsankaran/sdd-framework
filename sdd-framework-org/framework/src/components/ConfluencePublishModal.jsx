@@ -1,13 +1,41 @@
 import React, { useState, useEffect } from 'react';
 
 export const ConfluencePublishModal = ({ isOpen, onClose, stageType, onSuccess, onError }) => {
+  const [spaces, setSpaces] = useState([]);
   const [spaceKey, setSpaceKey] = useState('SDD');
   const [parentPageId, setParentPageId] = useState('');
   const [isPublishing, setIsPublishing] = useState(false);
-  const [selectedAccount, setSelectedAccount] = useState('prakash.s89@gmail.com');
+  const [isLoadingSpaces, setIsLoadingSpaces] = useState(false);
+  const [selectedAccount] = useState('prakash.s89@gmail.com');
   const [resultUrl, setResultUrl] = useState('');
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isOpen) {
+      fetchSpaces();
+    }
+  }, [isOpen]);
+
+  const fetchSpaces = async () => {
+    setIsLoadingSpaces(true);
+    try {
+      const response = await fetch('http://localhost:7001/api/confluence/spaces');
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setSpaces(data.spaces);
+        if (data.spaces.length > 0) {
+          // If our current spaceKey is not in the fetched list, select the first one
+          const spaceExists = data.spaces.some(s => s.key === spaceKey);
+          if (!spaceExists) {
+            setSpaceKey(data.spaces[0].key);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load Confluence spaces:', err);
+    } finally {
+      setIsLoadingSpaces(false);
+    }
+  };
 
   const handlePublish = async () => {
     setIsPublishing(true);
@@ -42,6 +70,8 @@ export const ConfluencePublishModal = ({ isOpen, onClose, stageType, onSuccess, 
       setIsPublishing(false);
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div class="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
@@ -92,8 +122,8 @@ export const ConfluencePublishModal = ({ isOpen, onClose, stageType, onSuccess, 
               <div class="relative">
                 <select 
                   value={selectedAccount}
-                  onChange={(e) => setSelectedAccount(e.target.value)}
-                  class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-200 font-semibold appearance-none"
+                  class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-250 font-semibold appearance-none"
+                  disabled
                 >
                   <option value="prakash.s89@gmail.com">prakash.s89@gmail.com (Atlassian Cloud)</option>
                 </select>
@@ -103,16 +133,41 @@ export const ConfluencePublishModal = ({ isOpen, onClose, stageType, onSuccess, 
               </div>
             </div>
 
-            {/* Space Key */}
+            {/* Space Key Selector */}
             <div class="space-y-1.5">
-              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Confluence Space Key</label>
-              <input 
-                type="text" 
-                value={spaceKey}
-                onChange={(e) => setSpaceKey(e.target.value.toUpperCase())}
-                placeholder="E.g. SDD" 
-                class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-300 font-mono"
-              />
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Confluence Space</label>
+              {isLoadingSpaces ? (
+                <div class="text-xs text-slate-500 flex items-center space-x-1.5 py-2">
+                  <i class="fas fa-circle-notch animate-spin"></i>
+                  <span>Retrieving workspaces...</span>
+                </div>
+              ) : spaces.length === 0 ? (
+                // Fallback to text input if space list load fails or has no values
+                <input 
+                  type="text" 
+                  value={spaceKey}
+                  onChange={(e) => setSpaceKey(e.target.value.toUpperCase())}
+                  placeholder="E.g. SDD" 
+                  class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-350 font-mono"
+                />
+              ) : (
+                <div class="relative">
+                  <select 
+                    value={spaceKey}
+                    onChange={(e) => setSpaceKey(e.target.value)}
+                    class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-250 font-semibold appearance-none font-mono"
+                  >
+                    {spaces.map(space => (
+                      <option key={space.id || space.key} value={space.key}>
+                        {space.name} ({space.key})
+                      </option>
+                    ))}
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                    <i class="fas fa-chevron-down text-xs"></i>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Parent Page ID */}
@@ -128,7 +183,7 @@ export const ConfluencePublishModal = ({ isOpen, onClose, stageType, onSuccess, 
             </div>
 
             {/* Action Buttons */}
-            <div class="flex space-x-2 pt-2 justify-end">
+            <div class="flex space-x-2 pt-2 justify-end border-t border-slate-850">
               <button 
                 onClick={onClose}
                 disabled={isPublishing}

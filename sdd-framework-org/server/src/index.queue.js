@@ -149,6 +149,207 @@ app.get('/api/specs/download/:folder/:file', (req, res) => {
   res.sendFile(filePath);
 });
 
+// Spec Kit Save Spec Document File
+app.post('/api/specs/save', (req, res) => {
+  const { folder, file, content } = req.body;
+
+  if (!folder || !file) {
+    return res.status(400).json({ error: 'Folder and file names are required' });
+  }
+
+  if (folder.includes('..') || file.includes('..')) {
+    return res.status(400).json({ error: 'Invalid parameters' });
+  }
+
+  const filePath = path.join(__dirname, '../../specs', folder, file);
+
+  try {
+    fs.writeFileSync(filePath, content || '', 'utf8');
+    res.json({ success: true, message: 'Document saved successfully.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save spec document: ' + err.message });
+  }
+});
+
+// Spec Kit Validate Specs and Tech Stack
+app.post('/api/specs/validate', async (req, res) => {
+  const { folder } = req.body;
+  if (!folder) {
+    return res.status(400).json({ error: 'Folder name is required' });
+  }
+
+  if (folder.includes('..')) {
+    return res.status(400).json({ error: 'Invalid parameters' });
+  }
+
+  const specsDir = path.join(__dirname, '../../specs', folder);
+  if (!fs.existsSync(specsDir)) {
+    return res.status(404).json({ error: `Spec folder "${folder}" not found` });
+  }
+
+  try {
+    const readFile = (name) => {
+      const p = path.join(specsDir, name);
+      return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : '';
+    };
+
+    let requirements = readFile('requirements.md');
+    const spec = readFile('spec.md');
+    const constitution = readFile('constitution.md');
+    const plan = readFile('plan.md');
+    const tasks = readFile('tasks.md');
+    const research = readFile('research.md');
+
+    if (!requirements) {
+      requirements = `Reconstructed Requirements based on active specification documentation:\n\n` +
+        (constitution ? `### Constitution Principles:\n${constitution.substring(0, 1000)}\n\n` : '') +
+        (spec ? `### Specification Goals:\n${spec.substring(0, 1000)}` : 'Build a system according to the design guidelines.');
+      fs.writeFileSync(path.join(specsDir, 'requirements.md'), requirements, 'utf8');
+    }
+
+    const { GoogleGenerativeAI } = require('@google/generative-ai');
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY is not set in environment variables' });
+    }
+
+    const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = ai.getGenerativeModel({ model: 'gemini-3.5-flash' });
+
+    const prompt = `You are a Senior Principal Architect and Spec Validator.
+Your task is to thoroughly analyze the generated specifications and technical documents against the user's original requirements.
+
+Original Requirements:
+"""
+${requirements}
+"""
+
+Generated Specification (spec.md):
+"""
+${spec}
+"""
+
+Generated Constitution (constitution.md):
+"""
+${constitution}
+"""
+
+Generated Implementation Plan (plan.md):
+"""
+${plan}
+"""
+
+Generated Technical Research (research.md):
+"""
+${research}
+"""
+
+Please compile a detailed markdown validation report addressing the following:
+1. **Requirements Coverage & Conflicts**:
+   - Compare spec.md against the Original Requirements.
+   - List any conflicts, ambiguities, or requirements that were missed or partially implemented.
+2. **Tech Stack & Standard Evaluation**:
+   - Evaluate the suggested stack in the documents. Ensure they conform to modern standards and match the constitution.
+3. **Sub-Agent LLM/SLM Assignment Cards**:
+   - Recommend the ideal model (LLM vs. SLM) for each sub-agent step in our pipeline.
+   - Our pipeline contains these 8 steps:
+     1. Spec to Story (Requirements analysis)
+     2. User Stories (Backlog decomposition)
+     3. UX Wireframe (Tailwind HTML prototype code generation)
+     4. Functional Spec (FSD writing and compilation)
+     5. Tech Architecture (System blueprints & Mermaid SVG)
+     6. Database Design (DDL & ERD charts)
+     7. Test Cases (QA sheets & Gherkin)
+     8. Traceability Matrix (Cross-referencing)
+   - For each step, present a clean "Agent Card" containing:
+     - **Sub-Agent Name**
+     - **Recommended Model** (Choose from: Gemini 3.5 Flash, Gemini 3.1 Flash Lite, GPT-4o, GPT-4o-Mini, Claude 3.5 Sonnet)
+     - **Model Type** (LLM or SLM)
+     - **Detailed Reasoning** (e.g. why a fast SLM is better for structured tasks, or why Claude 3.5 Sonnet is better for code generation).
+
+Return only the clean markdown report. Do not add any introductory or wrap-up commentary outside of the markdown block.`;
+
+    const result = await model.generateContent(prompt);
+    const reportContent = result.response.text();
+
+    fs.writeFileSync(path.join(specsDir, 'validation_report.md'), reportContent, 'utf8');
+
+    const statusPath = path.join(specsDir, 'validation_status.json');
+    if (!fs.existsSync(statusPath)) {
+      fs.writeFileSync(statusPath, JSON.stringify({ approved: false }), 'utf8');
+    }
+
+    res.json({
+      success: true,
+      report: reportContent,
+      approved: false
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: 'Validation failed: ' + err.message });
+  }
+});
+
+// Spec Kit Approve Validation Report
+app.post('/api/specs/validate/approve', (req, res) => {
+  const { folder } = req.body;
+  if (!folder) {
+    return res.status(400).json({ error: 'Folder name is required' });
+  }
+
+  if (folder.includes('..')) {
+    return res.status(400).json({ error: 'Invalid parameters' });
+  }
+
+  const specsDir = path.join(__dirname, '../../specs', folder);
+  if (!fs.existsSync(specsDir)) {
+    return res.status(404).json({ error: `Spec folder "${folder}" not found` });
+  }
+
+  try {
+    fs.writeFileSync(path.join(specsDir, 'validation_status.json'), JSON.stringify({ approved: true }), 'utf8');
+    res.json({ success: true, approved: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to approve validation: ' + err.message });
+  }
+});
+
+// Spec Kit Get Validation Status
+app.get('/api/specs/validate/status/:folder', (req, res) => {
+  const { folder } = req.params;
+  if (!folder) {
+    return res.status(400).json({ error: 'Folder name is required' });
+  }
+
+  if (folder.includes('..')) {
+    return res.status(400).json({ error: 'Invalid parameters' });
+  }
+
+  const specsDir = path.join(__dirname, '../../specs', folder);
+  if (!fs.existsSync(specsDir)) {
+    return res.status(404).json({ error: `Spec folder "${folder}" not found` });
+  }
+
+  try {
+    const statusPath = path.join(specsDir, 'validation_status.json');
+    const approved = fs.existsSync(statusPath) 
+      ? JSON.parse(fs.readFileSync(statusPath, 'utf8')).approved 
+      : false;
+
+    const reportPath = path.join(specsDir, 'validation_report.md');
+    const report = fs.existsSync(reportPath)
+      ? fs.readFileSync(reportPath, 'utf8')
+      : null;
+
+    res.json({
+      success: true,
+      approved,
+      report
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to read validation status: ' + err.message });
+  }
+});
+
 // Spec Kit Set Active Spec
 app.post('/api/specs/active', (req, res) => {
   const { activeSpec } = req.body;
@@ -1379,6 +1580,48 @@ app.get('/api/jira/board/:boardId/sprints', async (req, res) => {
   }
 });
 
+// Get Confluence Spaces
+app.get('/api/confluence/spaces', async (req, res) => {
+  const host = process.env.JIRA_HOST;
+  const email = process.env.JIRA_EMAIL;
+  const token = process.env.JIRA_API_TOKEN;
+
+  if (!host || !email || !token) {
+    return res.status(400).json({ error: 'Atlassian credentials are missing in .env' });
+  }
+
+  const isMock = token.includes('mock-token');
+  if (isMock) {
+    return res.json({
+      success: true,
+      spaces: [
+        { id: 1, key: 'SDD', name: 'System Design space' },
+        { id: 2, key: 'DS', name: 'Demo Space' }
+      ]
+    });
+  }
+
+  try {
+    const axios = require('axios');
+    const authHeader = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
+
+    const response = await axios.get(`https://${host}/wiki/rest/api/space`, {
+      headers: {
+        'Authorization': authHeader,
+        'Accept': 'application/json'
+      }
+    });
+
+    res.json({
+      success: true,
+      spaces: response.data.results || []
+    });
+  } catch (err) {
+    const errMsg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+    res.status(500).json({ error: 'Failed to fetch Confluence spaces: ' + errMsg });
+  }
+});
+
 // Jira Issues Bulk Upload
 app.post('/api/jira/upload', async (req, res) => {
   const host = process.env.JIRA_HOST;
@@ -1579,11 +1822,19 @@ app.post('/api/confluence/upload', async (req, res) => {
       format = 'md';
       pageTitle = 'Requirements Traceability Matrix';
       break;
+    case 'validator':
+      filename = 'validation_report.md';
+      format = 'md';
+      pageTitle = 'Architecture Validation & Model Recommendation Report';
+      break;
     default:
       return res.status(400).json({ error: 'Invalid stage type: ' + stageType });
   }
 
-  const filePath = path.join(__dirname, 'storage', filename);
+  const filePath = stageType === 'validator'
+    ? path.join(__dirname, '../../specs', activeSpecDirName, 'validation_report.md')
+    : path.join(__dirname, 'storage', filename);
+
   if (!fs.existsSync(filePath)) {
     return res.status(404).json({ error: `File ${filename} not found. Please run the corresponding agent generation first.` });
   }
