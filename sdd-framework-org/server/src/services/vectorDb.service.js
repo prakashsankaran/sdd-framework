@@ -173,7 +173,7 @@ function writeLocalStore(data) {
 /**
  * Archives a generated document to physical disk storage and indexes its chunks into Qdrant or Local Store.
  */
-async function indexDocument(agentId, filename, format, rawContent) {
+async function indexDocument(agentId, filename, format, rawContent, activeSpec) {
   try {
     // 1. Save document to backend disk storage
     const storageDir = path.join(__dirname, '../storage');
@@ -185,6 +185,16 @@ async function indexDocument(agentId, filename, format, rawContent) {
     const filePath = path.join(storageDir, filename);
     fs.writeFileSync(filePath, stringContent, 'utf8');
     console.log(`[Storage] Saved file to disk: ${filePath}`);
+
+    // Mirror to active spec workspace if provided
+    if (activeSpec) {
+      const activeSpecDir = path.join(__dirname, '../../../specs', activeSpec);
+      if (fs.existsSync(activeSpecDir)) {
+        const workspaceFilePath = path.join(activeSpecDir, filename);
+        fs.writeFileSync(workspaceFilePath, stringContent, 'utf8');
+        console.log(`[Storage] Saved file to active spec workspace: ${workspaceFilePath}`);
+      }
+    }
 
     // Check/Ensure database collection connection (switches useLocalFallback if offline)
     await initQdrantCollection();
@@ -213,6 +223,7 @@ async function indexDocument(agentId, filename, format, rawContent) {
         id,
         vector,
         payload: {
+          activeSpec: activeSpec || '',
           agentId,
           filename,
           format,
@@ -258,20 +269,32 @@ async function indexDocument(agentId, filename, format, rawContent) {
 /**
  * Searches the indexed agent documents in Qdrant or Local Store by query similarity.
  */
-async function searchDocuments(queryText, limit = 5) {
+async function searchDocuments(queryText, limit = 5, activeSpec) {
   try {
     // Ensure connection is checked
     await initQdrantCollection();
 
-    console.log(`[Indexer] Querying vector space for: "${queryText}"`);
+    console.log(`[Indexer] Querying vector space for: "${queryText}" (Filtered by Spec: ${activeSpec || 'None'})`);
     const queryVector = await generateEmbedding(queryText);
 
     if (!useLocalFallback) {
       try {
         const client = getQdrantClient();
+        const filter = activeSpec ? {
+          must: [
+            {
+              key: 'activeSpec',
+              match: {
+                value: activeSpec
+              }
+            }
+          ]
+        } : undefined;
+
         const searchResult = await client.search(COLLECTION_NAME, {
           vector: queryVector,
           limit,
+          filter,
           with_payload: true
         });
 
@@ -290,7 +313,7 @@ async function searchDocuments(queryText, limit = 5) {
       console.log('[Local Store] Querying local vector_store.json using cosine similarity...');
       const localStore = readLocalStore();
       
-      const hits = localStore.map(point => {
+      let hits = localStore.map(point => {
         const score = cosineSimilarity(queryVector, point.vector);
         return {
           score,
@@ -298,6 +321,10 @@ async function searchDocuments(queryText, limit = 5) {
           payload: point.payload
         };
       });
+
+      if (activeSpec) {
+        hits = hits.filter(h => h.payload.activeSpec === activeSpec);
+      }
 
       // Sort by score descending and return top matches
       return hits
@@ -310,13 +337,10 @@ async function searchDocuments(queryText, limit = 5) {
   }
 }
 
-/**
- * Context-aware answering using retrieved documents and gemini-1.5-flash
- */
-async function answerQuery(userMessage) {
+async function answerQuery(userMessage, activeSpec) {
   try {
-    // 1. Search semantic matches
-    const hits = await searchDocuments(userMessage, 4);
+    // 1. Search semantic matches (using limit = 10 to fetch full context scope)
+    const hits = await searchDocuments(userMessage, 10, activeSpec);
     
     // 2. Format context for prompt
     let context = '';
@@ -337,15 +361,58 @@ async function answerQuery(userMessage) {
       });
     }
 
-    // 3. Construct system prompt
+    // 3. Reconcile active spec stats directly from disk JSON as definitive summary context
+    let workspaceSummary = '';
+    if (activeSpec) {
+      try {
+        const activeSpecDir = path.join(__dirname, '../../../specs', activeSpec);
+        if (fs.existsSync(activeSpecDir)) {
+          const readJSON = (filename) => {
+            const p = path.join(activeSpecDir, filename);
+            return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
+          };
+          
+          const userStoriesJson = readJSON('User_Stories.json');
+          const jiraBacklogJson = readJSON('JIRA_Backlog.json');
+          
+          const userStoriesCount = userStoriesJson?.stories?.length || 0;
+          const jiraBacklogCount = jiraBacklogJson?.spreadsheet?.length || 0;
+          
+          workspaceSummary = `Active Workspace Folder Summary:\n` +
+            `- Active Spec Folder Name: ${activeSpec}\n` +
+            `- User Stories Count (User_Stories.md / User_Stories.json): ${userStoriesCount} stories\n` +
+            `- JIRA Backlog Items Count (JIRA_Backlog.md / JIRA_Backlog.json): ${jiraBacklogCount} items (User stories/tasks/bugs)\n`;
+            
+          if (userStoriesJson?.stories && userStoriesJson.stories.length > 0) {
+            workspaceSummary += `\nList of User Stories in User_Stories.md:\n`;
+            userStoriesJson.stories.forEach(s => {
+              workspaceSummary += `- ${s.id}: ${s.title}\n`;
+            });
+          }
+          if (jiraBacklogJson?.spreadsheet && jiraBacklogJson.spreadsheet.length > 0) {
+            workspaceSummary += `\nList of Items in JIRA Backlog (JIRA_Backlog.md):\n`;
+            jiraBacklogJson.spreadsheet.forEach(row => {
+              workspaceSummary += `- ID: ${row.id}, Summary: ${row.summary}, Type: ${row.issueType}, Priority: ${row.priority}, Story Points: ${row.storyPoints}, Labels: ${row.labels}\n`;
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('[RAG Summary Builder] Failed to read workspace files:', err.message);
+      }
+    }
+
+    // 4. Construct system prompt
     const systemPrompt = `You are "SDD AI Assistant", a helpful coding and requirements agent for the TCS SDD Framework.
-Your goal is to answer the user's question based on the provided system specification context enqueued in the database.
+Your goal is to answer the user's question based on the provided system specification context and active workspace details.
 
 Instructions:
 1. Try to answer the question using the context. Be direct, clear, and write in a professional, human-friendly style.
 2. Format your response using markdown bullets, lists, bold text, or tables where appropriate.
 3. If the context does not contain enough information to answer the query, tell the user that the workspace specifications do not state the answer directly, but provide a helpful developer response anyway.
 4. Keep the response concise.
+
+Active Workspace Metadata:
+${workspaceSummary || 'No metadata for active workspace.'}
 
 Retrieved Workspace Context:
 ${context || 'No specification documents found in workspace vector database yet.'}
@@ -354,7 +421,7 @@ User Question: ${userMessage}
 
 Human-Friendly Answer:`;
 
-    // 4. Call Gemini 3.1 Flash Lite
+    // 5. Call Gemini 3.1 Flash Lite
     const ai = getGenAI();
     const model = ai.getGenerativeModel({ model: 'gemini-3.1-flash-lite' });
     const result = await model.generateContent(systemPrompt);

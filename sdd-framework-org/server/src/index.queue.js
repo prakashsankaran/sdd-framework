@@ -1107,7 +1107,7 @@ async function saveAndIndexJob(type, result) {
   }
 
   try {
-    await indexDocument(type, filename, format, text);
+    await indexDocument(type, filename, format, text, activeSpecDirName);
     console.log(`[SaveAndIndex] Successfully archived and indexed ${filename} for ${type}`);
 
     // Also save raw JSON state to disk
@@ -1117,6 +1117,14 @@ async function saveAndIndexJob(type, result) {
     const jsonContent = typeof result === 'string' ? { html: result } : result;
     fs.writeFileSync(jsonFilePath, JSON.stringify(jsonContent, null, 2), 'utf8');
     console.log(`[SaveAndIndex] Saved raw JSON state to: ${jsonFilePath}`);
+
+    // Mirror json to active spec workspace
+    if (activeSpecDirName) {
+      const activeSpecDir = path.join(__dirname, '../../specs', activeSpecDirName);
+      if (fs.existsSync(activeSpecDir)) {
+        fs.writeFileSync(path.join(activeSpecDir, jsonFilename), JSON.stringify(jsonContent, null, 2), 'utf8');
+      }
+    }
   } catch (err) {
     console.error(`[SaveAndIndex] Error archiving/indexing ${filename}:`, err.message);
   }
@@ -1285,7 +1293,7 @@ app.post('/api/chat', async (req, res) => {
 
   try {
     const { answerQuery } = require('./services/vectorDb.service');
-    const response = await answerQuery(message);
+    const response = await answerQuery(message, activeSpecDirName);
     res.json({ success: true, ...response });
   } catch (err) {
     res.status(500).json({ error: 'Failed to process chat query: ' + err.message });

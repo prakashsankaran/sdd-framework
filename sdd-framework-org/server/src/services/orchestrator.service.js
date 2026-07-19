@@ -447,13 +447,13 @@ Do not include any explanation or markdown outside the JSON block. Return ONLY v
   // Save generated draft to disk immediately so it appears on individual agent workspaces
   if (resultOutput && typeof resultOutput === 'object' && !resultOutput.error) {
     try {
-      await saveAndIndexStageOutput(currentStage, resultOutput);
+      await saveAndIndexStageOutput(currentStage, resultOutput, state.activeSpec);
     } catch (err) {
       console.error(`[Orchestrator] Error saving draft output for ${currentStage}:`, err);
     }
   } else if (resultOutput && typeof resultOutput === 'string' && !resultOutput.startsWith('Failed:')) {
     try {
-      await saveAndIndexStageOutput(currentStage, resultOutput);
+      await saveAndIndexStageOutput(currentStage, resultOutput, state.activeSpec);
     } catch (err) {
       console.error(`[Orchestrator] Error saving draft output for ${currentStage}:`, err);
     }
@@ -466,7 +466,7 @@ Do not include any explanation or markdown outside the JSON block. Return ONLY v
 }
 
 // Helper: Save output to disk and index in Qdrant DB
-async function saveAndIndexStageOutput(stage, result) {
+async function saveAndIndexStageOutput(stage, result, activeSpec) {
   let filename = '';
   let format = '';
   let text = '';
@@ -584,7 +584,7 @@ async function saveAndIndexStageOutput(stage, result) {
 
   // 1. Index the compiled Markdown/HTML document in Qdrant (which also saves it to disk as file)
   const { indexDocument } = require('./vectorDb.service');
-  await indexDocument(stage, filename, format, text);
+  await indexDocument(stage, filename, format, text, activeSpec);
 
   // 2. Also save the raw JSON output to disk as a .json file, so that the frontend can read the exact state on load!
   const storageDir = path.join(__dirname, '../storage');
@@ -593,6 +593,15 @@ async function saveAndIndexStageOutput(stage, result) {
   const jsonContent = typeof result === 'string' ? { html: result } : result;
   fs.writeFileSync(jsonFilePath, JSON.stringify(jsonContent, null, 2), 'utf8');
   console.log(`[Orchestrator] Saved raw JSON state to: ${jsonFilePath}`);
+
+  // Mirror json to active spec workspace
+  if (activeSpec) {
+    const activeSpecDir = path.join(__dirname, '../../../specs', activeSpec);
+    if (fs.existsSync(activeSpecDir)) {
+      fs.writeFileSync(path.join(activeSpecDir, jsonFilename), JSON.stringify(jsonContent, null, 2), 'utf8');
+      console.log(`[Orchestrator] Saved JSON state to active spec workspace: ${path.join(activeSpecDir, jsonFilename)}`);
+    }
+  }
 }
 
 // Node 3: Gating / Approval Node (Breakpoint Gating)
