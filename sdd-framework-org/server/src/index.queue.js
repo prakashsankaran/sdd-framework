@@ -213,7 +213,7 @@ app.post('/api/specs/validate', async (req, res) => {
     }
 
     const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = ai.getGenerativeModel({ model: 'gemini-3.5-flash' });
+    const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     const prompt = `You are a Senior Principal Architect and Spec Validator.
 Your task is to thoroughly analyze the generated specifications and technical documents against the user's original requirements.
@@ -262,7 +262,7 @@ Please compile a detailed markdown validation report addressing the following:
      8. Traceability Matrix (Cross-referencing)
    - For each step, present a clean "Agent Card" containing:
      - **Sub-Agent Name**
-     - **Recommended Model** (Choose from: Gemini 3.5 Flash, Gemini 3.1 Flash Lite, GPT-4o, GPT-4o-Mini, Claude 3.5 Sonnet)
+     - **Recommended Model** (Choose from: Gemini 2.0 Flash, Gemini 1.5 Flash, GPT-4o, GPT-4o-Mini, Claude 3.5 Sonnet)
      - **Model Type** (LLM or SLM)
      - **Detailed Reasoning** (e.g. why a fast SLM is better for structured tasks, or why Claude 3.5 Sonnet is better for code generation).
 
@@ -686,139 +686,583 @@ async function generateMockOutput(type, specContent) {
       return { spreadsheet };
     }
 
-    case 'functional-spec':
-      if (specText && specText.trim().length > 20 && specText.includes('#')) {
-        return convertMarkdownToHTML(specText);
+    case 'functional-spec': {
+      try {
+        const { GoogleGenerativeAI } = require('@google/generative-ai');
+        const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+        const fsdPrompt = `You are a Principal Business Analyst and Senior Technical Writer with deep enterprise documentation expertise.
+
+Analyze the following specification document carefully:
+${specText || `# ${spec.title}\nVersion: ${spec.version}\nStatus: ${spec.status}\n\n${spec.sections.map(s => `## ${s.name}\n${s.items.map(i => `- ${i}`).join('\n')}`).join('\n\n')}`}
+
+Your task is to generate a comprehensive, client-ready Functional Specification Document (FSD) as clean, premium-styled HTML.
+
+CRITICAL RULES:
+- Do NOT wrap your output in markdown code blocks. Start directly with raw HTML (e.g. <div> or <article>).
+- Use an inline dark-mode style: dark background (#0f172a), light text (#e2e8f0), accent color (#6366f1 indigo) for headings, (#22d3ee cyan) for section badges, card-style sections with background #1e293b and border #334155.
+- Be INTELLIGENT: If a section is clearly NOT applicable based on the specification (e.g. no notifications mentioned → skip Section 10), omit it entirely rather than generating placeholder/empty content.
+- For every section that IS applicable, be thorough, specific, and derive content directly from the provided specification — do not hallucinate or fabricate details.
+- Use real IDs: FR-001, FR-002, BR-001, etc. derived from actual requirements in the spec.
+
+Generate ALL of the following sections that are applicable. Skip sections that are genuinely not applicable:
+
+DOCUMENT INFORMATION (always include):
+- Document Title, Project Name, Version, Status, Author, Reviewers, Approvers, Revision Log, Distribution List
+
+TABLE OF CONTENTS (always include)
+
+1. INTRODUCTION
+   1.1 Purpose – Why this document exists
+   1.2 Scope – Business scope and system boundaries
+   1.3 Objectives – Business goals this system achieves
+   1.4 Intended Audience – Business, Developers, QA, Architects, Product Owner
+   1.5 References – BRD, Requirement docs, Wireframes, API docs, Compliance docs
+
+2. BUSINESS CONTEXT
+   - Current process (as-is)
+   - Problems / pain points being solved
+   - Future process (to-be)
+   - Business benefits
+   - Assumptions
+   - Dependencies
+   - Constraints
+
+3. FUNCTIONAL OVERVIEW
+   - High-level list of features / modules
+
+4. USER ROLES
+   For every identified role provide:
+   - Role Name, Responsibilities, Permissions
+   - Access Matrix table (Role vs. Feature/Module → Allowed/Denied)
+
+5. FUNCTIONAL REQUIREMENTS (LARGEST SECTION — be exhaustive)
+   For every functional requirement extracted from the spec, include:
+   - Requirement ID (FR-001, FR-002, ...)
+   - Title
+   - Description
+   - Business Rule(s) (reference BR-xxx)
+   - Priority (Critical / High / Medium / Low)
+   - Actor
+   - Trigger
+   - Preconditions
+   - Main Flow (numbered steps)
+   - Alternate Flow (if any)
+   - Exception Flow (if any)
+   - Post Conditions
+   - Acceptance Criteria
+   - Dependencies
+   - Related Screens
+   - Related APIs
+   - Related Database Tables
+   - Traceability IDs
+
+6. BUSINESS RULES
+   For every rule (BR-001, BR-002, ...):
+   - Rule ID, Title, Description, Enforcement Point, Priority
+
+7. UI SPECIFICATION (include if UI/screens are mentioned)
+   For every screen:
+   - Screen ID, Purpose, Navigation path, Fields list, Validation rules, Buttons/Actions, Messages, Responsive behaviour, Accessibility notes, Wireframe reference
+
+8. FIELD SPECIFICATIONS (include if forms/fields are mentioned)
+   Table with columns: Field Name | Type | Mandatory | Validation | Editable | Default | Max Length | Allowed Values
+
+9. WORKFLOW (include if processes/flows/approvals are mentioned)
+   - Business workflows (narrative + state transitions)
+   - Approval flow
+   - Escalation flow
+
+10. NOTIFICATIONS (include ONLY if notifications/emails/SMS/alerts are mentioned in the spec)
+    - Channel (Email/SMS/Push), Event Trigger, Template, Recipients
+
+11. REPORTS (include ONLY if reports/dashboards/exports are mentioned)
+    - Report Name, Columns, Filters, Sorting, Export format, Frequency
+
+12. SEARCH REQUIREMENTS (include if search/filter functionality is mentioned)
+    - Search fields, Sorting options, Pagination, Filter criteria
+
+13. ERROR HANDLING
+    - Business errors, Validation errors, System errors (with error codes and messages)
+
+14. NON-FUNCTIONAL REQUIREMENTS
+    - Performance, Availability, Scalability, Security, Accessibility, Localization, Browser Support
+
+15. ASSUMPTIONS (list all assumptions made during FSD authoring)
+
+16. RISKS (list identified risks with likelihood and mitigation)
+
+17. OPEN QUESTIONS (list any open items requiring stakeholder clarification)
+
+18. APPENDIX
+    - Glossary of terms
+    - Abbreviations`;
+
+        const result = await model.generateContent(fsdPrompt);
+        let fsdHtml = result.response.text().trim();
+
+        // Strip markdown code block wrapping if model returned it
+        if (fsdHtml.startsWith('```html')) {
+          fsdHtml = fsdHtml.substring(7);
+        } else if (fsdHtml.startsWith('```')) {
+          fsdHtml = fsdHtml.substring(3);
+        }
+        if (fsdHtml.endsWith('```')) {
+          fsdHtml = fsdHtml.substring(0, fsdHtml.length - 3);
+        }
+
+        return fsdHtml.trim();
+      } catch (err) {
+        console.error('[FSD Generator] Failed to query AI model:', err.message);
       }
-      return convertMarkdownToHTML(
-        `# ${spec.title}\n` +
+
+      // Fallback: Build a structured FSD from parsed spec if AI call fails
+      const fallbackMd =
+        `# Functional Specification Document\n` +
+        `## ${spec.title}\n` +
         `**Version:** ${spec.version} | **Status:** ${spec.status}\n\n` +
-        spec.sections.map(s => `## ${s.name}\n${s.items.map(i => `- ${i}`).join('\n')}`).join('\n\n')
-      );
+        `---\n\n` +
+        `## 1. Introduction\n` +
+        `### 1.1 Purpose\nThis document describes the functional requirements for **${spec.title}**.\n\n` +
+        `### 1.2 Scope\nThis specification covers the complete functional scope of the ${spec.title} system.\n\n` +
+        `## 2. Business Context\n` +
+        (spec.workflows.slice(0, 3).map(w => `- ${w}`).join('\n') || '- Business processes defined in specification.') + '\n\n' +
+        `## 3. Functional Overview\n` +
+        spec.sections.map(s => `- **${s.name}**`).join('\n') + '\n\n' +
+        `## 5. Functional Requirements\n` +
+        spec.sections.map((s, idx) =>
+          `### FR-${String(idx + 1).padStart(3, '0')}: ${s.name}\n` +
+          `**Priority:** High | **Actor:** System User\n\n` +
+          `**Description:** ${s.items[0] || 'As per specification section.'}\n\n` +
+          `**Acceptance Criteria:**\n${s.items.map(i => `- ${i}`).join('\n')}\n`
+        ).join('\n---\n\n') + '\n\n' +
+        `## 6. Business Rules\n` +
+        (spec.rules.slice(0, 5).map((r, i) => `- **BR-${String(i + 1).padStart(3, '0')}:** ${r}`).join('\n') || '- Standard business rules apply.') + '\n\n' +
+        `## 13. Error Handling\n` +
+        `- Validation errors return HTTP 422 with field-level error messages.\n` +
+        `- System errors return HTTP 500 with a reference ID for support tracking.\n\n` +
+        `## 14. Non-Functional Requirements\n` +
+        `- **Performance:** API response time < 2 seconds under normal load.\n` +
+        `- **Security:** JWT authentication, HTTPS enforced, input sanitization.\n` +
+        `- **Availability:** 99.5% uptime SLA.\n\n` +
+        `## 15. Assumptions\n- Specification is based on requirements provided as of the document date.\n\n` +
+        `## 16. Risks\n- Incomplete requirements may lead to scope changes during development.\n\n` +
+        `## 18. Appendix\n### Glossary\n- **FSD:** Functional Specification Document\n- **FR:** Functional Requirement\n- **BR:** Business Rule\n`;
 
-    case 'tech-architecture': {
-      let blueprint = `graph TD\n  Client[User Client UI] -->|REST Request| Gateway[API Gateway Service]\n`;
-      spec.sections.forEach((sec) => {
-        let slug = sec.name.replace(/[^a-zA-Z0-9]/g, '');
-        blueprint += `  Gateway -->|orchestrates| Service_${slug}["${sec.name} Engine"]\n`;
-        blueprint += `  Service_${slug} -->|verifies database| DB[("PostgreSQL Database")]\n`;
-      });
-
-      let document = `
-# Comprehensive Technical Architecture & Integration Specification
-## Document Control & System Architecture Design Specification
-**System Designation:** ${spec.title}
-**Version:** v${spec.version}
-**Status:** ${spec.status}
-
----
-
-## 1. Executive Summary & Core Objectives
-This document presents the cloud-native technical architecture design for **${spec.title}**. The primary system requirements covered are:
-${spec.rules.slice(0, 4).map(r => `* **Operational Rule**: ${r}`).join('\n') || '* Standard operational rule compliance.'}
-${spec.workflows.slice(0, 4).map(w => `* **Key Workflow**: ${w}`).join('\n') || '* Dynamic data transactions flow.'}
-
----
-
-## 2. Architectural Blueprint & Network Topology
-The system is built on a high-availability, decoupled architecture:
-1. **User Presentation Layer**:
-   - Single Page Application client built in React 18, utilizing Tailwind CSS and state containers.
-2. **Gateway Server Router**:
-   - Clustered Express instances running Node.js managed by PM2 processors.
-3. **Core Subsystems**:
-${spec.sections.map(sec => `   - **${sec.name}**: Implements business rules, validation constraints, and API hooks.`).join('\n')}
-
----
-
-## 3. Technology Stack Spec
-* **Frontend**: React 18, Zustand, Tailwind CSS.
-* **Backend Runtime**: Node.js 18 LTS Cluster, Express framework.
-* **Databases**:
-  - PostgreSQL 15 for transactional records storage.
-  - Redis 7.2 for caching sessions and queues.
-* **Integrations**: Standard vendor API integrations.
-
----
-
-## 4. API & Integration Contracts
-`;
-
-      spec.sections.forEach((sec, idx) => {
-        let slug = sec.name.toLowerCase().replace(/[^a-z]/g, '-');
-        document += `
-### 4.${idx+1} API Service: ${sec.name}
-\`POST /api/v1/${slug}\`
-- **Description**: Exposes API endpoints for processing section: ${sec.name} requirements.
-- **Headers**:
-  - \`Authorization: Bearer <JWT_Token>\`
-  - \`Content-Type: application/json\`
-- **Request Parameters**:
-\`\`\`json
-{
-  "systemTitle": "${spec.title}",
-  "actionCode": "REQ_${idx+1}",
-  "details": ${JSON.stringify(sec.items.slice(0, 2))}
-}
-\`\`\`
-- **Response (200 OK)**:
-\`\`\`json
-{
-  "status": "Success",
-  "processedItems": ${sec.items.length},
-  "timestamp": "${new Date().toISOString()}"
-}
-\`\`\`
-`;
-      });
-
-      document += `
----
-
-## 5. System Resiliency & Security Controls
-* **Security & Authentication**: All API endpoints enforce JWT RS256 token verification.
-* **Encryption**: TLS 1.3 enforced for transit files and database connection pool queries.
-* **Security Directives Detected**:
-${spec.securityFeatures.map(sf => `  - ${sf}`).join('\n') || '  - Default database connection security rules applied.'}
-`;
-
-      return { blueprint, document };
+      return convertMarkdownToHTML(fallbackMd);
     }
 
+    case 'tech-architecture': {
+      try {
+        const { GoogleGenerativeAI } = require('@google/generative-ai');
+        const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+        const techPrompt = `You are a Principal Solutions Architect and Senior Technical Writer with deep cloud-native and enterprise architecture expertise.
+
+Analyze the following specification document carefully:
+${specText || `# ${spec.title}\nVersion: ${spec.version}\nStatus: ${spec.status}\n\n${spec.sections.map(s => `## ${s.name}\n${s.items.map(i => `- ${i}`).join('\n')}`).join('\n\n')}`}
+
+Your task is to generate a comprehensive, client-ready Technical Architecture / Technical Specification Document in clean Markdown format.
+
+CRITICAL RULES:
+- Return ONLY valid JSON with two keys: "document" (the full Markdown content as a single escaped string) and "blueprint" (a valid Mermaid.js diagram string).
+- Be INTELLIGENT: If a section is clearly NOT applicable based on the specification (e.g., no Azure resources mentioned → skip Section 20 Azure details, no MFA mentioned → skip MFA in Section 8), omit it entirely rather than generating placeholder/empty content.
+- For every section that IS applicable, be thorough, specific, and derive content directly from the provided specification — do not hallucinate or fabricate details.
+
+Generate ALL of the following sections that are applicable. Skip sections that are genuinely not applicable:
+
+DOCUMENT INFORMATION (always include):
+- Document Title, Project Name, Version, Status, Author, Reviewers, Approvers, Revision Log, Distribution List
+
+TABLE OF CONTENTS (always include)
+
+1. INTRODUCTION
+   1.1 Purpose – Why this document exists
+   1.2 Scope – System and technical boundaries
+   1.3 Intended Audience – Architects, Developers, DevOps, QA, Security
+   1.4 References – Related docs (FSD, BRD, API contracts, cloud standards)
+
+2. SOLUTION OVERVIEW
+   - Architecture summary
+   - Technology stack summary table
+   - Deployment model (cloud-native / hybrid / on-prem)
+   - Cloud architecture overview
+
+3. ARCHITECTURE DIAGRAMS (include all that apply using Mermaid.js or clear textual descriptions)
+   - Context Diagram, Container Diagram, Component Diagram, Deployment Diagram, Sequence Diagram, Class Diagram (only if applicable)
+
+4. TECHNOLOGY STACK (table: Layer | Technology | Version | Purpose | Justification)
+   - Frontend, Backend, Database, Messaging/Queue, Cache, Authentication, Cloud Platform, Monitoring, CI/CD, Infrastructure-as-Code
+
+5. APPLICATION ARCHITECTURE
+   - Modules / services and their responsibilities
+   - Inter-module dependencies
+   - Interaction patterns (sync REST, async events, gRPC, etc.)
+
+6. COMPONENT DESIGN (for each major component)
+   - Purpose, Responsibilities, Interfaces/contracts, Dependencies, Failure handling, Logging strategy, Configuration/env vars
+
+7. API SPECIFICATIONS (for each key API endpoint)
+   - Endpoint path, HTTP Method, Headers, Authentication, Request body, Response body, Error codes, Retry strategy, Timeout, Rate limits, Example payloads
+
+8. AUTHENTICATION & AUTHORIZATION (only what applies)
+   - JWT, OAuth 2.0 / OIDC, SSO, MFA, Session management, RBAC model
+
+9. AUTHORIZATION MATRIX
+   - Table: Role vs. Permission/Resource → Allowed / Denied
+
+10. DATA FLOW
+    - Sequence diagrams for key flows
+    - Request lifecycle (client → gateway → service → DB → response)
+    - Data movement across boundaries
+
+11. DATABASE DESIGN SUMMARY
+    - Key entities and relationships
+    - Index strategy, Partitioning, Read replicas / connection pooling
+
+12. INTEGRATION DESIGN (only if external integrations exist)
+    - External systems, protocols, retries, circuit breaker, webhooks, message queues
+
+13. ERROR HANDLING
+    - Exception hierarchy, retry strategies, fallbacks, Dead Letter Queue, error response format
+
+14. LOGGING
+    - Log levels, Correlation ID propagation, Sensitive data masking, Log aggregation platform
+
+15. MONITORING & OBSERVABILITY (only if applicable)
+    - Key metrics, health checks, alerting rules, dashboards
+
+16. PERFORMANCE DESIGN
+    - Caching strategy (what is cached, TTL, invalidation), Pagination, Compression, Batching, Async processing, Load balancing
+
+17. SECURITY DESIGN
+    - Encryption at rest and in transit, Secrets management / Key Vault, OWASP Top 10 mitigations, CSRF, CORS, Rate limiting
+
+18. SCALABILITY
+    - Horizontal scaling, Vertical scaling, Auto-scaling rules
+
+19. DEPLOYMENT
+    - Environment matrix (Dev / QA / UAT / Prod), CI/CD pipeline stages, Rollback strategy, Blue/Green or Canary deployment
+
+20. INFRASTRUCTURE (only what is relevant to the spec)
+    - Cloud resources (Azure / AWS / GCP), Networking, Storage, App Services / AKS / Functions, Redis, Databases
+
+21. DISASTER RECOVERY
+    - Backup strategy, Restore procedure, RPO, RTO
+
+22. RISKS
+    - Technical risks with likelihood, impact, and mitigation plan
+
+23. FUTURE ENHANCEMENTS
+    - Planned improvements, roadmap items, deferred technical decisions
+
+Return ONLY valid JSON (no markdown code fences around the JSON):
+{
+  "document": "<full markdown document as single escaped string>",
+  "blueprint": "<valid mermaid graph TD diagram>"
+}`;
+
+        const aiResult = await model.generateContent(techPrompt);
+        let rawText = aiResult.response.text().trim();
+
+        // Strip markdown code block wrapping if model returned it
+        if (rawText.startsWith('```json')) rawText = rawText.substring(7);
+        else if (rawText.startsWith('```')) rawText = rawText.substring(3);
+        if (rawText.endsWith('```')) rawText = rawText.substring(0, rawText.length - 3);
+
+        const parsed = JSON.parse(rawText.trim());
+        // Normalize: support both { html, blueprint } and legacy { document, blueprint }
+        const htmlContent = parsed.html || parsed.document || '';
+        return { html: htmlContent, blueprint: parsed.blueprint || '' };
+      } catch (err) {
+        console.error('[TechArch Generator] Failed to query AI model:', err.message);
+      }
+
+      // Fallback: Build a structured document from parsed spec if AI call fails
+      let blueprint = `graph TD\n  Client[User Client UI] --> |REST Request| Gateway[API Gateway]\n`;
+      spec.sections.forEach((sec) => {
+        const slug = sec.name.replace(/[^a-zA-Z0-9]/g, '');
+        blueprint += `  Gateway --> |orchestrates| Service_${slug}["${sec.name} Service"]\n`;
+        blueprint += `  Service_${slug} --> |reads/writes| DB[("PostgreSQL Database")]\n`;
+      });
+
+      const document = `# Technical Architecture & Specification Document
+## ${spec.title}
+**Version:** v${spec.version} | **Status:** ${spec.status}
+
+---
+
+## 1. Introduction
+### 1.1 Purpose
+This document describes the technical architecture for **${spec.title}**.
+
+### 1.2 Scope
+Covers all services, integrations, infrastructure, and deployment strategies.
+
+## 2. Solution Overview
+The system is built on a cloud-native, decoupled microservices architecture.
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| Frontend | React 18, Tailwind CSS | SPA Client |
+| Backend | Node.js, Express | API Server |
+| Database | PostgreSQL 15 | Transactional Data |
+| Cache | Redis 7 | Session & Queue Cache |
+| Auth | JWT RS256 | Token-Based Auth |
+
+## 4. Technology Stack
+${spec.sections.map(s => `- **${s.name}**: ${s.items[0] || 'Core service module.'}`).join('\n')}
+
+## 5. Application Architecture
+${spec.sections.map((s, i) => `### Module ${i + 1}: ${s.name}\n${s.items.map(item => `- ${item}`).join('\n')}`).join('\n\n')}
+
+## 7. API Specifications
+${spec.sections.map((s, idx) => {
+  const slug = s.name.toLowerCase().replace(/[^a-z]/g, '-');
+  return `### API-${String(idx + 1).padStart(3, '0')}: ${s.name}
+- **Endpoint:** \`POST /api/v1/${slug}\`
+- **Method:** POST
+- **Headers:** \`Authorization: Bearer <JWT>\`, \`Content-Type: application/json\`
+- **Authentication:** JWT RS256
+- **Rate Limit:** 100 req/min`;
+}).join('\n\n')}
+
+## 8. Authentication & Authorization
+- **JWT RS256** token-based authentication on all API endpoints.
+- **RBAC** middleware enforcing role-based permissions.
+
+## 9. Authorization Matrix
+| Role | Read | Write | Admin |
+|------|------|-------|-------|
+| Admin | ✅ | ✅ | ✅ |
+| Manager | ✅ | ✅ | ❌ |
+| User | ✅ | ❌ | ❌ |
+
+## 13. Error Handling
+- Validation errors: HTTP 422 with field-level messages.
+- System errors: HTTP 500 with correlation ID for tracing.
+
+## 14. Logging
+- Log levels: ERROR, WARN, INFO, DEBUG.
+- Correlation IDs propagated across all service calls.
+
+## 17. Security Design
+- TLS 1.3 enforced for all data in transit.
+${spec.securityFeatures.map(sf => `- ${sf}`).join('\n') || '- JWT authentication enforced on all endpoints.'}
+
+## 22. Risks
+- Incomplete specifications may require architecture revision during development.
+
+## 23. Future Enhancements
+- GraphQL API layer for flexible client queries.
+- Event-driven architecture using Kafka for high-throughput scenarios.
+`;
+
+      return { blueprint, html: document };
+    }
+
+
     case 'database-design': {
+      // --- Step 1: Generate ERD and SQL DDL (deterministic, always runs) ---
       let erd = `erDiagram\n`;
       let sql = `-- Dynamic DDL Script for ${spec.title}\n\n`;
-      let fsd = `# Database Fields & Entity Relationship Definitions\n\n`;
 
-      spec.databaseTables.forEach((table, idx) => {
+      spec.databaseTables.forEach((table) => {
         erd += `  main_system ||--o{ ${table.name} : maintains\n`;
-        
+
         sql += `CREATE TABLE ${table.name} (\n`;
         table.fields.split(', ').forEach(f => {
           sql += `    ${f},\n`;
         });
         sql = sql.replace(/,\n$/, '\n'); // remove last comma
         sql += `);\n\n`;
-
-        fsd += `## ${idx+1}. Table: ${table.name}\n`;
-        fsd += `Contains operational records for database index.\n`;
-        if (spec.sections[idx]) {
-          fsd += `Matches requirements under section: **${spec.sections[idx].name}**.\n`;
-          spec.sections[idx].items.forEach((item, itemIdx) => {
-            fsd += `* **Field Check ${itemIdx+1}**: Validate details for: ${item}\n`;
-          });
-        }
-        fsd += `\n`;
       });
 
-      return { erd, sql, fsd };
+      // --- Step 2: AI-generated comprehensive Database Design Document ---
+      try {
+        const { GoogleGenerativeAI } = require('@google/generative-ai');
+        const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+        const dbPrompt = `You are a Principal Database Architect and Senior Technical Writer with deep enterprise data modeling expertise.
+
+Analyze the following specification document carefully:
+${specText || `# ${spec.title}\nVersion: ${spec.version}\nStatus: ${spec.status}\n\n${spec.sections.map(s => `## ${s.name}\n${s.items.map(i => `- ${i}`).join('\n')}`).join('\n\n')}`}
+
+Also consider these identified database tables: ${spec.databaseTables.map(t => t.name).join(', ') || 'as derived from the specification'}.
+
+Your task is to generate a comprehensive, client-ready Database Design Document as clean, premium-styled HTML.
+
+CRITICAL RULES:
+- Do NOT wrap your output in markdown code blocks. Start directly with raw HTML (e.g. <div> or <article>).
+- Use an inline dark-mode style: dark background (#0f172a), light text (#e2e8f0), accent color (#6366f1 indigo) for headings, (#22d3ee cyan) for section badges, card-style sections with background #1e293b and border #334155.
+- Be INTELLIGENT: If a section is clearly NOT applicable based on the specification (e.g., no stored procedures mentioned → skip Section 9, no triggers → skip Section 10), omit it entirely rather than generating placeholder/empty content.
+- For every section that IS applicable, be thorough, specific, and derive content directly from the provided specification — do not hallucinate or fabricate details.
+- Use semantic HTML5 elements with an elegant table-heavy layout for the field specifications section.
+- For Section 4 (Table Specifications), generate detailed column-level tables with all attributes.
+
+Generate ALL of the following sections that are applicable. Skip sections that are genuinely not applicable:
+
+DOCUMENT INFORMATION (always include):
+- Document Title: "Database Design Document"
+- Project Name, Version, Status, Author, Reviewers, Approvers, Revision Log, Distribution List
+
+TABLE OF CONTENTS (always include)
+
+1. PURPOSE
+   - Why this database design document exists
+   - Document scope and coverage
+
+2. DATABASE OVERVIEW
+   - Database Type (e.g., PostgreSQL, MySQL, SQL Server, Oracle, MongoDB)
+   - Version
+   - Purpose — what business problem this database serves
+
+3. ENTITY DEFINITIONS
+   For every table/entity identified:
+   - Entity Name
+   - Purpose — what this entity represents
+   - Description — detailed description of the entity
+   - Owner — which module/service/team owns this entity
+
+4. TABLE SPECIFICATIONS (LARGEST SECTION — be exhaustive)
+   For every table, generate a detailed specification table with columns:
+   - Column Name
+   - Data Type
+   - Length / Precision
+   - Nullable (Yes/No)
+   - Primary Key (Yes/No)
+   - Foreign Key (Yes/No — if yes, reference table and column)
+   - Default Value
+   - Unique (Yes/No)
+   - Indexed (Yes/No)
+   - Description — business meaning of the column
+
+5. RELATIONSHIPS
+   - One-to-One relationships (table pairs, join keys, business meaning)
+   - One-to-Many relationships (table pairs, join keys, business meaning)
+   - Many-to-Many relationships (junction tables, join keys, business meaning)
+   - Cascade Rules for each relationship (CASCADE DELETE, SET NULL, RESTRICT, etc.)
+
+6. CONSTRAINTS
+   - Primary Key constraints (table, columns)
+   - Foreign Key constraints (table, column, references, on delete/update action)
+   - Unique constraints (table, columns, business reason)
+   - Check constraints (table, column, condition, business rule)
+
+7. INDEX STRATEGY
+   - Clustered indexes (table, columns, justification)
+   - Non-Clustered indexes (table, columns, purpose)
+   - Composite indexes (table, columns combination, query pattern)
+   - Filtered indexes (table, filter condition, purpose)
+
+8. VIEWS (include ONLY if applicable to the domain)
+   For each view:
+   - View Name
+   - Purpose — why this view exists
+   - Definition — SELECT statement or description
+
+9. STORED PROCEDURES (include ONLY if applicable to the domain)
+   For each procedure:
+   - Procedure Name
+   - Input Parameters (name, type, description)
+   - Output / Return (type, description)
+   - Logic — what the procedure does step by step
+
+10. TRIGGERS (include ONLY if applicable to the domain)
+    For each trigger:
+    - Trigger Name
+    - Table, Event (INSERT/UPDATE/DELETE), Timing (BEFORE/AFTER)
+    - Purpose — business reason
+    - Logic — what the trigger does
+
+11. SEQUENCES / IDENTITY COLUMNS
+    - Identity columns (table, column, seed, increment)
+    - UUID / GUID columns (table, column, generation strategy)
+    - Auto-increment patterns used across the schema
+
+12. DATA DICTIONARY
+    A master reference table with columns:
+    - Business Name (human-readable term)
+    - Physical Name (table.column)
+    - Data Type
+    - Description — full business definition
+    - Allowed Values / Domain
+
+13. NORMALIZATION
+    - Confirmation of 1NF compliance (no repeating groups, atomic values)
+    - Confirmation of 2NF compliance (no partial dependencies)
+    - Confirmation of 3NF compliance (no transitive dependencies)
+    - Deliberate Denormalization Decisions (where and why denormalization was chosen for performance)
+
+14. SECURITY
+    - Encryption at rest (which columns/tables, algorithm)
+    - Data Masking strategy (which fields, masking pattern)
+    - PII fields identification (table, column, data classification)
+    - GDPR compliance notes (data residency, right to erasure, consent tracking)
+
+15. DATA RETENTION
+    - Archival strategy (which tables, archival frequency, archive location)
+    - Purge policy (which tables, retention period, purge mechanism)
+
+16. PERFORMANCE
+    - Partitioning strategy (table, partition key, partition type: range/list/hash)
+    - Index optimization notes
+    - Statistics update strategy (frequency, method)
+
+17. BACKUP STRATEGY
+    - Backup type (full, differential, transaction log)
+    - Frequency and schedule
+    - Retention period for backups
+    - Recovery point objective (RPO) and recovery time objective (RTO)
+
+18. MIGRATION STRATEGY
+    - Migration approach (blue/green, rolling, cutover)
+    - Schema versioning tool (Flyway, Liquibase, Alembic, custom)
+    - Rollback strategy
+    - Data migration steps`;
+
+        const aiResult = await model.generateContent(dbPrompt);
+        let fsdHtml = aiResult.response.text().trim();
+
+        // Strip markdown code block wrapping if model returned it
+        if (fsdHtml.startsWith('```html')) fsdHtml = fsdHtml.substring(7);
+        else if (fsdHtml.startsWith('```')) fsdHtml = fsdHtml.substring(3);
+        if (fsdHtml.endsWith('```')) fsdHtml = fsdHtml.substring(0, fsdHtml.length - 3);
+
+        return { erd, sql, fsd: fsdHtml.trim() };
+      } catch (err) {
+        console.error('[DB Design Generator] Failed to query AI model:', err.message);
+      }
+
+      // Fallback: Build a structured HTML document from parsed spec if AI call fails
+      const fallbackFsd = `<div style="font-family: ui-sans-serif, system-ui, sans-serif; background: #0f172a; color: #e2e8f0; padding: 24px; border-radius: 12px;">
+  <h1 style="color: #6366f1; border-bottom: 2px solid #6366f1; padding-bottom: 8px; font-size: 22px; font-weight: bold;">Database Design Document</h1>
+  <p style="color: #94a3b8; font-size: 13px; margin-bottom: 24px;"><strong>Project:</strong> ${spec.title} | <strong>Version:</strong> ${spec.version} | <strong>Status:</strong> ${spec.status}</p>
+  <h2 style="color: #22d3ee; font-size: 16px; font-weight: bold; margin-top: 20px;">1. Purpose</h2>
+  <p>This document defines the complete database model for <strong>${spec.title}</strong>.</p>
+  <h2 style="color: #22d3ee; font-size: 16px; font-weight: bold; margin-top: 20px;">2. Database Overview</h2>
+  <table style="width:100%; border-collapse:collapse; margin-top:8px;">
+    <tr><td style="padding:6px 10px; border:1px solid #334155; color:#94a3b8;">Database Type</td><td style="padding:6px 10px; border:1px solid #334155;">PostgreSQL</td></tr>
+    <tr><td style="padding:6px 10px; border:1px solid #334155; color:#94a3b8;">Version</td><td style="padding:6px 10px; border:1px solid #334155;">15+</td></tr>
+    <tr><td style="padding:6px 10px; border:1px solid #334155; color:#94a3b8;">Purpose</td><td style="padding:6px 10px; border:1px solid #334155;">Stores all operational data for ${spec.title}</td></tr>
+  </table>
+  <h2 style="color: #22d3ee; font-size: 16px; font-weight: bold; margin-top: 20px;">3. Entity Definitions</h2>
+  ${spec.databaseTables.map((t, i) => `<div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:12px; margin-bottom:8px;"><strong style="color:#6366f1;">${t.name}</strong><p style="color:#94a3b8; font-size:12px; margin-top:4px;">Operational entity for ${spec.sections[i]?.name || t.name}. Stores ${t.fields}.</p></div>`).join('')}
+  <h2 style="color: #22d3ee; font-size: 16px; font-weight: bold; margin-top: 20px;">4. Table Specifications</h2>
+  ${spec.databaseTables.map(t => `<h3 style="color:#e2e8f0; font-size:14px; margin-top:12px;">${t.name}</h3><table style="width:100%; border-collapse:collapse;"><thead><tr>${['Column','Type','Length','Nullable','PK','FK','Default','Unique','Index','Description'].map(h => `<th style="padding:6px 8px; border:1px solid #334155; background:#1e293b; color:#22d3ee; font-size:11px;">${h}</th>`).join('')}</tr></thead><tbody>${t.fields.split(', ').map(f => `<tr><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">${f}</td>${'<td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">VARCHAR</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">255</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">Yes</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">No</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">No</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">NULL</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">No</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">No</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">—</td>'}</tr>`).join('')}</tbody></table>`).join('')}
+</div>`;
+
+      return { erd, sql, fsd: fallbackFsd };
     }
 
     case 'ux-wireframe': {
       try {
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = ai.getGenerativeModel({ model: 'gemini-3.1-flash-lite' });
+        const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
         const prompt = `You are an expert UI/UX designer and web developer.
 Your goal is to build a complete, highly-interactive single-page HTML application mockup prototype based on the provided functional specification spec.md.
@@ -897,29 +1341,161 @@ Complete HTML Prototype:`;
     }
 
     case 'test-cases': {
-      let suite = [];
-      let gherkin = `Feature: Validation Suite for ${spec.title}\n\n`;
+      try {
+        const { GoogleGenerativeAI } = require('@google/generative-ai');
+        const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
-      spec.sections.forEach((sec, idx) => {
-        let caseId = `TC-${spec.title.replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase() || 'SYS'}-${idx+1}`;
-        suite.push({
-          id: caseId,
-          desc: `Verify execution flow for ${sec.name}`,
-          precondition: `System initialization is complete`,
-          steps: `1. Query ${sec.name} endpoints\n2. Verify response payload status`,
-          expected: `Payload returned matches the specification criteria`
-        });
+        const testPrompt = `You are a Principal QA Architect and Senior Test Engineer with deep enterprise software testing expertise.
 
-        gherkin += `  Scenario: User performs verification for ${sec.name}\n`;
-        gherkin += `    Given the database handles records for "${spec.title}"\n`;
-        if (sec.items.length > 0) {
-          gherkin += `    And the user initiates rule checking for "${sec.items[0].substring(0, 50)}"\n`;
-        }
-        gherkin += `    When they submit request parameters\n`;
-        gherkin += `    Then the validation response should authorize the transaction status\n\n`;
-      });
+Analyze the following specification document carefully:
+${specText || `# ${spec.title}\nVersion: ${spec.version}\nStatus: ${spec.status}\n\n${spec.sections.map(s => `## ${s.name}\n${s.items.map(i => `- ${i}`).join('\n')}`).join('\n\n')}`}
 
-      return { suite, gherkin };
+Your task is to generate a comprehensive, client-ready Test Strategy & Test Cases Document as clean, premium-styled HTML.
+
+CRITICAL RULES:
+- Do NOT wrap your output in markdown code blocks. Start directly with raw HTML (e.g. <div> or <article>).
+- Use an inline dark-mode style: dark background (#0f172a), light text (#e2e8f0), accent color (#6366f1 indigo) for headings, (#22d3ee cyan) for section badges, card-style sections with background #1e293b and border #334155.
+- Be INTELLIGENT: If a section is clearly NOT applicable based on the specification (e.g., no performance requirements mentioned → skip Section 9, no accessibility mentioned → skip Section 10, no browser matrix → skip Section 11), omit it entirely rather than generating placeholder/empty content.
+- For every section that IS applicable, be thorough, specific, and derive content directly from the provided specification — do not hallucinate or fabricate details.
+- For Section 4 (Detailed Test Cases), generate a rich, detailed HTML table with ALL columns specified — be exhaustive and cover every functional area from the spec.
+- Use consistent Test Case IDs in format TC-XXX-NNN (e.g. TC-001, TC-002).
+- Use consistent Requirement IDs in format REQ-NNN (e.g. REQ-001, REQ-002).
+
+Generate ALL of the following sections that are applicable. Skip sections that are genuinely not applicable:
+
+DOCUMENT INFORMATION (always include):
+- Document Title: "Test Strategy & Test Cases Document"
+- Project Name, Version, Status, Author, Reviewers, Approvers, Revision Log, Distribution List
+
+TABLE OF CONTENTS (always include)
+
+1. TEST STRATEGY SUMMARY (always include)
+   - Scope — what is in scope and out of scope for testing
+   - Objectives — goals of the testing effort
+   - Entry Criteria — conditions that must be met before testing begins
+   - Exit Criteria — conditions that define when testing is complete
+   - Test Approach — testing methodology (manual, automation, mixed)
+   - Test Levels — unit, integration, system, UAT
+   - Defect Management — how defects will be logged, tracked, and resolved
+   - Risks & Mitigations — testing risks and mitigation strategies
+
+2. TEST ENVIRONMENT (always include)
+   For each environment (Dev, QA, UAT, Prod-like):
+   - Environment Name
+   - Build / Release version
+   - Database type and version
+   - External Dependencies (APIs, services, mocks)
+   - Test Data sources
+   - Access credentials (placeholder)
+
+3. TEST SCENARIOS (always include)
+   High-level test scenarios grouped by module/feature area.
+   For each scenario:
+   - Scenario ID (TS-001, TS-002, ...)
+   - Module / Feature Area
+   - Scenario Description
+   - Priority (Critical / High / Medium / Low)
+   - Test Types involved
+
+4. DETAILED TEST CASES (LARGEST SECTION — be exhaustive, cover all functional areas)
+   For every test case, render a structured HTML table/card with ALL of these fields:
+   - Test Case ID (TC-001, TC-002, ...)
+   - Requirement ID (REQ-001, ...)
+   - Module
+   - Feature
+   - Priority (Critical / High / Medium / Low)
+   - Test Type (Functional / Regression / Smoke / Sanity / Integration / E2E)
+   - Objective — what the test case is verifying
+   - Preconditions — what must be true before running the test
+   - Test Data — the data used in the test
+   - Steps — numbered step-by-step test execution instructions
+   - Expected Result — what should happen
+   - Actual Result — leave as "TBD" (to be filled during execution)
+   - Status — leave as "Not Run"
+   - Executed By — leave as "—"
+   - Execution Date — leave as "—"
+   - Automation Status (Manual / Automated / Candidate for Automation)
+   - Defect ID — leave as "—"
+   - Comments — any notes
+
+5. NEGATIVE TEST CASES (include if applicable — error paths, invalid inputs, boundary violations)
+   Same detailed table format as Section 4.
+
+6. BOUNDARY TEST CASES (include if applicable — min/max values, edge conditions)
+   Same detailed table format as Section 4.
+
+7. VALIDATION TEST CASES (include if form validation or field-level rules are present)
+   Same detailed table format as Section 4.
+
+8. SECURITY TEST CASES (include ONLY if authentication, authorization, or security features are mentioned)
+   Cover: SQL injection, XSS, CSRF, broken auth, unauthorized access, session management.
+   Same detailed table format as Section 4.
+
+9. PERFORMANCE TEST CASES (include ONLY if performance/load/SLA requirements are mentioned)
+   Cover: load testing, stress testing, response time, throughput, scalability.
+   Same detailed table format as Section 4.
+
+10. ACCESSIBILITY TEST CASES (include ONLY if accessibility/WCAG/ADA is mentioned)
+    Cover: screen reader, keyboard navigation, color contrast, focus management.
+    Same detailed table format as Section 4.
+
+11. COMPATIBILITY TEST CASES (include ONLY if browser/device/OS matrix is mentioned)
+    Cover: browser versions, OS variants, mobile responsiveness.
+    Same detailed table format as Section 4.
+
+12. REGRESSION SUITE
+    A curated list of test case IDs that form the core regression suite (reference existing TC IDs).
+    Organized by module/priority.
+
+13. SMOKE SUITE
+    The minimal set of critical test case IDs to quickly verify a build is stable.
+
+14. SANITY SUITE
+    A focused subset of test case IDs to verify a specific area after a fix or change.
+
+15. UAT TEST CASES (include if UAT / business acceptance criteria are defined)
+    Business-facing test scenarios written in plain language.
+    Same detailed format as Section 4 but with business-oriented language.`;
+
+        const aiResult = await model.generateContent(testPrompt);
+        let testHtml = aiResult.response.text().trim();
+
+        // Strip markdown code block wrapping if model returned it
+        if (testHtml.startsWith('```html')) testHtml = testHtml.substring(7);
+        else if (testHtml.startsWith('```')) testHtml = testHtml.substring(3);
+        if (testHtml.endsWith('```')) testHtml = testHtml.substring(0, testHtml.length - 3);
+
+        return { html: testHtml.trim() };
+      } catch (err) {
+        console.error('[TestCases Generator] Failed to query AI model:', err.message);
+      }
+
+      // Fallback: Build basic structured HTML from parsed spec if AI call fails
+      const fallbackHtml = `<div style="font-family: ui-sans-serif, system-ui, sans-serif; background: #0f172a; color: #e2e8f0; padding: 24px; border-radius: 12px;">
+  <h1 style="color: #6366f1; border-bottom: 2px solid #6366f1; padding-bottom: 8px; font-size: 22px; font-weight: bold;">Test Strategy &amp; Test Cases Document</h1>
+  <p style="color: #94a3b8; font-size: 13px; margin-bottom: 24px;"><strong>Project:</strong> ${spec.title} | <strong>Version:</strong> ${spec.version} | <strong>Status:</strong> ${spec.status}</p>
+  <h2 style="color: #22d3ee; font-size: 16px; font-weight: bold; margin-top: 20px;">1. Test Strategy Summary</h2>
+  <table style="width:100%; border-collapse:collapse; margin-top:8px;">
+    <tr><td style="padding:6px 10px; border:1px solid #334155; color:#94a3b8; width:160px;">Scope</td><td style="padding:6px 10px; border:1px solid #334155;">End-to-end functional testing of ${spec.title}</td></tr>
+    <tr><td style="padding:6px 10px; border:1px solid #334155; color:#94a3b8;">Objectives</td><td style="padding:6px 10px; border:1px solid #334155;">Validate all functional requirements and business rules</td></tr>
+    <tr><td style="padding:6px 10px; border:1px solid #334155; color:#94a3b8;">Entry Criteria</td><td style="padding:6px 10px; border:1px solid #334155;">Development complete, test environment ready, test data prepared</td></tr>
+    <tr><td style="padding:6px 10px; border:1px solid #334155; color:#94a3b8;">Exit Criteria</td><td style="padding:6px 10px; border:1px solid #334155;">All critical test cases passed, no open P1/P2 defects</td></tr>
+  </table>
+  <h2 style="color: #22d3ee; font-size: 16px; font-weight: bold; margin-top: 20px;">4. Detailed Test Cases</h2>
+  <table style="width:100%; border-collapse:collapse; margin-top:8px;">
+    <thead>
+      <tr style="background:#1e293b;">
+        ${['TC ID','Req ID','Module','Feature','Priority','Type','Objective','Preconditions','Steps','Expected Result','Status','Automation'].map(h => `<th style="padding:6px 8px; border:1px solid #334155; color:#22d3ee; font-size:11px; white-space:nowrap;">${h}</th>`).join('')}
+      </tr>
+    </thead>
+    <tbody>
+      ${spec.sections.map((s, i) => `<tr><td style="padding:5px 8px; border:1px solid #334155; font-size:11px; color:#6366f1; white-space:nowrap;">TC-${String(i+1).padStart(3,'0')}</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">REQ-${String(i+1).padStart(3,'0')}</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">${s.name}</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">${s.items[0] || s.name}</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px; color:#f59e0b;">High</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">Functional</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">Verify ${s.name} works as specified</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">System initialized</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">1. Navigate to ${s.name}\n2. Execute action\n3. Verify result</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px; color:#10b981;">Operation succeeds per specification</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px; color:#94a3b8;">Not Run</td><td style="padding:5px 8px; border:1px solid #334155; font-size:11px;">Manual</td></tr>`).join('')}
+    </tbody>
+  </table>
+</div>`;
+
+      return { html: fallbackHtml };
     }
 
     case 'traceability-matrix': {
@@ -1037,38 +1613,20 @@ async function saveAndIndexJob(type, result) {
       }
       break;
     case 'tech-architecture':
-      filename = 'Technical_Specification.md';
-      format = 'md';
-      text = result.document || '';
-      if (result.blueprint) {
-        text += '\n\n## Mermaid Architecture Diagram\n\n```mermaid\n' + result.blueprint + '\n```\n';
-      }
+      filename = 'Technical_Specification.html';
+      format = 'html';
+      text = result.html || result.document || '';
       break;
+
     case 'database-design':
-      filename = 'Database_Specification.md';
-      format = 'md';
+      filename = 'Database_Design_Document.html';
+      format = 'html';
       text = result.fsd || '';
-      if (result.sql) {
-        text += '\n\n## SQL DDL Schema\n\n```sql\n' + result.sql + '\n```\n';
-      }
-      if (result.erd) {
-        text += '\n\n## Mermaid ERD\n\n```mermaid\n' + result.erd + '\n```\n';
-      }
       break;
     case 'test-cases':
-      filename = 'Testing_Specs_Blueprint.md';
-      format = 'md';
-      text = '# Manual Test Suite Blueprint\n\n';
-      text += '| Test ID | Description | Pre-conditions | Test Steps | Expected Output |\n';
-      text += '| --- | --- | --- | --- | --- |\n';
-      if (result.suite && Array.isArray(result.suite)) {
-        result.suite.forEach(tc => {
-          text += `| ${tc.id} | ${tc.desc} | ${tc.precondition} | ${tc.steps.replace(/\n/g, '<br>')} | ${tc.expected} |\n`;
-        });
-      }
-      if (result.gherkin) {
-        text += '\n\n## Gherkin Automated Specifications\n\n```gherkin\n' + result.gherkin + '\n```\n';
-      }
+      filename = 'Test_Cases_Document.html';
+      format = 'html';
+      text = result.html || '';
       break;
     case 'traceability-matrix':
       filename = 'Traceability_Matrix.md';
@@ -1118,13 +1676,9 @@ async function saveAndIndexJob(type, result) {
     fs.writeFileSync(jsonFilePath, JSON.stringify(jsonContent, null, 2), 'utf8');
     console.log(`[SaveAndIndex] Saved raw JSON state to: ${jsonFilePath}`);
 
-    // Mirror json to active spec workspace
-    if (activeSpecDirName) {
-      const activeSpecDir = path.join(__dirname, '../../specs', activeSpecDirName);
-      if (fs.existsSync(activeSpecDir)) {
-        fs.writeFileSync(path.join(activeSpecDir, jsonFilename), JSON.stringify(jsonContent, null, 2), 'utf8');
-      }
-    }
+    // Agent-generated artifacts are NOT mirrored to specs folder.
+    // Only core spec files (spec.md, constitution.md, plan.md, tasks.md, research.md) belong there.
+    // Agent outputs live in server/src/storage/ and are indexed into the vector DB.
   } catch (err) {
     console.error(`[SaveAndIndex] Error archiving/indexing ${filename}:`, err.message);
   }
@@ -1454,8 +2008,8 @@ app.get('/api/output/:type', (req, res) => {
     case 'spec-to-story': filename = 'User_Stories.json'; break;
     case 'user-stories': filename = 'JIRA_Backlog.json'; break;
     case 'tech-architecture': filename = 'Technical_Specification.json'; break;
-    case 'database-design': filename = 'Database_Specification.json'; break;
-    case 'test-cases': filename = 'Testing_Specs_Blueprint.json'; break;
+    case 'database-design': filename = 'Database_Design_Document.json'; break;
+    case 'test-cases': filename = 'Test_Cases_Document.json'; break;
     case 'traceability-matrix': filename = 'Traceability_Matrix.json'; break;
     case 'review-agent': filename = 'Compliance_Report.json'; break;
     default:
@@ -1821,9 +2375,9 @@ app.post('/api/confluence/upload', async (req, res) => {
       pageTitle = 'Database Schema Design';
       break;
     case 'test-cases': 
-      filename = 'Testing_Specs_Blueprint.md'; 
-      format = 'md';
-      pageTitle = 'Testing Specification & QA Suite';
+      filename = 'Test_Cases_Document.html'; 
+      format = 'html';
+      pageTitle = 'Test Strategy & Test Cases Document';
       break;
     case 'traceability-matrix': 
       filename = 'Traceability_Matrix.md'; 

@@ -10,11 +10,11 @@ const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 // Load model registry configuration
 const modelsConfigPath = path.resolve(__dirname, '../config/models.json');
 let modelsConfig = {
-  active_llm: process.env.ACTIVE_LLM || "gemini-3.5-flash",
-  active_slm: process.env.ACTIVE_SLM || "gemini-3.1-flash-lite",
+  active_llm: process.env.ACTIVE_LLM || "gemini-2.0-flash",
+  active_slm: process.env.ACTIVE_SLM || "gemini-2.0-flash",
   models: [
-    { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash", provider: "google", type: "LLM", apiKeyEnv: "GEMINI_API_KEY" },
-    { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash Lite", provider: "google", type: "SLM", apiKeyEnv: "GEMINI_API_KEY" },
+    { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", provider: "google", type: "LLM", apiKeyEnv: "GEMINI_API_KEY" },
+    { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash", provider: "google", type: "SLM", apiKeyEnv: "GEMINI_API_KEY" },
     { id: "gpt-4o", name: "GPT-4o", provider: "openai", type: "LLM", apiKeyEnv: "OPENAI_API_KEY" },
     { id: "gpt-4o-mini", name: "GPT-4o-Mini", provider: "openai", type: "SLM", apiKeyEnv: "OPENAI_API_KEY" },
     { id: "claude-3-5-sonnet", name: "Claude 3.5 Sonnet", provider: "anthropic", type: "LLM", apiKeyEnv: "ANTHROPIC_API_KEY" }
@@ -94,7 +94,7 @@ async function callGenerativeModel(modelId, promptText) {
   }
 
   // Fallback default
-  const model = ai.getGenerativeModel({ model: 'gemini-3.1-flash-lite' });
+  const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
   const response = await model.generateContent(promptText);
   return response.response.text().trim();
 }
@@ -224,18 +224,112 @@ async function generatorNode(state) {
     let generatorPrompt = '';
 
     if (currentStage === 'functional-spec') {
-      generatorPrompt = `You are a Principal Business Analyst.
-Analyze the specification document:
+      generatorPrompt = `You are a Principal Business Analyst and Senior Technical Writer with deep enterprise documentation expertise.
+
+Analyze the following specification document carefully:
 ${specText}
 
-Generate a comprehensive, client-ready Functional Specification Document (FSD) in clean, premium HTML.
-Do not wrap it in markdown code blocks. Start directly with the raw HTML code (e.g. <div> or <article>). 
-Include detailed sections for:
-1. Project Overview & Scope
-2. Detailed Functional Requirements & Features
-3. User Persona and Target Audience
-4. Process Flow & Business Logic
-5. Error Handling & Edge Cases`;
+Your task is to generate a comprehensive, client-ready Functional Specification Document (FSD) as clean, premium-styled HTML.
+
+CRITICAL RULES:
+- Do NOT wrap your output in markdown code blocks. Start directly with raw HTML (e.g. <div> or <article>).
+- Use an inline dark-mode style: dark background (#0f172a), light text, accent colors (#6366f1 indigo for headings, #22d3ee cyan for section badges).
+- Be INTELLIGENT: If a section is clearly NOT applicable based on the specification (e.g. no notifications mentioned → skip Section 10), omit it entirely rather than generating placeholder/empty content.
+- For every section that IS applicable, be thorough, specific, and derive content directly from the provided specification — do not hallucinate or fabricate details.
+- Use real IDs: FR-001, FR-002, BR-001, etc. derived from actual requirements in the spec.
+
+Generate ALL of the following sections that are applicable. Skip sections that are genuinely not applicable:
+
+DOCUMENT INFORMATION (always include):
+- Document Title, Project Name, Version, Status, Author, Reviewers, Approvers, Revision Log, Distribution List
+
+TABLE OF CONTENTS (always include)
+
+1. INTRODUCTION
+   1.1 Purpose – Why this document exists
+   1.2 Scope – Business scope and system boundaries
+   1.3 Objectives – Business goals this system achieves
+   1.4 Intended Audience – Business, Developers, QA, Architects, Product Owner
+   1.5 References – BRD, Requirement docs, Wireframes, API docs, Compliance docs
+
+2. BUSINESS CONTEXT
+   - Current process (as-is)
+   - Problems / pain points being solved
+   - Future process (to-be)
+   - Business benefits
+   - Assumptions
+   - Dependencies
+   - Constraints
+
+3. FUNCTIONAL OVERVIEW
+   - High-level list of features / modules (e.g. User Login, Product Search, Checkout, etc.)
+
+4. USER ROLES
+   For every identified role provide:
+   - Role Name, Responsibilities, Permissions
+   - Access Matrix table (Role vs. Feature/Module → Allowed/Denied)
+
+5. FUNCTIONAL REQUIREMENTS (LARGEST SECTION — be exhaustive)
+   For every functional requirement extracted from the spec, include:
+   - Requirement ID (FR-001, FR-002, ...)
+   - Title
+   - Description
+   - Business Rule(s) (reference BR-xxx)
+   - Priority (Critical / High / Medium / Low)
+   - Actor
+   - Trigger
+   - Preconditions
+   - Main Flow (numbered steps)
+   - Alternate Flow (if any)
+   - Exception Flow (if any)
+   - Post Conditions
+   - Acceptance Criteria
+   - Dependencies
+   - Related Screens
+   - Related APIs
+   - Related Database Tables
+   - Traceability IDs
+
+6. BUSINESS RULES
+   For every rule (BR-001, BR-002, ...):
+   - Rule ID, Title, Description, Enforcement Point, Priority
+
+7. UI SPECIFICATION (include if UI/screens are mentioned)
+   For every screen:
+   - Screen ID, Purpose, Navigation path, Fields list, Validation rules, Buttons/Actions, Messages, Responsive behaviour, Accessibility notes, Wireframe reference
+
+8. FIELD SPECIFICATIONS (include if forms/fields are mentioned)
+   Table with columns: Field Name | Type | Mandatory | Validation | Editable | Default | Max Length | Allowed Values
+
+9. WORKFLOW (include if processes/flows/approvals are mentioned)
+   - Business workflows (narrative + state transitions)
+   - Approval flow
+   - Escalation flow
+
+10. NOTIFICATIONS (include ONLY if notifications/emails/SMS/alerts are mentioned in the spec)
+    - Channel (Email/SMS/Push), Event Trigger, Template, Recipients
+
+11. REPORTS (include ONLY if reports/dashboards/exports are mentioned)
+    - Report Name, Columns, Filters, Sorting, Export format, Frequency
+
+12. SEARCH REQUIREMENTS (include if search/filter functionality is mentioned)
+    - Search fields, Sorting options, Pagination, Filter criteria
+
+13. ERROR HANDLING
+    - Business errors, Validation errors, System errors (with error codes and messages)
+
+14. NON-FUNCTIONAL REQUIREMENTS
+    - Performance, Availability, Scalability, Security, Accessibility, Localization, Browser Support
+
+15. ASSUMPTIONS (list all assumptions made during FSD authoring)
+
+16. RISKS (list identified risks with likelihood and mitigation)
+
+17. OPEN QUESTIONS (list any open items requiring stakeholder clarification)
+
+18. APPENDIX
+    - Glossary of terms
+    - Abbreviations`;
       if (stageFeedback) {
         generatorPrompt += `\n\nHuman Review Feedback to apply: "${stageFeedback}"`;
       }
@@ -269,15 +363,87 @@ Rules:
       }
       resultOutput = wireframeHtml.trim();
 
-    } else {
-      let stageSchemaInstructions = '';
-      if (currentStage === 'tech-architecture') {
-        stageSchemaInstructions = `Return your design in JSON format with the following keys:
+    } else if (currentStage === 'tech-architecture') {
+      generatorPrompt = `You are a Principal Solutions Architect and Senior Technical Writer with deep cloud-native and enterprise architecture expertise.
+
+Analyze the following specification document carefully:
+${specText}
+
+Your task is to generate a comprehensive, client-ready Technical Architecture / Technical Specification Document as a complete, beautifully styled HTML page AND a Mermaid architecture diagram.
+
+Return ONLY valid JSON with exactly two keys:
 {
-  "document": "A detailed technical architecture writeup in Markdown including Executive Summary, Tech Stack selection, Integration Contracts, and Resiliency rules.",
-  "blueprint": "A valid Mermaid.js flow diagram representing the system architecture (e.g. graph TD...)."
-}`;
-      } else if (currentStage === 'database-design') {
+  "html": "<complete self-contained HTML document as a single escaped string>",
+  "blueprint": "<valid mermaid graph TD diagram as a string>"
+}
+
+HTML DOCUMENT RULES:
+- The "html" value must be a complete <!DOCTYPE html> document with embedded CSS (no external CSS files).
+- Use a premium dark-mode theme: body background #0f172a, text #e2e8f0, headings in indigo (#6366f1), section badges in cyan (#22d3ee).
+- Include a sticky table of contents sidebar or top navigation for easy section jumping.
+- Use card-style sections: background #1e293b, border 1px solid #334155, border-radius 12px, padding 24px.
+- Render code blocks (SQL, JSON, shell) with a dark code background (#0d1117), monospace font, and colored syntax highlighting using <span> tags.
+- Render tables with a styled dark header (#1e293b bg, #6366f1 text), alternating row colors, and borders.
+- Do NOT wrap your output in markdown code blocks. Return only raw JSON.
+- Be INTELLIGENT: Skip sections that are genuinely not applicable to the spec.
+- Derive all content from the provided specification — do not fabricate details.
+
+BLUEPRINT RULES:
+- The "blueprint" must be a valid Mermaid.js graph TD flowchart of the system architecture.
+- Include all major system components, databases, external services, and their connections.
+- Use descriptive node labels.
+
+Generate ALL applicable sections. Skip non-applicable ones:
+
+DOCUMENT INFORMATION (always): Title, Project Name, Version, Status, Author, Reviewers, Approvers, Revision Log, Distribution List
+TABLE OF CONTENTS (always)
+1. Introduction (1.1 Purpose, 1.2 Scope, 1.3 Audience, 1.4 References)
+2. Solution Overview (architecture summary, tech stack table, deployment model)
+3. Architecture Diagrams (Context, Container, Component, Deployment, Sequence — as applicable)
+4. Technology Stack (table: Layer | Technology | Version | Purpose | Justification)
+5. Application Architecture (modules, responsibilities, dependencies, interaction patterns)
+6. Component Design (per component: purpose, responsibilities, interfaces, dependencies, failure handling, logging, config)
+7. API Specifications (per endpoint: path, method, headers, auth, request schema, response schema, error codes, retry, timeout, rate limits, examples)
+8. Authentication & Authorization (JWT, OAuth/OIDC, SSO, MFA, session, RBAC — only what applies)
+9. Authorization Matrix (Role vs Permission table)
+10. Data Flow (sequence diagrams, request lifecycle, data movement)
+11. Database Design Summary (entities, relationships, indexes, partitioning)
+12. Integration Design (external systems, protocols, retries, circuit breaker, webhooks, queues — only if integrations exist)
+13. Error Handling (exception hierarchy, retries, fallbacks, DLQ)
+14. Logging (log levels, correlation IDs, sensitive data masking, aggregation)
+15. Monitoring & Observability (metrics, health checks, alerts, dashboards — if applicable)
+16. Performance Design (caching, pagination, compression, batching, async, load balancing)
+17. Security Design (encryption, secrets, key vault, OWASP, CSRF, CORS, rate limiting)
+18. Scalability (horizontal, vertical, auto-scaling)
+19. Deployment (environment matrix Dev/QA/UAT/Prod, CI/CD, rollback, blue-green)
+20. Infrastructure (cloud resources, networking, storage, compute — only what is relevant)
+21. Disaster Recovery (backup, restore, RPO, RTO)
+22. Risks (technical risks with likelihood, impact, mitigation)
+23. Future Enhancements (roadmap, deferred decisions)`;
+
+      if (stageFeedback) {
+        generatorPrompt += `\n\nHuman Review Feedback to apply: "${stageFeedback}"`;
+      }
+
+      const rawTechResult = await callGenerativeModel(decision.model, generatorPrompt);
+      try {
+        resultOutput = parseGeminiJson(rawTechResult);
+        // Normalize: support both { html, blueprint } and legacy { document, blueprint }
+        if (resultOutput.document && !resultOutput.html) {
+          resultOutput.html = resultOutput.document;
+        }
+      } catch (err) {
+        logs.push(`[Generator] Warning: JSON parsing failed for tech-architecture (${err.message}). Wrapping raw text as html.`);
+        resultOutput = {
+          html: `<div style="font-family:sans-serif;background:#0f172a;color:#e2e8f0;padding:24px">${rawTechResult.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>`,
+          blueprint: 'graph TD\n  Client[User Client] --> Gateway[API Gateway]\n  Gateway --> Services[Backend Services]\n  Services --> DB[(Database)]'
+        };
+      }
+
+    } else {
+
+      let stageSchemaInstructions = '';
+      if (currentStage === 'database-design') {
         stageSchemaInstructions = `Return your design in JSON format with the following keys:
 {
   "erd": "A valid Mermaid.js Entity-Relationship Diagram code (e.g. erDiagram...). Define the tables, primary/foreign keys, and relationships.",
@@ -285,19 +451,22 @@ Rules:
   "fsd": "A detailed field specifications description in Markdown table format mapping tables to business requirements."
 }`;
       } else if (currentStage === 'test-cases') {
-        stageSchemaInstructions = `Return your design in JSON format with the following keys:
-{
-  "suite": [
-    {
-      "id": "TC-001",
-      "desc": "Detailed description of what is being tested",
-      "precondition": "Preconditions required before executing test steps",
-      "steps": "1. Step one\\n2. Step two\\n3. Step three",
-      "expected": "The expected result of the test execution"
-    }
-  ],
-  "gherkin": "A complete Gherkin Feature file with Scenario Outline templates covering standard, validation, and boundary conditions."
-}`;
+        stageSchemaInstructions = `Return your output as clean, premium-styled HTML (not JSON).
+Do NOT wrap your output in markdown code blocks. Start directly with raw HTML.
+Use dark-mode styling: background #0f172a, text #e2e8f0, indigo (#6366f1) headings, cyan (#22d3ee) section badges, cards with #1e293b background and #334155 borders.
+Generate a comprehensive Test Strategy & Test Cases Document covering all applicable sections:
+1. Test Strategy Summary (Scope, Objectives, Entry/Exit Criteria, Approach, Levels, Defect Mgmt, Risks)
+2. Test Environment (per environment: name, build, database, dependencies)
+3. Test Scenarios (high-level, grouped by module, with TS-IDs)
+4. Detailed Test Cases — exhaustive table with: TC ID, Req ID, Module, Feature, Priority, Test Type, Objective, Preconditions, Test Data, Steps, Expected Result, Actual Result (TBD), Status (Not Run), Executed By (—), Execution Date (—), Automation Status, Defect ID (—), Comments
+5. Negative Test Cases (if applicable)
+6. Boundary Test Cases (if applicable)
+7. Validation Test Cases (if applicable)
+8. Security Test Cases (only if security is mentioned)
+9. Performance Test Cases (only if performance/SLA is mentioned)
+10. Regression Suite, Smoke Suite, Sanity Suite
+11. UAT Test Cases (if business acceptance criteria are defined)
+Skip sections that are not applicable based on the spec. Be thorough and specific.`;
       } else if (currentStage === 'traceability-matrix') {
         stageSchemaInstructions = `Return your output in JSON format with the following keys:
 {
@@ -365,76 +534,81 @@ Rules:
         stageSchemaInstructions = `Return your output in JSON format: { "output": "standard markdown content" }`;
       }
 
-      if (currentStage === 'spec-to-story') {
-        generatorPrompt = `You are a Senior Agile Product Owner. Analyze the specification document:
+      if (currentStage === 'test-cases') {
+        // test-cases is self-contained: generates HTML, not JSON
+        generatorPrompt = `You are a Principal QA Architect and Senior Test Engineer with deep enterprise software testing expertise.
+Analyze the specification document:
+${specText}
+
+${stageSchemaInstructions}`;
+        if (stageFeedback) {
+          generatorPrompt += `\n\nHuman Review Feedback to apply: "${stageFeedback}"`;
+        }
+        let testHtml = await callGenerativeModel(decision.model, generatorPrompt);
+        if (testHtml.startsWith('```html')) testHtml = testHtml.substring(7);
+        else if (testHtml.startsWith('```')) testHtml = testHtml.substring(3);
+        if (testHtml.endsWith('```')) testHtml = testHtml.substring(0, testHtml.length - 3);
+        resultOutput = { html: testHtml.trim() };
+      } else {
+        // All other stages: set generatorPrompt based on stage, then call model
+        if (currentStage === 'spec-to-story') {
+          generatorPrompt = `You are a Senior Agile Product Owner. Analyze the specification document:
 ${specText}
 
 Your task is to decompose the specification into a comprehensive backlog of Agile User Stories.
 Requirements:
 1. Decompose the specification document comprehensively to generate at least 5 to 7 detailed, distinct user stories.
-2. You must include stories covering:
-   - Meeting Intake & Calendar Sync (Outlook/G-Suite)
-   - Audio Ingestion, STT Transcription & Speaker Diarization
-   - AI Insights, Summarization & Action Item Extraction
-   - Semantic Cross-Meeting Vector Search (Qdrant RAG query)
-   - External Project Management Tool Sync (Jira/ADO sync)
-   - SSO Authentication, RBAC middleware, and Audit Logging
-3. Every story must follow the 'As a [role], I want to [action], So that [benefit]' format.
+2. Every story must follow the 'As a [role], I want to [action], So that [benefit]' format.
+3. Cover all key functional areas described in the specification — do not fabricate details not present.
 
 Format Instructions:
 ${stageSchemaInstructions}
 Do not include any explanation or markdown outside the JSON block. Return ONLY valid JSON.`;
-      } else if (currentStage === 'user-stories') {
-        generatorPrompt = `You are an Agile Delivery Manager. Analyze the specification document:
+        } else if (currentStage === 'user-stories') {
+          generatorPrompt = `You are an Agile Delivery Manager. Analyze the specification document:
 ${specText}
 
 Your task is to create a complete JIRA project backlog spreadsheet.
 Requirements:
 1. Decompose the specification document comprehensively to create a backlog of at least 6 to 10 JIRA issues (mix of Stories, Tasks, and Bugs).
-2. You must include issues covering:
-   - Database schema tables DDL configuration
-   - Calendar sync worker/cron setup
-   - Audio processing, STT transcription service integration
-   - Qdrant vector database collection and search APIs
-   - Frontend dashboard UI components (Executive/PM/Employee views)
-   - OIDC Identity Provider setup and RBAC middleware
-3. Do not output generic placeholders. Make them specific to this product's architecture.
+2. Make them specific to the product described in the specification — do not use generic placeholders.
 
 Format Instructions:
 ${stageSchemaInstructions}
 Do not include any explanation or markdown outside the JSON block. Return ONLY valid JSON.`;
-      } else {
-        generatorPrompt = `You are a professional software engineering agent. Build a high-quality document for stage: "${currentStage}".
+        } else {
+          generatorPrompt = `You are a professional software engineering agent. Build a high-quality document for stage: "${currentStage}".
 Requirements:
 ${specText}
 
 Instructions:
 ${stageSchemaInstructions}
 Do not include any explanation or markdown outside the JSON block. Return ONLY valid JSON.`;
-      }
+        }
 
-      if (stageFeedback) {
-        generatorPrompt += `\n\nHuman Review Feedback to apply: "${stageFeedback}"`;
-      }
+        if (stageFeedback) {
+          generatorPrompt += `\n\nHuman Review Feedback to apply: "${stageFeedback}"`;
+        }
 
-      const cleanJsonText = await callGenerativeModel(decision.model, generatorPrompt);
-      try {
-        resultOutput = parseGeminiJson(cleanJsonText);
-      } catch (err) {
-        logs.push(`[Generator] Warning: JSON parsing failed (${err.message}). Attempting to recover from raw text.`);
-        resultOutput = {
-          document: cleanJsonText,
-          blueprint: 'graph TD\n  Error[JSON Generation Failed]',
-          erd: 'erDiagram\n  Error',
-          sql: '-- Generation failed',
-          fsd: cleanJsonText,
-          suite: [],
-          gherkin: '# Failed to generate',
-          matrix: [],
-          coverage: '0%',
-          compliance: [],
-          logs: ['[Error] JSON parsing failed']
-        };
+        const cleanJsonText = await callGenerativeModel(decision.model, generatorPrompt);
+        try {
+          resultOutput = parseGeminiJson(cleanJsonText);
+        } catch (err) {
+          logs.push(`[Generator] Warning: JSON parsing failed (${err.message}). Attempting to recover from raw text.`);
+          resultOutput = {
+            document: cleanJsonText,
+            blueprint: 'graph TD\n  Error[JSON Generation Failed]',
+            erd: 'erDiagram\n  Error',
+            sql: '-- Generation failed',
+            fsd: cleanJsonText,
+            suite: [],
+            gherkin: '# Failed to generate',
+            matrix: [],
+            coverage: '0%',
+            compliance: [],
+            logs: ['[Error] JSON parsing failed']
+          };
+        }
       }
     }
 
@@ -515,38 +689,20 @@ async function saveAndIndexStageOutput(stage, result, activeSpec) {
       text = typeof result === 'string' ? result : result.html || '';
       break;
     case 'tech-architecture':
-      filename = 'Technical_Specification.md';
-      format = 'md';
-      text = result.document || '';
-      if (result.blueprint) {
-        text += '\n\n## Mermaid Architecture Diagram\n\n```mermaid\n' + result.blueprint + '\n```\n';
-      }
+      filename = 'Technical_Specification.html';
+      format = 'html';
+      text = result.html || result.document || '';
       break;
+
     case 'database-design':
-      filename = 'Database_Specification.md';
-      format = 'md';
-      text = result.fsd || '';
-      if (result.sql) {
-        text += '\n\n## SQL DDL Schema\n\n```sql\n' + result.sql + '\n```\n';
-      }
-      if (result.erd) {
-        text += '\n\n## Mermaid ERD\n\n```mermaid\n' + result.erd + '\n```\n';
-      }
+      filename = 'Database_Design_Document.html';
+      format = 'html';
+      text = typeof result === 'string' ? result : (result.fsd || '');
       break;
     case 'test-cases':
-      filename = 'Testing_Specs_Blueprint.md';
-      format = 'md';
-      text = '# Manual Test Suite Blueprint\n\n';
-      text += '| Test ID | Description | Pre-conditions | Test Steps | Expected Output |\n';
-      text += '| --- | --- | --- | --- | --- |\n';
-      if (result.suite && Array.isArray(result.suite)) {
-        result.suite.forEach(tc => {
-          text += `| ${tc.id} | ${tc.desc} | ${tc.precondition} | ${tc.steps.replace(/\n/g, '<br>')} | ${tc.expected} |\n`;
-        });
-      }
-      if (result.gherkin) {
-        text += '\n\n## Gherkin Automated Specifications\n\n```gherkin\n' + result.gherkin + '\n```\n';
-      }
+      filename = 'Test_Cases_Document.html';
+      format = 'html';
+      text = typeof result === 'string' ? result : (result.html || '');
       break;
     case 'traceability-matrix':
       filename = 'Traceability_Matrix.md';
@@ -594,14 +750,9 @@ async function saveAndIndexStageOutput(stage, result, activeSpec) {
   fs.writeFileSync(jsonFilePath, JSON.stringify(jsonContent, null, 2), 'utf8');
   console.log(`[Orchestrator] Saved raw JSON state to: ${jsonFilePath}`);
 
-  // Mirror json to active spec workspace
-  if (activeSpec) {
-    const activeSpecDir = path.join(__dirname, '../../../specs', activeSpec);
-    if (fs.existsSync(activeSpecDir)) {
-      fs.writeFileSync(path.join(activeSpecDir, jsonFilename), JSON.stringify(jsonContent, null, 2), 'utf8');
-      console.log(`[Orchestrator] Saved JSON state to active spec workspace: ${path.join(activeSpecDir, jsonFilename)}`);
-    }
-  }
+  // Agent-generated artifacts are NOT mirrored to the specs workspace folder.
+  // Only core spec files (spec.md, constitution.md, plan.md, tasks.md, research.md) belong there.
+  // Agent outputs live in server/src/storage/ and are indexed into the vector DB.
 }
 
 // Node 3: Gating / Approval Node (Breakpoint Gating)

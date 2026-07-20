@@ -151,7 +151,7 @@ export default function TechArchitecture() {
 
   const handleExportPDF = () => {
     if (!pageState.output) return;
-    const documentHtml = convertMarkdownToHTML(pageState.output.document);
+    const documentHtml = pageState.output?.html || convertMarkdownToHTML(pageState.output?.document || '');
     pdfGenerator.download('Technical_Specification.pdf', documentHtml);
   };
 
@@ -276,10 +276,12 @@ export default function TechArchitecture() {
                     </div>
                   </div>
                 ) : (
-                  <div class="flex-1 overflow-auto custom-scroll fsd-document p-2">
-                    <div 
-                      class="bg-slate-900/25 p-4 rounded-xl border border-slate-900 text-xs text-slate-300 leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(pageState.output.document) }}
+                  <div class="flex-1 overflow-hidden flex flex-col">
+                    <iframe
+                      srcDoc={pageState.output?.html || pageState.output?.document || ''}
+                      title="Technical Architecture Document"
+                      class="w-full flex-1 border-0 rounded-xl bg-white"
+                      style={{ minHeight: '500px' }}
                     />
                   </div>
                 )}

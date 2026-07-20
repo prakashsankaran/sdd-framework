@@ -186,15 +186,9 @@ async function indexDocument(agentId, filename, format, rawContent, activeSpec) 
     fs.writeFileSync(filePath, stringContent, 'utf8');
     console.log(`[Storage] Saved file to disk: ${filePath}`);
 
-    // Mirror to active spec workspace if provided
-    if (activeSpec) {
-      const activeSpecDir = path.join(__dirname, '../../../specs', activeSpec);
-      if (fs.existsSync(activeSpecDir)) {
-        const workspaceFilePath = path.join(activeSpecDir, filename);
-        fs.writeFileSync(workspaceFilePath, stringContent, 'utf8');
-        console.log(`[Storage] Saved file to active spec workspace: ${workspaceFilePath}`);
-      }
-    }
+    // NOTE: Agent-generated artifacts are NOT mirrored to the specs workspace folder.
+    // The specs folder contains only core spec documents (spec.md, constitution.md, plan.md, tasks.md, research.md).
+    // Agent outputs live in server/src/storage/ and are indexed into the vector DB.
 
     // Check/Ensure database collection connection (switches useLocalFallback if offline)
     await initQdrantCollection();
@@ -361,43 +355,39 @@ async function answerQuery(userMessage, activeSpec) {
       });
     }
 
-    // 3. Reconcile active spec stats directly from disk JSON as definitive summary context
+    // 3. Build workspace summary from storage/ JSON artifacts (not from specs/ folder)
     let workspaceSummary = '';
     if (activeSpec) {
       try {
-        const activeSpecDir = path.join(__dirname, '../../../specs', activeSpec);
-        if (fs.existsSync(activeSpecDir)) {
-          const readJSON = (filename) => {
-            const p = path.join(activeSpecDir, filename);
-            return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
-          };
-          
-          const userStoriesJson = readJSON('User_Stories.json');
-          const jiraBacklogJson = readJSON('JIRA_Backlog.json');
-          
-          const userStoriesCount = userStoriesJson?.stories?.length || 0;
-          const jiraBacklogCount = jiraBacklogJson?.spreadsheet?.length || 0;
-          
-          workspaceSummary = `Active Workspace Folder Summary:\n` +
-            `- Active Spec Folder Name: ${activeSpec}\n` +
-            `- User Stories Count (User_Stories.md / User_Stories.json): ${userStoriesCount} stories\n` +
-            `- JIRA Backlog Items Count (JIRA_Backlog.md / JIRA_Backlog.json): ${jiraBacklogCount} items (User stories/tasks/bugs)\n`;
-            
-          if (userStoriesJson?.stories && userStoriesJson.stories.length > 0) {
-            workspaceSummary += `\nList of User Stories in User_Stories.md:\n`;
-            userStoriesJson.stories.forEach(s => {
-              workspaceSummary += `- ${s.id}: ${s.title}\n`;
-            });
-          }
-          if (jiraBacklogJson?.spreadsheet && jiraBacklogJson.spreadsheet.length > 0) {
-            workspaceSummary += `\nList of Items in JIRA Backlog (JIRA_Backlog.md):\n`;
-            jiraBacklogJson.spreadsheet.forEach(row => {
-              workspaceSummary += `- ID: ${row.id}, Summary: ${row.summary}, Type: ${row.issueType}, Priority: ${row.priority}, Story Points: ${row.storyPoints}, Labels: ${row.labels}\n`;
-            });
-          }
+        const storageDir = path.join(__dirname, '../storage');
+        const readStorageJSON = (fname) => {
+          const p = path.join(storageDir, fname);
+          return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : null;
+        };
+
+        const userStoriesJson = readStorageJSON('User_Stories.json');
+        const jiraBacklogJson = readStorageJSON('JIRA_Backlog.json');
+        const userStoriesCount = userStoriesJson?.stories?.length || 0;
+        const jiraBacklogCount = jiraBacklogJson?.spreadsheet?.length || 0;
+
+        workspaceSummary = `Active Workspace: ${activeSpec}\n` +
+          `- User Stories: ${userStoriesCount} stories\n` +
+          `- JIRA Backlog Items: ${jiraBacklogCount} items\n`;
+
+        if (userStoriesJson?.stories?.length > 0) {
+          workspaceSummary += `\nUser Stories:\n`;
+          userStoriesJson.stories.forEach(s => {
+            workspaceSummary += `- ${s.id}: ${s.title}\n`;
+          });
+        }
+        if (jiraBacklogJson?.spreadsheet?.length > 0) {
+          workspaceSummary += `\nJIRA Backlog Items:\n`;
+          jiraBacklogJson.spreadsheet.forEach(row => {
+            workspaceSummary += `- ${row.summary} | ${row.issueType} | ${row.priority}\n`;
+          });
         }
       } catch (err) {
-        console.warn('[RAG Summary Builder] Failed to read workspace files:', err.message);
+        console.warn('[RAG Summary Builder] Failed to read storage files:', err.message);
       }
     }
 
@@ -421,9 +411,9 @@ User Question: ${userMessage}
 
 Human-Friendly Answer:`;
 
-    // 5. Call Gemini 3.1 Flash Lite
+    // 5. Call Gemini 2.0 Flash for intelligent RAG-based answers
     const ai = getGenAI();
-    const model = ai.getGenerativeModel({ model: 'gemini-3.1-flash-lite' });
+    const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
     const result = await model.generateContent(systemPrompt);
     const answerText = result.response.text();
 

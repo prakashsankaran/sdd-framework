@@ -11,8 +11,6 @@ import { ConfluencePublishModal } from '../components/ConfluencePublishModal';
 export default function TestCases() {
   const { pages, updatePageState } = usePageContext();
   const pageState = pages['test-cases'];
-
-  const [activeTab, setActiveTab] = useState('suite'); // 'suite' | 'gherkin'
   const [isConfluenceOpen, setIsConfluenceOpen] = useState(false);
 
   // Load workspace spec on load to default files list
@@ -50,38 +48,8 @@ export default function TestCases() {
 
   const handleDownloadPDF = () => {
     if (!pageState.output) return;
-    
-    let htmlContent = `<h1>Manual Test Suite Blueprint</h1>`;
-    htmlContent += `
-      <table>
-        <thead>
-          <tr>
-            <th>Test ID</th>
-            <th>Description</th>
-            <th>Pre-conditions</th>
-            <th>Test Steps</th>
-            <th>Expected Output</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
-    pageState.output.suite?.forEach(tc => {
-      htmlContent += `
-        <tr>
-          <td><strong>${tc.id}</strong></td>
-          <td>${tc.desc}</td>
-          <td>${tc.precondition}</td>
-          <td>${tc.steps.replace(/\n/g, '<br>')}</td>
-          <td>${tc.expected}</td>
-        </tr>
-      `;
-    });
-    htmlContent += `</tbody></table>`;
-    
-    htmlContent += `<h2>Gherkin Automated Specifications</h2>`;
-    htmlContent += `<pre>${pageState.output.gherkin}</pre>`;
-
-    pdfGenerator.download('Testing_Specs_Blueprint.pdf', htmlContent);
+    const docHtml = pageState.output.html || '<p>No content generated.</p>';
+    pdfGenerator.download('Test_Cases_Document.pdf', docHtml);
   };
 
   return (
@@ -92,7 +60,7 @@ export default function TestCases() {
         <FileUpload
           pageKey="test-cases"
           title="Upload Reference Specs"
-          subtitle="Drop specs or story checklists to structure manual tests"
+          subtitle="Drop specs or story checklists to generate the test strategy document"
           files={pageState.files}
           logs={pageState.logs}
           isLoading={pageState.isLoading}
@@ -105,8 +73,8 @@ export default function TestCases() {
       {/* Right panel: viewport */}
       <div class="lg:col-span-8 h-full flex flex-col overflow-hidden">
         <GeneratedOutput
-          title="QA Testing Specifications board"
-          subtitle="Manual test verification sheets & Gherkin scripts"
+          title="Test Strategy & Test Cases Document"
+          subtitle="Comprehensive QA test strategy, scenarios, and detailed test cases"
           actions={
             pageState.output && (
               <div class="flex items-center space-x-1.5">
@@ -134,71 +102,54 @@ export default function TestCases() {
                 <i class="fas fa-tasks text-3xl"></i>
               </div>
               <div class="max-w-xs space-y-1.5">
-                <p class="text-xs font-bold text-slate-300">Test Cases Console Offline</p>
-                <p class="text-[11px] text-slate-500">Provide specs on the left and compile to generate structured manual test logs & Gherkin scenarios.</p>
+                <p class="text-xs font-bold text-slate-300">Test Document Not Generated</p>
+                <p class="text-[11px] text-slate-500">Provide specs on the left and compile to generate the comprehensive test strategy & test cases document.</p>
               </div>
             </div>
           ) : (
-            <div class="flex flex-col h-full space-y-4">
-              
-              {/* Workspace Tab Selector */}
-              <div class="flex space-x-1.5 bg-slate-900/60 p-1 border border-slate-800 rounded-xl self-start">
-                <button 
-                  onClick={() => setActiveTab('suite')}
-                  class={`px-4 py-2 rounded-lg text-xs font-bold transition duration-150 ${
-                    activeTab === 'suite' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Manual Test Suite
-                </button>
-                <button 
-                  onClick={() => setActiveTab('gherkin')}
-                  class={`px-4 py-2 rounded-lg text-xs font-bold transition duration-150 ${
-                    activeTab === 'gherkin' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Gherkin Script Panel
-                </button>
-              </div>
-
-              {/* Viewport content */}
-              <div class="flex-1 bg-slate-950/60 rounded-xl border border-slate-900/80 p-4 overflow-auto custom-scroll min-h-[300px]">
-                
-                {activeTab === 'suite' ? (
-                  <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs">
-                      <thead>
-                        <tr class="bg-slate-900 border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold text-[10px]">
-                          <th class="p-3 border-r border-slate-800">Test ID</th>
-                          <th class="p-3 border-r border-slate-800">Description</th>
-                          <th class="p-3 border-r border-slate-800">Pre-conditions</th>
-                          <th class="p-3 border-r border-slate-800">Steps</th>
-                          <th class="p-3">Expected Result</th>
-                        </tr>
-                      </thead>
-                      <tbody class="divide-y divide-slate-850 bg-slate-950/20 text-slate-300">
-                        {pageState.output.suite?.map(tc => (
-                          <tr key={tc.id} class="hover:bg-slate-900/20">
-                            <td class="p-3 border-r border-slate-800 font-bold text-indigo-400 whitespace-nowrap">{tc.id}</td>
-                            <td class="p-3 border-r border-slate-800 font-medium text-slate-200">{tc.desc}</td>
-                            <td class="p-3 border-r border-slate-800 text-slate-400">{tc.precondition}</td>
-                            <td class="p-3 border-r border-slate-800 text-slate-400 whitespace-pre-wrap leading-relaxed">{tc.steps}</td>
-                            <td class="p-3 text-emerald-400 font-semibold">{tc.expected}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div class="fsd-document">
-                    <pre class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 font-mono text-xs text-yellow-300 whitespace-pre-wrap leading-relaxed">
-                      {pageState.output.gherkin}
-                    </pre>
-                  </div>
-                )}
-              </div>
-
-            </div>
+            <iframe
+              srcDoc={`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      width: 100%;
+      overflow-x: hidden;
+    }
+    body { padding: 16px; }
+    table {
+      width: 100%;
+      max-width: 100%;
+      border-collapse: collapse;
+      table-layout: auto;
+      word-break: break-word;
+    }
+    td, th {
+      word-break: break-word;
+      overflow-wrap: break-word;
+      max-width: 300px;
+    }
+    img { max-width: 100%; height: auto; }
+    pre, code { white-space: pre-wrap; word-break: break-word; }
+    * { max-width: 100%; }
+    div, section, article, p { overflow-wrap: break-word; }
+  </style>
+</head>
+<body>${pageState.output.html || ''}</body>
+</html>`}
+              title="Test Strategy & Test Cases Document"
+              class="w-full h-full border border-slate-800 rounded-xl"
+              style={{ background: '#0f172a' }}
+            />
           )}
         </GeneratedOutput>
       </div>

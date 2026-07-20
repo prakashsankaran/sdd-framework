@@ -60,6 +60,8 @@ export const PageProvider = ({ children }) => {
           if (data.success && data.output) {
             const outputVal = (key === 'functional-spec' || key === 'ux-wireframe') 
               ? data.output.html 
+              : (key === 'tech-architecture')
+              ? data.output  // Keep full { html, blueprint } object for the TechArchitecture page
               : data.output;
               
             setPages((prev) => ({

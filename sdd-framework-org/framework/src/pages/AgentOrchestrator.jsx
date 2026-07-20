@@ -11,6 +11,7 @@ export default function AgentOrchestrator() {
   const [isStarting, setIsStarting] = useState(false);
   const [isResponding, setIsResponding] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   // List of stages in orchestrator loop
   const stagesOrder = [
@@ -40,22 +41,42 @@ export default function AgentOrchestrator() {
   useEffect(() => {
     if (!threadId) return;
 
+    let stopped = false;
+
     const pollStatus = async () => {
+      if (stopped) return;
       try {
         const res = await fetch(`http://localhost:7001/api/orchestrator/status/${threadId}`);
+
+        // Thread was lost (server restart wiped in-memory MemorySaver)
+        if (res.status === 404) {
+          stopped = true;
+          clearInterval(interval);
+          setSessionExpired(true);
+          setThreadId('');
+          localStorage.removeItem('orchestrator_thread_id');
+          return;
+        }
+
         const data = await res.json();
         if (data.success && data.state) {
           setGraphState(data.state);
+          setSessionExpired(false);
           loadSavedOutputs();
         }
       } catch (err) {
-        console.error('Failed to poll orchestrator status:', err);
+        // ERR_CONNECTION_REFUSED means server is temporarily down — don't clear thread, just skip
+        if (err.message && err.message.includes('Failed to fetch')) {
+          console.warn('[Orchestrator] Server unreachable — will retry on next poll.');
+        } else {
+          console.error('Failed to poll orchestrator status:', err);
+        }
       }
     };
 
     pollStatus();
     const interval = setInterval(pollStatus, 4000);
-    return () => clearInterval(interval);
+    return () => { stopped = true; clearInterval(interval); };
   }, [threadId]);
 
   // Start Orchestrator Graph
@@ -113,7 +134,6 @@ export default function AgentOrchestrator() {
     }
   };
 
-  // Reset Thread
   // Reset Thread and Clean Artifacts
   const handleResetThread = async () => {
     try {
@@ -129,8 +149,8 @@ export default function AgentOrchestrator() {
     } finally {
       setThreadId('');
       setGraphState(null);
+      setSessionExpired(false);
       localStorage.removeItem('orchestrator_thread_id');
-      // Reload page context to clean all local states
       loadSavedOutputs();
     }
   };
@@ -146,8 +166,17 @@ export default function AgentOrchestrator() {
     
     // If it's the current running stage
     if (graphState.currentStage === stageKey) {
-      if (graphState.results[stageKey]) return 'pending_review';
+      // Has result → awaiting review
+      if (graphState.results[stageKey] !== undefined && graphState.results[stageKey] !== null && graphState.results[stageKey] !== '') {
+        return 'pending_review';
+      }
+      // No result yet → still generating
       return 'running';
+    }
+    
+    // Stages that have results but haven't been explicitly approved yet
+    if (graphState.results[stageKey] !== undefined && graphState.results[stageKey] !== null) {
+      return 'pending_review';
     }
     
     return 'pending';
@@ -171,15 +200,21 @@ export default function AgentOrchestrator() {
         </div>
         
         <div class="flex items-center space-x-3">
-          {(graphState || threadId) && (
+          {sessionExpired && (
+            <span class="text-[10px] px-3 py-1.5 bg-amber-950/30 border border-amber-900/40 text-amber-400 font-bold rounded-xl flex items-center space-x-1.5">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>Session expired after server restart. Please start a new session.</span>
+            </span>
+          )}
+          {(graphState || threadId || sessionExpired) && (
             <button
               onClick={handleResetThread}
               class="px-4 py-2 bg-red-950/20 border border-red-900/50 text-red-400 hover:bg-red-900/10 hover:text-red-300 text-xs font-bold rounded-xl transition cursor-pointer"
             >
-              Stop & Reset Session
+              Stop &amp; Reset Session
             </button>
           )}
-          {!graphState && (
+          {!graphState && !sessionExpired && (
             <button
               onClick={handleStartOrchestrator}
               disabled={!activeSpec || isStarting}
@@ -220,7 +255,7 @@ export default function AgentOrchestrator() {
                         <p class="text-xs font-bold text-slate-200">{stage.label}</p>
                         {decision && (
                           <p class="text-[9px] text-indigo-400 font-semibold truncate max-w-[170px]" title={decision.reasoning}>
-                            {decision.model === 'gemini-3.5-flash' ? 'LLM: 3.5-Flash' : decision.model === 'gemini-3.1-flash-lite' ? 'SLM: Flash-Lite' : decision.model}
+                            {decision.model}
                           </p>
                         )}
                       </div>

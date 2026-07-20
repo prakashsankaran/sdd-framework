@@ -117,16 +117,14 @@ export default function DatabaseDesign() {
 
   const handleExportPDF = () => {
     if (!pageState.output) return;
-    let htmlContent = `
-      <h1>Database Architecture & Schema Documentation</h1>
+    const docHtml = pageState.output.fsd || `
+      <h1>Database Architecture &amp; Schema Documentation</h1>
       <h2>Entity-Relationship Layout</h2>
       <p>(See generated design vector models)</p>
       <h2>SQL DDL Scripts</h2>
       <pre>${pageState.output.sql}</pre>
-      <h2>FSD Schema details</h2>
-      <pre>${pageState.output.fsd}</pre>
     `;
-    pdfGenerator.download('Database_Specification.pdf', htmlContent);
+    pdfGenerator.download('Database_Design_Document.pdf', docHtml);
   };
 
   return (
@@ -217,7 +215,7 @@ export default function DatabaseDesign() {
                     activeTab === 'fsd' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  FSD Documentation
+                  Database Design Document
                 </button>
               </div>
 
@@ -262,10 +260,40 @@ export default function DatabaseDesign() {
                     </pre>
                   </div>
                 ) : (
-                  <div class="flex-1 overflow-auto custom-scroll fsd-document p-2">
-                    <pre class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 font-mono text-xs text-slate-300 whitespace-pre-wrap leading-relaxed">
-                      {pageState.output.fsd}
-                    </pre>
+                  <div class="flex-1 overflow-hidden flex flex-col">
+                    <iframe
+                      srcDoc={`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      width: 100%;
+      overflow-x: hidden;
+    }
+    body { padding: 16px; }
+    table { width: 100%; max-width: 100%; border-collapse: collapse; table-layout: auto; word-break: break-word; }
+    td, th { word-break: break-word; overflow-wrap: break-word; max-width: 300px; }
+    img { max-width: 100%; height: auto; }
+    pre, code { white-space: pre-wrap; word-break: break-word; }
+    * { max-width: 100%; }
+    div, section, article, p { overflow-wrap: break-word; }
+  </style>
+</head>
+<body>${pageState.output.fsd || ''}</body>
+</html>`}
+                      title="Database Design Document"
+                      class="w-full flex-1 border-0 rounded-xl"
+                      style={{ minHeight: '500px', background: '#0f172a' }}
+                    />
                   </div>
                 )}
               </div>
