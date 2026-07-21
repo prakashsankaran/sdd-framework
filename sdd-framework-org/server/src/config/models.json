@@ -1,6 +1,21 @@
 {
   "active_llm": "gemini-3.5-flash",
   "active_slm": "gemini-3.1-flash-lite",
+  "local_endpoint": "http://localhost:11434",
+  "local_enabled": true,
+  "local_models": {
+    "slm_small": "qwen2.5-coder:3b",
+    "slm_medium": "qwen2.5-coder:7b"
+  },
+  "subagent_routing": {
+    "user-stories": "local_slm_medium",
+    "ux-wireframe": "active_slm",
+    "functional-spec": "active_slm",
+    "tech-architecture": "active_llm",
+    "database-design": "active_llm",
+    "test-cases": "local_slm_medium",
+    "traceability-matrix": "local_slm_small"
+  },
   "models": [
     {
       "id": "gemini-3.5-flash",
@@ -57,6 +72,18 @@
       "provider": "anthropic",
       "type": "LLM",
       "apiKeyEnv": "ANTHROPIC_API_KEY"
+    },
+    {
+      "id": "qwen2.5-coder:3b",
+      "name": "Qwen 2.5 Coder (3B) [Local]",
+      "provider": "ollama",
+      "type": "SLM"
+    },
+    {
+      "id": "qwen2.5-coder:7b",
+      "name": "Qwen 2.5 Coder (7B) [Local]",
+      "provider": "ollama",
+      "type": "SLM"
     }
   ]
 }

@@ -8,6 +8,20 @@ const COLLECTION_NAME = 'agent_documents';
 const EMBEDDING_MODEL = 'gemini-embedding-001';
 const LOCAL_STORE_FILE = path.join(__dirname, '../storage/vector_store.json');
 
+// Load models configuration dynamically
+const modelsConfigPath = path.resolve(__dirname, '../config/models.json');
+let modelsConfig = {
+  active_llm: "gemini-3.5-flash",
+  active_slm: "gemini-3.1-flash-lite"
+};
+if (fs.existsSync(modelsConfigPath)) {
+  try {
+    modelsConfig = JSON.parse(fs.readFileSync(modelsConfigPath, 'utf8'));
+  } catch (err) {
+    console.error('Failed to load models.json in vectorDb.service.js:', err.message);
+  }
+}
+
 // Initialize clients
 let qdrantClient = null;
 let genAI = null;
@@ -411,9 +425,9 @@ User Question: ${userMessage}
 
 Human-Friendly Answer:`;
 
-    // 5. Call Gemini 2.0 Flash for intelligent RAG-based answers
+    // 5. Call Gemini for intelligent RAG-based answers
     const ai = getGenAI();
-    const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = ai.getGenerativeModel({ model: modelsConfig.active_slm });
     const result = await model.generateContent(systemPrompt);
     const answerText = result.response.text();
 

@@ -236,13 +236,7 @@ app.post('/api/specs/validate', async (req, res) => {
       fs.writeFileSync(path.join(specsDir, 'requirements.md'), requirements, 'utf8');
     }
 
-    const { GoogleGenerativeAI } = require('@google/generative-ai');
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ error: 'GEMINI_API_KEY is not set in environment variables' });
-    }
-
-    const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = ai.getGenerativeModel({ model: modelsConfig.active_llm });
+    const orchestrator = require('./services/orchestrator.service');
 
     const prompt = `You are a Senior Principal Architect and Spec Validator.
 Your task is to thoroughly analyze the generated specifications and technical documents against the user's original requirements.
@@ -262,9 +256,14 @@ Generated Constitution (constitution.md):
 ${constitution}
 """
 
-Generated Implementation Plan (plan.md):
+Generated Plan (plan.md):
 """
 ${plan}
+"""
+
+Generated Tasks (tasks.md):
+"""
+${tasks}
 """
 
 Generated Technical Research (research.md):
@@ -279,7 +278,7 @@ Please compile a detailed markdown validation report addressing the following:
 2. **Tech Stack & Standard Evaluation**:
    - Evaluate the suggested stack in the documents. Ensure they conform to modern standards and match the constitution.
 3. **Sub-Agent LLM/SLM Assignment Cards**:
-   - Recommend the ideal model (LLM vs. SLM) for each sub-agent step in our pipeline.
+   - Recommend the ideal model (Local SLM vs. Cloud SLM vs. Cloud LLM) for each sub-agent step in our pipeline.
    - Our pipeline contains these 8 steps:
      1. Spec to Story (Requirements analysis)
      2. User Stories (Backlog decomposition)
@@ -291,14 +290,13 @@ Please compile a detailed markdown validation report addressing the following:
      8. Traceability Matrix (Cross-referencing)
    - For each step, present a clean "Agent Card" containing:
      - **Sub-Agent Name**
-     - **Recommended Model** (Choose from: Gemini 2.0 Flash, Gemini 1.5 Flash, GPT-4o, GPT-4o-Mini, Claude 3.5 Sonnet)
-     - **Model Type** (LLM or SLM)
-     - **Detailed Reasoning** (e.g. why a fast SLM is better for structured tasks, or why Claude 3.5 Sonnet is better for code generation).
+     - **Recommended Model** (Choose from: Qwen 2.5 Coder 3B/7B (Local SLM), Gemini 3.1 Flash Lite/GPT-4o-Mini (Cloud SLM), Gemini 3.5 Flash/GPT-4o/Claude 3.5 Sonnet (Cloud LLM))
+     - **Model Type** (Local SLM, Cloud SLM, or Cloud LLM)
+     - **Detailed Reasoning** (e.g. why a fast local SLM is best for structured tasks to keep data on-premise, or why Gemini 3.5 Flash is needed for database schemas).
 
 Return only the clean markdown report. Do not add any introductory or wrap-up commentary outside of the markdown block.`;
 
-    const result = await model.generateContent(prompt);
-    const reportContent = result.response.text();
+    const reportContent = await orchestrator.callGenerativeModel(modelsConfig.active_llm, prompt);
 
     fs.writeFileSync(path.join(specsDir, 'validation_report.md'), reportContent, 'utf8');
 

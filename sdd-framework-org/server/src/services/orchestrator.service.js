@@ -94,6 +94,21 @@ async function callGenerativeModel(modelId, promptText, logs = null, modelTracke
       return res.data.text || res.data.choices[0].text || res.data.response;
     }
 
+    if (meta.provider === 'ollama') {
+      const baseUrl = modelsConfig.local_endpoint || 'http://localhost:11434';
+      const url = `${baseUrl}/v1/chat/completions`;
+      const res = await axios.post(url, {
+        model: meta.id,
+        messages: [{ role: 'user', content: promptText }]
+      }, {
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        timeout: 90000
+      });
+      return res.data.choices[0].message.content.trim();
+    }
+
     // Fallback default
     const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
     const response = await model.generateContent(promptText);
@@ -103,8 +118,12 @@ async function callGenerativeModel(modelId, promptText, logs = null, modelTracke
 
     const isTransient = (e) => {
       if (!e) return false;
+      const code = e.code || '';
+      if (code === 'ECONNREFUSED' || code === 'ETIMEDOUT' || code === 'ENOTFOUND') return true;
+
       const status = e.status || e.statusCode || (e.response && e.response.status);
       if (status === 429 || status === 503) return true;
+
       const errMsg = (e.message || '').toLowerCase();
       return errMsg.includes('429') || 
              errMsg.includes('503') || 
@@ -112,7 +131,10 @@ async function callGenerativeModel(modelId, promptText, logs = null, modelTracke
              errMsg.includes('service unavailable') || 
              errMsg.includes('quota exceeded') || 
              errMsg.includes('high demand') ||
-             errMsg.includes('spikes in demand');
+             errMsg.includes('spikes in demand') ||
+             errMsg.includes('timeout') ||
+             errMsg.includes('refused') ||
+             errMsg.includes('network');
     };
 
     if (isTransient(err) && modelId !== activeSlm) {
@@ -171,53 +193,104 @@ function getSpecContent(activeSpec) {
   return '';
 }
 
+// Helper to resolve abstract model keys to concrete model IDs based on models.json configuration
+function resolveModelFromRouting(modelKey, stage) {
+  let target = modelKey;
+  
+  if (target === 'active_llm') {
+    return modelsConfig.active_llm;
+  }
+  if (target === 'active_slm') {
+    return modelsConfig.active_slm;
+  }
+  if (target === 'local_slm_small') {
+    return modelsConfig.local_models?.slm_small || 'qwen2.5-coder:3b';
+  }
+  if (target === 'local_slm_medium') {
+    return modelsConfig.local_models?.slm_medium || 'qwen2.5-coder:7b';
+  }
+
+  // Fallback if local models are disabled
+  if (!modelsConfig.local_enabled && target.startsWith('local_')) {
+    const defaultTarget = modelsConfig.subagent_routing?.[stage] || 'active_slm';
+    if (defaultTarget.startsWith('local_')) {
+      return modelsConfig.active_slm;
+    }
+    return resolveModelFromRouting(defaultTarget, stage);
+  }
+
+  return target;
+}
+
 // Node 1: Selector / Validator Agent
-// Evaluates the complexity of requirements and decides between active LLM and active SLM
+// Evaluates the complexity of requirements and decides between active LLMs and SLMs (including local models)
 async function selectorNode(state) {
   const currentStage = state.currentStage || 'functional-spec';
   const specText = getSpecContent(state.activeSpec) || 'No specification files enqueued.';
+  const defaultRouting = modelsConfig.subagent_routing?.[currentStage] || 'active_slm';
   
-  const prompt = `You are the AI Model Selector Agent for a multi-agent framework.
-Analyze the requirements specification and decide which active model to route the task to for the current stage: "${currentStage}".
+  const prompt = `You are the AI Model Router Agent for a multi-agent framework.
+Analyze the requirements specification and decide the best model key to route the task to for the current stage: "${currentStage}".
 
-Active Models Available:
-- Active LLM: "${modelsConfig.active_llm}" (${getModelMeta(modelsConfig.active_llm).name})
-- Active SLM: "${modelsConfig.active_slm}" (${getModelMeta(modelsConfig.active_slm).name})
+Available Registry Options:
+- "local_slm_small": Qwen 2.5 Coder 3B (Local SLM for lightweight code/text parsing tasks)
+- "local_slm_medium": Qwen 2.5 Coder 7B (Local SLM for standard structured tasks)
+- "active_slm": Gemini 3.1 Flash Lite (Cloud SLM for general workflow coordination)
+- "active_llm": Gemini 3.5 Flash (Cloud LLM for complex blueprints/architectures)
 
-Route Rules:
-1. Select the Active LLM ("${modelsConfig.active_llm}") if:
-   - The stage is 'tech-architecture' or 'database-design' (requiring deep layout/structural planning).
-   - The requirements have high logic density (contain multiple logic gates, database relationships, or complex integrations).
-2. Select the Active SLM ("${modelsConfig.active_slm}") if:
-   - The stage is 'spec-to-story', 'user-stories', 'functional-spec', 'ux-wireframe', 'test-cases', or 'traceability-matrix'.
-   - The requirements are straightforward CRUD actions.
+Default Configured Model for "${currentStage}": "${defaultRouting}"
+
+Rules for Routing Decision:
+1. You may upgrade the model to "active_llm" if:
+   - The stage is "${currentStage}" but the specification contains extremely complex database relationships, high-density business logic, or strict security constraints.
+2. You may downgrade the model to "local_slm_medium" or "local_slm_small" if:
+   - The requirements are straightforward CRUD actions or simple template-based tasks.
+3. Otherwise, stick to the configured default: "${defaultRouting}".
 
 Input Specification:
 ${specText}
 
 Return your decision in JSON format:
 {
-  "model": "${modelsConfig.active_llm}" | "${modelsConfig.active_slm}",
-  "reasoning": "A concise description of why this model was chosen based on task complexity."
+  "modelKey": "local_slm_small" | "local_slm_medium" | "active_slm" | "active_llm",
+  "reasoning": "A concise description of why this model key was chosen."
 }`;
 
-  let decision = { model: modelsConfig.active_slm, reasoning: 'Default active SLM routed.' };
+  let decision = { modelKey: defaultRouting, reasoning: 'Default routing mapped from models.json.' };
   try {
     const rawResult = await callGenerativeModel(modelsConfig.active_slm, prompt);
     const jsonText = rawResult.replace(/```json/g, '').replace(/```/g, '').trim();
-    decision = JSON.parse(jsonText);
+    const parsed = JSON.parse(jsonText);
+    if (parsed.modelKey) {
+      decision = parsed;
+    }
   } catch (e) {
-    console.error('[Selector Node] Failed parsing JSON model routing, using active SLM.', e);
+    console.error('[Selector Node] Failed parsing JSON model routing, using default routing.', e);
   }
 
-  const modelLabel = decision.model;
-  const meta = getModelMeta(modelLabel);
+  // Resolve abstract key to actual model ID
+  const resolvedModelId = resolveModelFromRouting(decision.modelKey || decision.model, currentStage);
+  decision.model = resolvedModelId;
+
+  const defaultResolvedId = resolveModelFromRouting(defaultRouting, currentStage);
+  const meta = getModelMeta(resolvedModelId);
+  
+  const logs = [
+    `[Selector] Analyzing stage complexity for: ${currentStage}...`
+  ];
+
+  const chosenKey = decision.modelKey || decision.model;
+  if (chosenKey !== defaultRouting) {
+    const defaultMeta = getModelMeta(defaultResolvedId);
+    const chosenMeta = getModelMeta(resolvedModelId);
+    logs.push(`[Selector] Note: Configured default model "${defaultMeta.name}" was overridden. Upgraded/Routed to "${chosenMeta.name}" based on complexity evaluation.`);
+  }
+
+  logs.push(`[Selector] Router assigned task to ${meta.type} (${meta.name}).`);
+  logs.push(`[Selector] Routing reason: ${decision.reasoning}`);
+
   return {
-    logs: [
-      `[Selector] Analyzing stage complexity for: ${currentStage}...`,
-      `[Selector] Routed task to ${meta.type} (${meta.name}).`,
-      `[Selector] Routing reason: ${decision.reasoning}`
-    ],
+    logs,
     modelDecision: { [currentStage]: decision }
   };
 }
@@ -868,6 +941,7 @@ const threads = {};
 
 // Exported Functions
 module.exports = {
+  callGenerativeModel,
   // Start Graph Execution
   async startGraph(activeSpec) {
     const threadId = `thread-${Date.now()}`;
