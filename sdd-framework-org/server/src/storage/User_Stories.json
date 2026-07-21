@@ -1,0 +1,110 @@
+{
+  "stories": [
+    {
+      "id": "US-SYS-01",
+      "title": "Automated Meeting Ingestion",
+      "asA": "Standard Employee",
+      "iWantTo": "Have my calendar meetings automatically synced and processed by the platform",
+      "soThat": "I can save time on manual entry and ensure all meeting context is captured",
+      "criteria": [
+        "System successfully connects to Outlook/Google Calendar via OAuth",
+        "System creates a Meeting record upon sync",
+        "System triggers transcription workflow once the meeting starts"
+      ],
+      "priority": "High",
+      "points": 5,
+      "techNotes": "Requires integration with O365/Google Workspace APIs. Need a web hook listener for calendar updates."
+    },
+    {
+      "id": "US-SYS-02",
+      "title": "AI-Powered Action Extraction",
+      "asA": "Project Manager",
+      "iWantTo": "Have the system automatically extract action items from meeting transcripts",
+      "soThat": "I can focus on managing the project rather than documenting meeting minutes",
+      "criteria": [
+        "System correctly identifies owner, due date, and task description",
+        "System maps extracted data to the defined JSON schema",
+        "System assigns status 'OPEN' by default upon creation"
+      ],
+      "priority": "High",
+      "points": 8,
+      "techNotes": "Use NER and Intent Classification via LLM. Post-process to map speakers to known user IDs."
+    },
+    {
+      "id": "US-SYS-03",
+      "title": "Action Item Status Updates",
+      "asA": "Standard Employee",
+      "iWantTo": "Update the status of my assigned action items",
+      "soThat": "My project manager has visibility into my progress",
+      "criteria": [
+        "Ability to transition status between OPEN, IN_PROGRESS, BLOCKED, and COMPLETED",
+        "Changes are logged in the system audit trail",
+        "Status changes are reflected in real-time dashboards"
+      ],
+      "priority": "Medium",
+      "points": 3,
+      "techNotes": "Expose PUT /api/v1/actions/{id} endpoint with status validation against the defined ENUM."
+    },
+    {
+      "id": "US-SYS-04",
+      "title": "Strategic Risk Detection",
+      "asA": "Executive",
+      "iWantTo": "Monitor meeting transcripts for high-level risks",
+      "soThat": "I can intervene early in projects that show signs of blockers or negative sentiment",
+      "criteria": [
+        "System flags transcript segments as High, Medium, or Low risk",
+        "Executive dashboard displays aggregated risk levels across projects",
+        "System alerts when a 'Critical' risk is detected"
+      ],
+      "priority": "Medium",
+      "points": 5,
+      "techNotes": "Implement pattern matching and sentiment analysis on processed transcripts stored in the database."
+    },
+    {
+      "id": "US-SYS-05",
+      "title": "Semantic Knowledge Retrieval",
+      "asA": "Project Manager",
+      "iWantTo": "Query past meetings and decisions using natural language",
+      "soThat": "I can retrieve context from months of meetings without manually reading through transcripts",
+      "criteria": [
+        "System accepts natural language search queries",
+        "Search results return relevant meeting segments",
+        "Vector search engine performs matching against stored embeddings"
+      ],
+      "priority": "Medium",
+      "points": 8,
+      "techNotes": "Leverage Qdrant for vector storage. Generate embeddings using 1536-dimensional model."
+    },
+    {
+      "id": "US-SYS-06",
+      "title": "Role-Based Access Control Implementation",
+      "asA": "Administrator",
+      "iWantTo": "Define strict access policies based on user roles and meeting participation",
+      "soThat": "Sensitive organizational data remains private and secure",
+      "criteria": [
+        "Users can only access meetings they participated in",
+        "PMs access is restricted to their project scope",
+        "Admin role provides global read/write access",
+        "MFA is required for all Manager/Admin login attempts"
+      ],
+      "priority": "High",
+      "points": 5,
+      "techNotes": "Enforce RBAC at the API middleware level. Use JWT claims to verify permissions on every request."
+    },
+    {
+      "id": "US-SYS-07",
+      "title": "Secure Audit Logging",
+      "asA": "Administrator",
+      "iWantTo": "Review a detailed log of all administrative actions and AI queries",
+      "soThat": "I can maintain compliance and investigate potential security incidents",
+      "criteria": [
+        "Every data export and system change is recorded",
+        "Audit logs include timestamp, User ID, and IP address",
+        "Logs are immutable and stored in the AuditLog table"
+      ],
+      "priority": "Low",
+      "points": 3,
+      "techNotes": "Implement a database trigger or middleware to capture request context for the AuditLog table."
+    }
+  ]
+}

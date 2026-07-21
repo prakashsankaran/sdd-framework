@@ -36,7 +36,7 @@ const navigationItems = [
 function Layout({ children }) {
   const location = useLocation();
   const [specs, setSpecs] = useState([]);
-  const [activeSpec, setActiveSpec] = useState('001-return-request-tracker');
+  const [activeSpec, setActiveSpec] = useState('');
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
 
   const toggleTheme = () => {

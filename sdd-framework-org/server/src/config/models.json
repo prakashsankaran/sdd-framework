@@ -1,7 +1,21 @@
 {
-  "active_llm": "gemini-2.0-flash",
-  "active_slm": "gemini-2.0-flash",
+  "active_llm": "gemini-3.5-flash",
+  "active_slm": "gemini-3.1-flash-lite",
   "models": [
+    {
+      "id": "gemini-3.5-flash",
+      "name": "Gemini 3.5 Flash",
+      "provider": "google",
+      "type": "LLM",
+      "apiKeyEnv": "GEMINI_API_KEY"
+    },
+    {
+      "id": "gemini-3.1-flash-lite",
+      "name": "Gemini 3.1 Flash Lite",
+      "provider": "google",
+      "type": "SLM",
+      "apiKeyEnv": "GEMINI_API_KEY"
+    },
     {
       "id": "gemini-2.0-flash",
       "name": "Gemini 2.0 Flash",
@@ -12,6 +26,13 @@
     {
       "id": "gemini-1.5-flash",
       "name": "Gemini 1.5 Flash",
+      "provider": "google",
+      "type": "SLM",
+      "apiKeyEnv": "GEMINI_API_KEY"
+    },
+    {
+      "id": "gemini-2.5-flash",
+      "name": "Gemini 2.5 Flash",
       "provider": "google",
       "type": "SLM",
       "apiKeyEnv": "GEMINI_API_KEY"

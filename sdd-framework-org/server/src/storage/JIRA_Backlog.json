@@ -1,0 +1,76 @@
+{
+  "spreadsheet": [
+    {
+      "id": 1,
+      "summary": "JIRA-001: Implement OAuth2/OIDC SSO Integration",
+      "description": "Configure authentication service to support OIDC/SAML for enterprise login, ensuring mandatory SSO for all users and enforcing MFA for Admin/PM roles as per compliance mandates.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 8,
+      "labels": "Security, Auth"
+    },
+    {
+      "id": 2,
+      "summary": "JIRA-002: Build Meeting Ingestion Service",
+      "description": "Develop background worker to sync with Outlook/Google Calendar APIs, retrieve meeting participant lists, and trigger the processing pipeline upon meeting completion.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "Integration, Backend"
+    },
+    {
+      "id": 3,
+      "summary": "JIRA-003: AI Pipeline - Transcription & Speaker Diarization",
+      "description": "Integrate Whisper/Deepgram ASR model to process raw audio streams, outputting timestamped text segments mapped to unique Speaker IDs.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 13,
+      "labels": "AI, Core"
+    },
+    {
+      "id": 4,
+      "summary": "JIRA-004: Implement Action Item Extraction Engine",
+      "description": "Develop an NLP service utilizing NER and intent classification to parse meeting transcripts into structured JSON (Owner, Due Date, Task) for storage in the ActionItems table.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 8,
+      "labels": "AI, Backend"
+    },
+    {
+      "id": 5,
+      "summary": "JIRA-005: Setup Vector Database for Semantic Search",
+      "description": "Deploy and configure Qdrant to store meeting embeddings (1536-dim). Implement search API to enable natural language querying across meeting history.",
+      "issueType": "Task",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Infrastructure, Search"
+    },
+    {
+      "id": 6,
+      "summary": "JIRA-006: RBAC Policy Enforcement Middleware",
+      "description": "Create an API gateway middleware that validates user roles (ADMIN, EXEC, PM, EMPLOYEE) and filters meeting visibility based on participant/invitee status.",
+      "issueType": "Task",
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "Security, API"
+    },
+    {
+      "id": 7,
+      "summary": "JIRA-007: Risk Detection Analytics Module",
+      "description": "Implement pattern matching and sentiment analysis to identify 'High/Med/Low' risks within transcripts and surface them in the Executive dashboard.",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Analytics, AI"
+    },
+    {
+      "id": 8,
+      "summary": "JIRA-008: Fix - Audit Logging Latency",
+      "description": "Optimize the AuditLog write operations to ensure non-blocking logging for high-traffic AI query endpoints to prevent API timeout.",
+      "issueType": "Bug",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Performance, Compliance"
+    }
+  ]
+}

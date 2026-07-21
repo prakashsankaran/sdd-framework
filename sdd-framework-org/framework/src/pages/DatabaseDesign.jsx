@@ -58,6 +58,12 @@ export default function DatabaseDesign() {
     // Fix double colons class notation, e.g. NodeId::className -> NodeId:::className
     let clean = text.replace(/(?<!https?)::([a-zA-Z0-9_-]+)/gi, ':::$1');
     
+    // Replace invalid UQ / UNIQUE keys with valid UK
+    clean = clean.replace(/\b(UQ|UNIQUE)\b/gi, 'UK');
+    
+    // Clean empty brackets from Mermaid ERD syntax (supporting any whitespace or newlines inside)
+    clean = clean.replace(/(\w+)\s*\{\s*([\r\n\s]*)\}/g, '$1 {\n    uuid id\n  }');
+    
     return clean.replace(/subgraph\s+([a-zA-Z0-9_\-&\s]+)(?:\r?\n)/g, (match, name) => {
       const trimmed = name.trim();
       if (trimmed.startsWith('"') && trimmed.endsWith('"')) return match;
@@ -75,7 +81,6 @@ export default function DatabaseDesign() {
       try {
         if (diagramRef.current) {
           diagramRef.current.removeAttribute('data-processed');
-          diagramRef.current.innerHTML = cleanDiagramCode;
           
           if (typeof window.mermaid.render === 'function') {
             window.mermaid.render('mermaid-svg-db', cleanDiagramCode)
@@ -249,7 +254,7 @@ export default function DatabaseDesign() {
                       <div 
                         ref={diagramRef} 
                         style={{ transform: `scale(${zoomScale})`, transformOrigin: 'center center', transition: 'transform 0.2s' }}
-                        class="mermaid text-center"
+                        class="text-center"
                       />
                     </div>
                   </div>

@@ -39,64 +39,97 @@ function getModelMeta(modelId) {
 }
 
 // Unified client dispatcher supporting Google, OpenAI, Anthropic, and custom backends
-async function callGenerativeModel(modelId, promptText) {
+async function callGenerativeModel(modelId, promptText, logs = null, modelTracker = null) {
   const meta = getModelMeta(modelId);
   const apiKey = process.env[meta.apiKeyEnv] || '';
 
-  if (meta.provider === 'google') {
-    const model = ai.getGenerativeModel({ model: meta.id });
+  try {
+    if (meta.provider === 'google') {
+      const model = ai.getGenerativeModel({ model: meta.id });
+      const response = await model.generateContent(promptText);
+      return response.response.text().trim();
+    }
+
+    if (meta.provider === 'openai') {
+      const url = meta.endpoint || 'https://api.openai.com/v1/chat/completions';
+      const res = await axios.post(url, {
+        model: meta.id,
+        messages: [{ role: 'user', content: promptText }]
+      }, {
+        headers: { 
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return res.data.choices[0].message.content.trim();
+    }
+
+    if (meta.provider === 'anthropic') {
+      const url = meta.endpoint || 'https://api.anthropic.com/v1/messages';
+      const res = await axios.post(url, {
+        model: meta.id,
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: promptText }]
+      }, {
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json'
+        }
+      });
+      return res.data.content[0].text.trim();
+    }
+
+    if (meta.provider === 'custom') {
+      const url = meta.endpoint;
+      const res = await axios.post(url, {
+        model: meta.id,
+        prompt: promptText
+      }, {
+        headers: { 
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return res.data.text || res.data.choices[0].text || res.data.response;
+    }
+
+    // Fallback default
+    const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
     const response = await model.generateContent(promptText);
     return response.response.text().trim();
-  }
+  } catch (err) {
+    const activeSlm = modelsConfig.active_slm;
 
-  if (meta.provider === 'openai') {
-    const url = meta.endpoint || 'https://api.openai.com/v1/chat/completions';
-    const res = await axios.post(url, {
-      model: meta.id,
-      messages: [{ role: 'user', content: promptText }]
-    }, {
-      headers: { 
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
+    const isTransient = (e) => {
+      if (!e) return false;
+      const status = e.status || e.statusCode || (e.response && e.response.status);
+      if (status === 429 || status === 503) return true;
+      const errMsg = (e.message || '').toLowerCase();
+      return errMsg.includes('429') || 
+             errMsg.includes('503') || 
+             errMsg.includes('too many requests') || 
+             errMsg.includes('service unavailable') || 
+             errMsg.includes('quota exceeded') || 
+             errMsg.includes('high demand') ||
+             errMsg.includes('spikes in demand');
+    };
+
+    if (isTransient(err) && modelId !== activeSlm) {
+      const errorMsg = err.message || 'Transient error';
+      const warningMsg = `[Warning] Model ${modelId} failed (${errorMsg}). Falling back to active SLM: ${activeSlm}`;
+      console.warn(warningMsg);
+      if (logs && Array.isArray(logs)) {
+        logs.push(warningMsg);
       }
-    });
-    return res.data.choices[0].message.content.trim();
-  }
-
-  if (meta.provider === 'anthropic') {
-    const url = meta.endpoint || 'https://api.anthropic.com/v1/messages';
-    const res = await axios.post(url, {
-      model: meta.id,
-      max_tokens: 4000,
-      messages: [{ role: 'user', content: promptText }]
-    }, {
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json'
+      if (modelTracker) {
+        modelTracker.activeModel = activeSlm;
       }
-    });
-    return res.data.content[0].text.trim();
-  }
+      return await callGenerativeModel(activeSlm, promptText, logs, modelTracker);
+    }
 
-  if (meta.provider === 'custom') {
-    const url = meta.endpoint;
-    const res = await axios.post(url, {
-      model: meta.id,
-      prompt: promptText
-    }, {
-      headers: { 
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    return res.data.text || res.data.choices[0].text || res.data.response;
+    throw err;
   }
-
-  // Fallback default
-  const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
-  const response = await model.generateContent(promptText);
-  return response.response.text().trim();
 }
 
 // Define the Graph State Schema using LangGraph Annotation
@@ -195,6 +228,7 @@ async function generatorNode(state) {
   const specText = getSpecContent(state.activeSpec);
   const decision = state.modelDecision[currentStage] || { model: 'gemini-3.1-flash-lite' };
   const stageFeedback = state.feedback[currentStage] || '';
+  const modelTracker = { activeModel: decision.model };
 
   const logs = [
     `[Generator] Activating ${currentStage} agent...`,
@@ -334,7 +368,7 @@ TABLE OF CONTENTS (always include)
         generatorPrompt += `\n\nHuman Review Feedback to apply: "${stageFeedback}"`;
       }
 
-      resultOutput = await callGenerativeModel(decision.model, generatorPrompt);
+      resultOutput = await callGenerativeModel(decision.model, generatorPrompt, logs, modelTracker);
 
     } else if (currentStage === 'ux-wireframe') {
       generatorPrompt = `You are an expert UI/UX Designer and Frontend Engineer.
@@ -352,7 +386,7 @@ Rules:
         generatorPrompt += `\n\nHuman Review Feedback to apply: "${stageFeedback}"`;
       }
 
-      let wireframeHtml = await callGenerativeModel(decision.model, generatorPrompt);
+      let wireframeHtml = await callGenerativeModel(decision.model, generatorPrompt, logs, modelTracker);
       if (wireframeHtml.startsWith('```html')) {
         wireframeHtml = wireframeHtml.substring(7);
       } else if (wireframeHtml.startsWith('```')) {
@@ -425,7 +459,7 @@ TABLE OF CONTENTS (always)
         generatorPrompt += `\n\nHuman Review Feedback to apply: "${stageFeedback}"`;
       }
 
-      const rawTechResult = await callGenerativeModel(decision.model, generatorPrompt);
+      const rawTechResult = await callGenerativeModel(decision.model, generatorPrompt, logs, modelTracker);
       try {
         resultOutput = parseGeminiJson(rawTechResult);
         // Normalize: support both { html, blueprint } and legacy { document, blueprint }
@@ -446,9 +480,9 @@ TABLE OF CONTENTS (always)
       if (currentStage === 'database-design') {
         stageSchemaInstructions = `Return your design in JSON format with the following keys:
 {
-  "erd": "A valid Mermaid.js Entity-Relationship Diagram code (e.g. erDiagram...). Define the tables, primary/foreign keys, and relationships.",
+  "erd": "A valid Mermaid.js Entity-Relationship Diagram code (e.g. erDiagram...). Define the tables, primary/foreign keys, and relationships. CRITICAL RULE: Every table block in the erDiagram MUST contain at least one attribute containing a type and name (e.g. 'string name'). Do NOT write empty brackets (e.g. 'MEETINGS {}' or 'MEETINGS { }') as this crashes the Mermaid parser.",
   "sql": "A complete clean SQL DDL script creating all the required tables and constraints (e.g. CREATE TABLE...). Use PostgreSQL dialect.",
-  "fsd": "A detailed field specifications description in Markdown table format mapping tables to business requirements."
+  "fsd": "A comprehensive, client-ready Database Design Document in raw HTML format. CRITICAL RULES: (1) Do NOT wrap your output in markdown code blocks. Start directly with raw HTML (e.g. <div> or <article>). (2) Use an inline dark-mode style matching the other agent documents: dark background (#0f172a), light text (#e2e8f0), accent color (#6366f1 indigo) for headings, (#22d3ee cyan) for section badges, card-style sections with background #1e293b and border #334155. (3) Generate ALL of the following 18 sections that are applicable. Skip sections that are genuinely not applicable for this domain: DOCUMENT INFORMATION, TABLE OF CONTENTS, 1. PURPOSE, 2. DATABASE OVERVIEW, 3. ENTITY DEFINITIONS, 4. TABLE SPECIFICATIONS (exhaustive column-level details), 5. RELATIONSHIPS, 6. CONSTRAINTS, 7. INDEX STRATEGY, 8. VIEWS, 9. STORED PROCEDURES, 10. TRIGGERS, 11. SEQUENCES/IDENTITY COLUMNS, 12. DATA DICTIONARY, 13. NORMALIZATION, 14. SECURITY, 15. DATA RETENTION, 16. PERFORMANCE, 17. BACKUP STRATEGY, 18. MIGRATION STRATEGY. Update context based on the requirement and ignore irrelevant sections."
 }`;
       } else if (currentStage === 'test-cases') {
         stageSchemaInstructions = `Return your output as clean, premium-styled HTML (not JSON).
@@ -544,7 +578,7 @@ ${stageSchemaInstructions}`;
         if (stageFeedback) {
           generatorPrompt += `\n\nHuman Review Feedback to apply: "${stageFeedback}"`;
         }
-        let testHtml = await callGenerativeModel(decision.model, generatorPrompt);
+        let testHtml = await callGenerativeModel(decision.model, generatorPrompt, logs, modelTracker);
         if (testHtml.startsWith('```html')) testHtml = testHtml.substring(7);
         else if (testHtml.startsWith('```')) testHtml = testHtml.substring(3);
         if (testHtml.endsWith('```')) testHtml = testHtml.substring(0, testHtml.length - 3);
@@ -590,9 +624,23 @@ Do not include any explanation or markdown outside the JSON block. Return ONLY v
           generatorPrompt += `\n\nHuman Review Feedback to apply: "${stageFeedback}"`;
         }
 
-        const cleanJsonText = await callGenerativeModel(decision.model, generatorPrompt);
+        const cleanJsonText = await callGenerativeModel(decision.model, generatorPrompt, logs, modelTracker);
         try {
           resultOutput = parseGeminiJson(cleanJsonText);
+          if (currentStage === 'database-design' && resultOutput) {
+            if (resultOutput.erd && typeof resultOutput.erd === 'string') {
+              // Replace invalid UQ / UNIQUE keys with valid UK
+              resultOutput.erd = resultOutput.erd.replace(/\b(UQ|UNIQUE)\b/gi, 'UK');
+              // Clean empty brackets from Mermaid ERD syntax (supporting any whitespace or newlines inside)
+              resultOutput.erd = resultOutput.erd.replace(/(\w+)\s*\{\s*([\r\n\s]*)\}/g, '$1 {\n    uuid id\n  }');
+            }
+            if (resultOutput.fsd && typeof resultOutput.fsd === 'string') {
+              // Restore collapsed newlines in Markdown tables
+              if (resultOutput.fsd.includes('||')) {
+                resultOutput.fsd = resultOutput.fsd.replace(/\|\|\s*/g, '|\n|');
+              }
+            }
+          }
         } catch (err) {
           logs.push(`[Generator] Warning: JSON parsing failed (${err.message}). Attempting to recover from raw text.`);
           resultOutput = {
@@ -633,9 +681,21 @@ Do not include any explanation or markdown outside the JSON block. Return ONLY v
     }
   }
 
+  const updatedModelDecision = {
+    ...state.modelDecision,
+    [currentStage]: {
+      ...decision,
+      model: modelTracker.activeModel,
+      reasoning: modelTracker.activeModel !== decision.model
+        ? `${decision.reasoning} (Fell back to SLM due to LLM rate-limit/503)`
+        : decision.reasoning
+    }
+  };
+
   return {
     logs,
-    results: { [currentStage]: resultOutput }
+    results: { [currentStage]: resultOutput },
+    modelDecision: updatedModelDecision
   };
 }
 

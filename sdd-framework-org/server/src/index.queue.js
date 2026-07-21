@@ -11,6 +11,20 @@ const { indexDocument } = require('./services/vectorDb.service');
 const app = express();
 const PORT = 7001;
 
+// Load models configuration dynamically
+const modelsConfigPath = path.resolve(__dirname, 'config/models.json');
+let modelsConfig = {
+  active_llm: "gemini-3.5-flash",
+  active_slm: "gemini-3.1-flash-lite"
+};
+if (fs.existsSync(modelsConfigPath)) {
+  try {
+    modelsConfig = JSON.parse(fs.readFileSync(modelsConfigPath, 'utf8'));
+  } catch (err) {
+    console.error('Failed to load models.json in index.queue.js:', err.message);
+  }
+}
+
 // Enable CORS & JSON parsers
 app.use(cors());
 app.use(express.json());
@@ -32,9 +46,24 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Workspace dynamic specs path configuration
-let activeSpecDirName = '001-return-request-tracker';
+const specsDir = path.join(__dirname, '../../specs');
+let activeSpecDirName = '001-meeting-manager'; // Safe default
+
+if (fs.existsSync(specsDir)) {
+  try {
+    const files = fs.readdirSync(specsDir);
+    const specDirs = files.filter(f => fs.statSync(path.join(specsDir, f)).isDirectory() && !f.startsWith('.'));
+    if (specDirs.length > 0) {
+      specDirs.sort();
+      activeSpecDirName = specDirs[0];
+    }
+  } catch (err) {
+    console.error('Failed to auto-detect active spec folder:', err.message);
+  }
+}
+
 const getSpecFilePath = () => {
-  const specFilePath = path.join(__dirname, '../../specs', activeSpecDirName, 'spec.md');
+  const specFilePath = path.join(specsDir, activeSpecDirName, 'spec.md');
   const specDir = path.dirname(specFilePath);
   if (!fs.existsSync(specDir)) {
     fs.mkdirSync(specDir, { recursive: true });
@@ -213,7 +242,7 @@ app.post('/api/specs/validate', async (req, res) => {
     }
 
     const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = ai.getGenerativeModel({ model: modelsConfig.active_llm });
 
     const prompt = `You are a Senior Principal Architect and Spec Validator.
 Your task is to thoroughly analyze the generated specifications and technical documents against the user's original requirements.
@@ -690,7 +719,7 @@ async function generateMockOutput(type, specContent) {
       try {
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const model = ai.getGenerativeModel({ model: modelsConfig.active_slm });
 
         const fsdPrompt = `You are a Principal Business Analyst and Senior Technical Writer with deep enterprise documentation expertise.
 
@@ -857,7 +886,7 @@ TABLE OF CONTENTS (always include)
       try {
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const model = ai.getGenerativeModel({ model: modelsConfig.active_llm });
 
         const techPrompt = `You are a Principal Solutions Architect and Senior Technical Writer with deep cloud-native and enterprise architecture expertise.
 
@@ -1084,7 +1113,7 @@ ${spec.securityFeatures.map(sf => `- ${sf}`).join('\n') || '- JWT authentication
       try {
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const model = ai.getGenerativeModel({ model: modelsConfig.active_llm });
 
         const dbPrompt = `You are a Principal Database Architect and Senior Technical Writer with deep enterprise data modeling expertise.
 
@@ -1262,7 +1291,7 @@ TABLE OF CONTENTS (always include)
       try {
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const model = ai.getGenerativeModel({ model: modelsConfig.active_slm });
 
         const prompt = `You are an expert UI/UX designer and web developer.
 Your goal is to build a complete, highly-interactive single-page HTML application mockup prototype based on the provided functional specification spec.md.
@@ -1344,7 +1373,7 @@ Complete HTML Prototype:`;
       try {
         const { GoogleGenerativeAI } = require('@google/generative-ai');
         const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const model = ai.getGenerativeModel({ model: modelsConfig.active_slm });
 
         const testPrompt = `You are a Principal QA Architect and Senior Test Engineer with deep enterprise software testing expertise.
 

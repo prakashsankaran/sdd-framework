@@ -365,9 +365,41 @@ export default function AgentOrchestrator() {
                     </div>
                   </div>
                 ) : graphState.results[currentStage] ? (
-                  currentStage === 'functional-spec' || (typeof graphState.results[currentStage] === 'string' && graphState.results[currentStage].startsWith('<!DOCTYPE')) ? (
+                  currentStage === 'database-design' ? (
+                    <div class="space-y-6 font-sans text-sm text-slate-300 p-2 overflow-y-auto h-full">
+                      {graphState.results[currentStage].erd && (
+                        <div class="bg-slate-900/50 p-4 border border-slate-800 rounded-xl space-y-2">
+                          <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-wider">ERD Diagram (Mermaid)</h4>
+                          <pre class="bg-slate-950 p-3 rounded text-[10px] font-mono whitespace-pre-wrap overflow-x-auto select-all">{graphState.results[currentStage].erd}</pre>
+                        </div>
+                      )}
+                      {graphState.results[currentStage].sql && (
+                        <div class="bg-slate-900/50 p-4 border border-slate-800 rounded-xl space-y-2">
+                          <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-wider">SQL DDL Script</h4>
+                          <pre class="bg-slate-950 p-3 rounded text-[10px] font-mono whitespace-pre-wrap overflow-x-auto select-all">{graphState.results[currentStage].sql}</pre>
+                        </div>
+                      )}
+                      {graphState.results[currentStage].fsd && (
+                        <div class="bg-slate-900/50 p-4 border border-slate-800 rounded-xl space-y-2 h-[500px] flex flex-col">
+                          <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-wider shrink-0 font-sans">Database Design Document</h4>
+                          <iframe
+                            srcDoc={
+                              graphState.results[currentStage].fsd.trim().startsWith('<')
+                                ? `<!DOCTYPE html><html><head><style>body { font-family: sans-serif; background: #0f172a; color: #e2e8f0; padding: 12px; margin: 0; } table { width: 100%; border-collapse: collapse; margin-top: 8px; } th, td { border: 1px solid #334155; padding: 6px; text-align: left; } th { background: #1e293b; }</style></head><body>${graphState.results[currentStage].fsd}</body></html>`
+                                : `<!DOCTYPE html><html><head><style>body { font-family: sans-serif; background: #0f172a; color: #e2e8f0; padding: 12px; margin: 0; white-space: pre-wrap; }</style></head><body>${graphState.results[currentStage].fsd}</body></html>`
+                            }
+                            class="w-full flex-1 border-0 rounded-lg bg-[#0f172a]"
+                            title="Database Design Document Preview"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ) : (currentStage === 'functional-spec' ||
+                       (typeof graphState.results[currentStage] === 'string' && graphState.results[currentStage].startsWith('<!DOCTYPE')) ||
+                       (graphState.results[currentStage] && typeof graphState.results[currentStage] === 'object' && typeof graphState.results[currentStage].html === 'string')
+                  ) ? (
                     <iframe
-                      srcDoc={typeof graphState.results[currentStage] === 'string' ? graphState.results[currentStage] : JSON.stringify(graphState.results[currentStage], null, 2)}
+                      srcDoc={typeof graphState.results[currentStage] === 'string' ? graphState.results[currentStage] : graphState.results[currentStage].html}
                       class="w-full h-full border-none bg-white rounded"
                       title="FSD Preview"
                     />
