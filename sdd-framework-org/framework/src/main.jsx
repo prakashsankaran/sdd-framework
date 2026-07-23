@@ -41,6 +41,7 @@ function Layout({ children }) {
   const [activeSpec, setActiveSpec] = useState('');
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
@@ -90,70 +91,101 @@ function Layout({ children }) {
   return (
     <div class={`flex h-screen overflow-hidden bg-[#070a13] text-[#f3f4f6] ${theme}`}>
       {/* Sidebar Navigation */}
-      <aside class="w-64 border-r border-slate-800 bg-[#0b0f19] flex flex-col justify-between shrink-0">
+      <aside 
+        class={`${
+          isSidebarCollapsed ? 'w-16' : 'w-64'
+        } border-r border-slate-800 bg-[#0b0f19] flex flex-col justify-between shrink-0 transition-all duration-300 ease-in-out`}
+      >
         <div>
           {/* Brand header */}
           <Link 
             to="/requirements" 
-            class="px-5 py-5 border-b border-slate-800 flex items-center space-x-3 bg-slate-950/20 hover:bg-slate-950/40 transition cursor-pointer"
+            class={`px-4 py-4 border-b border-slate-800 flex items-center bg-slate-950/20 hover:bg-slate-950/40 transition cursor-pointer ${
+              isSidebarCollapsed ? 'justify-center' : 'space-x-3'
+            }`}
+            title="SDD AI Studio"
           >
-            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 shrink-0">
               <i class="fas fa-bolt text-white text-sm"></i>
             </div>
-            <div>
-              <h1 class="text-xs font-black uppercase tracking-widest bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">SDD AI Studio</h1>
-              <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Requirements Framework</p>
-            </div>
+            {!isSidebarCollapsed && (
+              <div class="truncate">
+                <h1 class="text-xs font-black uppercase tracking-widest bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">SDD AI Studio</h1>
+                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Requirements Framework</p>
+              </div>
+            )}
           </Link>
 
           {/* Navigation Links list */}
-          <nav class="p-3 space-y-1 overflow-y-auto custom-scroll">
+          <nav class="p-2 space-y-1 overflow-y-auto custom-scroll">
             {navigationItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  class={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition duration-200 group ${
+                  title={isSidebarCollapsed ? item.label : undefined}
+                  class={`flex items-center rounded-xl transition duration-200 group ${
+                    isSidebarCollapsed ? 'justify-center p-2.5' : 'space-x-3 px-3 py-2.5'
+                  } ${
                     isActive
                       ? 'bg-gradient-to-r from-indigo-950/40 to-slate-900 border border-indigo-500/30 text-white font-semibold'
                       : 'border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
                   }`}
                 >
-                  <div class={`w-7 h-7 rounded-lg flex items-center justify-center transition duration-200 ${
+                  <div class={`w-7 h-7 rounded-lg flex items-center justify-center transition duration-200 shrink-0 ${
                     isActive 
                       ? 'bg-indigo-500/10 text-indigo-400' 
                       : 'bg-slate-900/50 text-slate-500 group-hover:bg-slate-900 group-hover:text-slate-300'
                   }`}>
                     <i class={`${item.icon} text-xs`}></i>
                   </div>
-                  <div class="truncate">
-                    <p class="text-xs">{item.label}</p>
-                    <p class="text-[9px] text-slate-500 group-hover:text-slate-400 transition truncate">{item.desc}</p>
-                  </div>
+                  {!isSidebarCollapsed && (
+                    <div class="truncate">
+                      <p class="text-xs">{item.label}</p>
+                      <p class="text-[9px] text-slate-500 group-hover:text-slate-400 transition truncate">{item.desc}</p>
+                    </div>
+                  )}
                 </Link>
               );
             })}
           </nav>
         </div>
 
-        {/* Footer System Status details */}
-        <div class="p-4 border-t border-slate-800 bg-slate-950/20 space-y-3">
-          <div class="flex items-center justify-between text-[10px]">
-            <span class="text-slate-500 font-bold uppercase tracking-wider">Workspace:</span>
-            <span 
-              class="text-indigo-400 font-semibold font-mono truncate max-w-[130px] capitalize" 
-              title={activeSpec}
-            >
-              {activeSpec.replace(/^\d+-/, '').replace(/-/g, ' ')}
-            </span>
-          </div>
-          <div class="flex items-center justify-between text-[10px]">
-            <span class="text-slate-500 font-bold uppercase tracking-wider">API Server:</span>
-            <span class="text-green-400 font-semibold flex items-center">
-              <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1 animate-pulse"></span> Port 7001
-            </span>
-          </div>
+        {/* Footer System Status & Collapse Toggle */}
+        <div class="p-3 border-t border-slate-800 bg-slate-950/20 space-y-2">
+          {!isSidebarCollapsed ? (
+            <>
+              <div class="flex items-center justify-between text-[10px]">
+                <span class="text-slate-500 font-bold uppercase tracking-wider">Workspace:</span>
+                <span 
+                  class="text-indigo-400 font-semibold font-mono truncate max-w-[120px] capitalize" 
+                  title={activeSpec}
+                >
+                  {activeSpec.replace(/^\d+-/, '').replace(/-/g, ' ')}
+                </span>
+              </div>
+              <div class="flex items-center justify-between text-[10px]">
+                <span class="text-slate-500 font-bold uppercase tracking-wider">API Server:</span>
+                <span class="text-green-400 font-semibold flex items-center">
+                  <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1 animate-pulse"></span> Port 7001
+                </span>
+              </div>
+            </>
+          ) : (
+            <div class="flex justify-center" title="API Server: Port 7001">
+              <span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
+            </div>
+          )}
+
+          {/* Bottom Sidebar Collapse Button */}
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            class="w-full py-1.5 rounded-lg bg-slate-900/60 border border-slate-800/80 hover:bg-slate-800 text-slate-400 hover:text-white text-xs flex items-center justify-center transition cursor-pointer"
+            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            <i class={`fas ${isSidebarCollapsed ? 'fa-angle-double-right' : 'fa-angle-double-left'}`}></i>
+          </button>
         </div>
       </aside>
 
@@ -162,6 +194,15 @@ function Layout({ children }) {
         {/* Top bar header */}
         <header class="h-14 border-b border-slate-800 bg-[#0b0f19]/80 backdrop-blur flex justify-between items-center px-6 shrink-0 min-w-0">
           <div class="flex items-center space-x-3 min-w-0">
+            {/* Sidebar Toggle in Top Header */}
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              class="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500/50 flex items-center justify-center text-slate-400 hover:text-white transition duration-200 cursor-pointer shrink-0"
+              title={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            >
+              <i class={`fas ${isSidebarCollapsed ? 'fa-bars text-indigo-400' : 'fa-outdent'} text-xs`}></i>
+            </button>
+
             <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest hidden lg:block shrink-0">Workspace Spec Board</h2>
             <div class="h-5 w-px bg-slate-850 hidden lg:block shrink-0"></div>
             
