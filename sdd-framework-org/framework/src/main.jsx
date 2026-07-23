@@ -20,6 +20,7 @@ import AgentOrchestrator from './pages/AgentOrchestrator';
 import ChatbotWidget from './components/ChatbotWidget';
 import HeaderTokenBadge from './components/HeaderTokenBadge';
 import TokenTrackerWidget from './components/TokenTrackerWidget';
+import TokenThresholdAlert from './components/TokenThresholdAlert';
 
 import './index.css';
 
@@ -291,6 +292,7 @@ function Layout({ children }) {
         </div>
       </main>
       <ChatbotWidget />
+      <TokenThresholdAlert onOpenWidget={() => setIsTokenModalOpen(true)} />
       <TokenTrackerWidget 
         isOpen={isTokenModalOpen} 
         onClose={() => setIsTokenModalOpen(false)} 

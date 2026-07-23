@@ -14,7 +14,29 @@ export default function TokenTrackerWidget({ isOpen, onClose }) {
   const [selectedModel, setSelectedModel] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('summary'); // 'summary' | 'history'
+  const [activeTab, setActiveTab] = useState('summary'); // 'summary' | 'history' | 'settings'
+
+  // Threshold Alert state
+  const [thresholdInput, setThresholdInput] = useState(() => {
+    return localStorage.getItem('token_alert_threshold') || '10000';
+  });
+  const [alertsEnabled, setAlertsEnabled] = useState(() => {
+    return localStorage.getItem('token_alerts_enabled') !== 'false';
+  });
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const handleSaveThreshold = (e) => {
+    e.preventDefault();
+    const val = parseInt(thresholdInput, 10);
+    if (isNaN(val) || val < 0) return;
+
+    localStorage.setItem('token_alert_threshold', val.toString());
+    localStorage.setItem('token_alerts_enabled', alertsEnabled ? 'true' : 'false');
+    window.dispatchEvent(new Event('token_threshold_updated'));
+
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 2500);
+  };
 
   const fetchData = async () => {
     try {
@@ -159,6 +181,16 @@ export default function TokenTrackerWidget({ isOpen, onClose }) {
               }`}
             >
               <i class="fas fa-history mr-1.5"></i> Call History ({filteredHistory.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              class={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                activeTab === 'settings'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <i class="fas fa-bell mr-1.5"></i> Alert Limits
             </button>
           </div>
 
@@ -316,6 +348,94 @@ export default function TokenTrackerWidget({ isOpen, onClose }) {
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB 3: ALERT LIMIT SETTINGS */}
+          {activeTab === 'settings' && (
+            <div class="space-y-5">
+              <div class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-5 space-y-4">
+                <div class="flex items-center space-x-3">
+                  <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+                    <i class="fas fa-bell text-amber-400 text-sm"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-xs font-black uppercase tracking-wider text-white">Token Usage Alert Threshold</h3>
+                    <p class="text-[10px] text-slate-400">Receive automatic pop-up alerts when total token consumption exceeds this limit.</p>
+                  </div>
+                </div>
+
+                {/* Meter Progress Card */}
+                {(() => {
+                  const tVal = parseInt(thresholdInput, 10) || 10000;
+                  const pct = Math.round((summary.grandTotalTokens / tVal) * 100);
+                  const isOver = summary.grandTotalTokens >= tVal;
+
+                  return (
+                    <div class={`p-4 rounded-xl border ${isOver ? 'bg-red-950/20 border-red-900/50' : 'bg-slate-950/40 border-slate-800'} space-y-2`}>
+                      <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Current Limit Status</span>
+                        <span class={`font-mono font-bold text-xs ${isOver ? 'text-red-400' : pct > 75 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                          {summary.grandTotalTokens.toLocaleString()} / {tVal.toLocaleString()} tokens ({pct}%)
+                        </span>
+                      </div>
+
+                      <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div 
+                          class={`h-full transition-all duration-500 ${isOver ? 'bg-red-500 animate-pulse' : pct > 75 ? 'bg-amber-500' : 'bg-indigo-500'}`}
+                          style={{ width: `${Math.min(pct, 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Configuration Form */}
+                <form onSubmit={handleSaveThreshold} class="space-y-4 pt-2">
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-300 block">
+                      Token Limit Threshold (Tokens)
+                    </label>
+                    <input
+                      type="number"
+                      min="100"
+                      step="500"
+                      value={thresholdInput}
+                      onChange={(e) => setThresholdInput(e.target.value)}
+                      class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
+                    />
+                    <p class="text-[10px] text-slate-500">Default: 10,000 tokens. (Set to 0 to disable alerts).</p>
+                  </div>
+
+                  <div class="flex items-center space-x-3 pt-1">
+                    <input
+                      type="checkbox"
+                      id="alertsEnabled"
+                      checked={alertsEnabled}
+                      onChange={(e) => setAlertsEnabled(e.target.checked)}
+                      class="w-4 h-4 rounded bg-slate-900 border-slate-800 text-indigo-600 focus:ring-0 cursor-pointer"
+                    />
+                    <label htmlFor="alertsEnabled" class="text-xs text-slate-300 font-medium cursor-pointer">
+                      Enable Pop-up Alert Banners when limit is reached
+                    </label>
+                  </div>
+
+                  <div class="flex items-center space-x-3 pt-3">
+                    <button
+                      type="submit"
+                      class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-lg shadow-indigo-600/30 cursor-pointer"
+                    >
+                      <i class="fas fa-save mr-1.5"></i> Save Alert Threshold
+                    </button>
+
+                    {saveSuccess && (
+                      <span class="text-xs text-emerald-400 font-semibold animate-fadeIn flex items-center">
+                        <i class="fas fa-check-circle mr-1"></i> Threshold Saved!
+                      </span>
+                    )}
+                  </div>
+                </form>
+              </div>
             </div>
           )}
         </div>

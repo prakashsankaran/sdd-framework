@@ -4,6 +4,12 @@ const API_BASE = 'http://localhost:7001';
 
 export default function HeaderTokenBadge({ onClick }) {
   const [totalTokens, setTotalTokens] = useState(0);
+  const [threshold, setThreshold] = useState(() => {
+    return parseInt(localStorage.getItem('token_alert_threshold') || '10000', 10);
+  });
+  const [alertsEnabled, setAlertsEnabled] = useState(() => {
+    return localStorage.getItem('token_alerts_enabled') !== 'false';
+  });
 
   const fetchSummary = async () => {
     try {
@@ -12,15 +18,26 @@ export default function HeaderTokenBadge({ onClick }) {
       if (data.success) {
         setTotalTokens(data.grandTotalTokens || 0);
       }
-    } catch (err) {
-      // Silently fail if server is reloading
-    }
+    } catch (err) {}
   };
 
   useEffect(() => {
     fetchSummary();
-    const interval = setInterval(fetchSummary, 5000);
+    const interval = setInterval(fetchSummary, 4000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setThreshold(parseInt(localStorage.getItem('token_alert_threshold') || '10000', 10));
+      setAlertsEnabled(localStorage.getItem('token_alerts_enabled') !== 'false');
+    };
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('token_threshold_updated', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('token_threshold_updated', handleStorageChange);
+    };
   }, []);
 
   const formatTokens = (num) => {
@@ -30,15 +47,21 @@ export default function HeaderTokenBadge({ onClick }) {
     return num.toString();
   };
 
+  const isExceeded = alertsEnabled && threshold > 0 && totalTokens >= threshold;
+
   return (
     <button
       onClick={onClick}
-      class="flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-indigo-950/60 border border-indigo-500/30 text-indigo-300 hover:text-white hover:bg-indigo-900/60 hover:border-indigo-500/50 transition duration-300 shadow-sm cursor-pointer"
-      title="View Model Token Consumption & History Log"
+      class={`flex items-center space-x-1.5 px-3 py-1 rounded-xl transition duration-300 shadow-sm cursor-pointer ${
+        isExceeded
+          ? 'bg-red-950/80 border border-red-500/60 text-red-300 hover:bg-red-900 animate-pulse'
+          : 'bg-indigo-950/60 border border-indigo-500/30 text-indigo-300 hover:text-white hover:bg-indigo-900/60 hover:border-indigo-500/50'
+      }`}
+      title={isExceeded ? `Token limit exceeded! (${totalTokens.toLocaleString()} / ${threshold.toLocaleString()})` : "View Model Token Consumption & History Log"}
     >
-      <i class="fas fa-bolt text-amber-400 text-xs animate-pulse"></i>
+      <i class={`fas ${isExceeded ? 'fa-exclamation-triangle text-red-400' : 'fa-bolt text-amber-400'} text-xs animate-pulse`}></i>
       <span class="text-[10px] font-black font-mono tracking-wider">
-        {formatTokens(totalTokens)} Tokens
+        {formatTokens(totalTokens)} Tokens {isExceeded ? '⚠️ Limit' : ''}
       </span>
     </button>
   );

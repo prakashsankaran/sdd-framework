@@ -1,5 +1,95 @@
 [
   {
+    "id": "tok_1784817639382_zikel",
+    "timestamp": "2026-07-23T14:40:39.382Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Research",
+    "promptTokens": 958,
+    "completionTokens": 757,
+    "totalTokens": 1715
+  },
+  {
+    "id": "tok_1784817634978_kl4cs",
+    "timestamp": "2026-07-23T14:40:34.978Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Tasks Checklist",
+    "promptTokens": 967,
+    "completionTokens": 529,
+    "totalTokens": 1496
+  },
+  {
+    "id": "tok_1784817632011_0qt5n",
+    "timestamp": "2026-07-23T14:40:32.011Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Implementation Plan",
+    "promptTokens": 968,
+    "completionTokens": 769,
+    "totalTokens": 1737
+  },
+  {
+    "id": "tok_1784817628322_yvn7h",
+    "timestamp": "2026-07-23T14:40:28.322Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Specification",
+    "promptTokens": 1006,
+    "completionTokens": 1078,
+    "totalTokens": 2084
+  },
+  {
+    "id": "tok_1784817624329_qq8ng",
+    "timestamp": "2026-07-23T14:40:24.329Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Constitution",
+    "promptTokens": 981,
+    "completionTokens": 681,
+    "totalTokens": 1662
+  },
+  {
+    "id": "tok_1784817273715_2zg9x",
+    "timestamp": "2026-07-23T14:34:33.715Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Research",
+    "promptTokens": 256,
+    "completionTokens": 711,
+    "totalTokens": 967
+  },
+  {
+    "id": "tok_1784817269924_06b7i",
+    "timestamp": "2026-07-23T14:34:29.924Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Tasks Checklist",
+    "promptTokens": 265,
+    "completionTokens": 519,
+    "totalTokens": 784
+  },
+  {
+    "id": "tok_1784817267179_akh9w",
+    "timestamp": "2026-07-23T14:34:27.179Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Implementation Plan",
+    "promptTokens": 266,
+    "completionTokens": 796,
+    "totalTokens": 1062
+  },
+  {
+    "id": "tok_1784817263280_7a1v9",
+    "timestamp": "2026-07-23T14:34:23.280Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Specification",
+    "promptTokens": 304,
+    "completionTokens": 881,
+    "totalTokens": 1185
+  },
+  {
+    "id": "tok_1784817259220_qj4mf",
+    "timestamp": "2026-07-23T14:34:19.220Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Constitution",
+    "promptTokens": 279,
+    "completionTokens": 526,
+    "totalTokens": 805
+  },
+  {
     "id": "tok_1784816885313_m60n6",
     "timestamp": "2026-07-23T14:28:05.313Z",
     "model": "gemini-3.1-flash-lite",
