@@ -3,6 +3,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
+const tokenTracker = require('./tokenTracker.service');
 
 // Initialize Gemini Client
 const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
@@ -42,15 +43,21 @@ function getModelMeta(modelId) {
 async function callGenerativeModel(modelId, promptText, logs = null, modelTracker = null) {
   const meta = getModelMeta(modelId);
   const apiKey = process.env[meta.apiKeyEnv] || '';
+  let outputText = '';
+  let promptTokens = 0;
+  let completionTokens = 0;
+  let totalTokens = 0;
 
   try {
     if (meta.provider === 'google') {
       const model = ai.getGenerativeModel({ model: meta.id });
       const response = await model.generateContent(promptText);
-      return response.response.text().trim();
-    }
-
-    if (meta.provider === 'openai') {
+      outputText = response.response.text().trim();
+      const usage = response.response.usageMetadata || {};
+      promptTokens = usage.promptTokenCount || 0;
+      completionTokens = usage.candidatesTokenCount || 0;
+      totalTokens = usage.totalTokenCount || 0;
+    } else if (meta.provider === 'openai') {
       const url = meta.endpoint || 'https://api.openai.com/v1/chat/completions';
       const res = await axios.post(url, {
         model: meta.id,
@@ -61,10 +68,13 @@ async function callGenerativeModel(modelId, promptText, logs = null, modelTracke
           'Content-Type': 'application/json'
         }
       });
-      return res.data.choices[0].message.content.trim();
-    }
-
-    if (meta.provider === 'anthropic') {
+      outputText = res.data.choices[0].message.content.trim();
+      if (res.data.usage) {
+        promptTokens = res.data.usage.prompt_tokens || 0;
+        completionTokens = res.data.usage.completion_tokens || 0;
+        totalTokens = res.data.usage.total_tokens || 0;
+      }
+    } else if (meta.provider === 'anthropic') {
       const url = meta.endpoint || 'https://api.anthropic.com/v1/messages';
       const res = await axios.post(url, {
         model: meta.id,
@@ -77,27 +87,28 @@ async function callGenerativeModel(modelId, promptText, logs = null, modelTracke
           'content-type': 'application/json'
         }
       });
-      return res.data.content[0].text.trim();
+      outputText = res.data.content[0].text.trim();
+      if (res.data.usage) {
+        promptTokens = res.data.usage.input_tokens || 0;
+        completionTokens = res.data.usage.output_tokens || 0;
+        totalTokens = promptTokens + completionTokens;
+      }
+    } else {
+      outputText = `Mock model execution for ${meta.name}`;
     }
 
-    if (meta.provider === 'custom') {
-      const url = meta.endpoint;
-      const res = await axios.post(url, {
-        model: meta.id,
-        prompt: promptText
-      }, {
-        headers: { 
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      return res.data.text || res.data.choices[0].text || res.data.response;
-    }
+    // Log to token tracker
+    tokenTracker.recordUsage({
+      model: meta.id,
+      agentName: `Orchestrator (${meta.type || 'LLM'})`,
+      promptTokens,
+      completionTokens,
+      totalTokens,
+      promptText,
+      responseText: outputText
+    });
 
-    // Fallback default
-    const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
-    const response = await model.generateContent(promptText);
-    return response.response.text().trim();
+    return outputText;
   } catch (err) {
     const activeSlm = modelsConfig.active_slm;
 

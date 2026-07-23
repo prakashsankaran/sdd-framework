@@ -1,0 +1,92 @@
+[
+  {
+    "id": "tok_1784816885313_m60n6",
+    "timestamp": "2026-07-23T14:28:05.313Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Research",
+    "promptTokens": 256,
+    "completionTokens": 785,
+    "totalTokens": 1041
+  },
+  {
+    "id": "tok_1784816881217_mvmch",
+    "timestamp": "2026-07-23T14:28:01.217Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Tasks Checklist",
+    "promptTokens": 265,
+    "completionTokens": 464,
+    "totalTokens": 729
+  },
+  {
+    "id": "tok_1784816878762_q1sfb",
+    "timestamp": "2026-07-23T14:27:58.762Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Implementation Plan",
+    "promptTokens": 266,
+    "completionTokens": 819,
+    "totalTokens": 1085
+  },
+  {
+    "id": "tok_1784816874868_zp0ca",
+    "timestamp": "2026-07-23T14:27:54.868Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Specification",
+    "promptTokens": 304,
+    "completionTokens": 901,
+    "totalTokens": 1205
+  },
+  {
+    "id": "tok_1784816870780_uf77e",
+    "timestamp": "2026-07-23T14:27:50.780Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Constitution",
+    "promptTokens": 279,
+    "completionTokens": 498,
+    "totalTokens": 777
+  },
+  {
+    "id": "tok_1721762000000_a1b2c",
+    "timestamp": "2026-07-23T14:20:00.000Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Constitution",
+    "promptTokens": 420,
+    "completionTokens": 380,
+    "totalTokens": 800
+  },
+  {
+    "id": "tok_1721762005000_d3e4f",
+    "timestamp": "2026-07-23T14:20:05.000Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Specification",
+    "promptTokens": 950,
+    "completionTokens": 1420,
+    "totalTokens": 2370
+  },
+  {
+    "id": "tok_1721762010000_g5h6i",
+    "timestamp": "2026-07-23T14:20:10.000Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "SpecKit: Implementation Plan",
+    "promptTokens": 820,
+    "completionTokens": 1100,
+    "totalTokens": 1920
+  },
+  {
+    "id": "tok_1721762015000_j7k8l",
+    "timestamp": "2026-07-23T14:20:15.000Z",
+    "model": "gemini-2.0-flash",
+    "agentName": "Orchestrator (LLM)",
+    "promptTokens": 1250,
+    "completionTokens": 640,
+    "totalTokens": 1890
+  },
+  {
+    "id": "tok_1721762020000_m9n0p",
+    "timestamp": "2026-07-23T14:20:20.000Z",
+    "model": "gemini-3.5-flash",
+    "agentName": "Validator Agent",
+    "promptTokens": 1840,
+    "completionTokens": 920,
+    "totalTokens": 2760
+  }
+]

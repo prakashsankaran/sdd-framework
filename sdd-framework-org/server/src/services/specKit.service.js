@@ -1,6 +1,7 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const path = require('path');
 const fs = require('fs');
+const tokenTracker = require('./tokenTracker.service');
 
 const SPECS_DIR = path.resolve(__dirname, '../../../specs');
 const TEXT_MODEL = 'gemini-3.1-flash-lite';
@@ -10,6 +11,25 @@ function getGenAI() {
     throw new Error('GEMINI_API_KEY is not set in environment variables');
   }
   return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+}
+
+// Helper to wrap generateContent and log token usage
+async function generateAndTrack(model, prompt, agentName, modelName = TEXT_MODEL) {
+  const result = await model.generateContent(prompt);
+  const responseText = result.response.text();
+  const usage = result.response.usageMetadata || {};
+
+  tokenTracker.recordUsage({
+    model: modelName,
+    agentName: agentName,
+    promptTokens: usage.promptTokenCount || 0,
+    completionTokens: usage.candidatesTokenCount || 0,
+    totalTokens: usage.totalTokenCount || 0,
+    promptText: prompt,
+    responseText: responseText
+  });
+
+  return result;
 }
 
 /**
@@ -90,7 +110,7 @@ It must outline:
 - Tech stack guidelines (PostgreSQL relational backend, Node/Express queue/APIs, React/Vite/Tailwind frontend).
 - Architectural boundaries and rules.
 Keep it structured and clean. Return only the markdown document.`;
-    const constRes = await model.generateContent(constPrompt);
+    const constRes = await generateAndTrack(model, constPrompt, 'SpecKit: Constitution');
     fs.writeFileSync(path.join(targetDir, 'constitution.md'), constRes.response.text(), 'utf8');
 
     // 3. Generate Specification (spec.md)
@@ -107,7 +127,7 @@ It must include:
 - Data model constraints (Database DDL column expectations).
 - Compliance & security mandates (Role-based access checks, TLS, encryption).
 Return only the markdown document.`;
-    const specRes = await model.generateContent(specPrompt);
+    const specRes = await generateAndTrack(model, specPrompt, 'SpecKit: Specification');
     fs.writeFileSync(path.join(targetDir, 'spec.md'), specRes.response.text(), 'utf8');
 
     // 4. Generate Technical Plan (plan.md)
@@ -122,7 +142,7 @@ It must include:
 - Phased implementation schedule.
 - Verification plan (automated scripts, test routes, and manual test validation flows).
 Return only the markdown document.`;
-    const planRes = await model.generateContent(planPrompt);
+    const planRes = await generateAndTrack(model, planPrompt, 'SpecKit: Implementation Plan');
     fs.writeFileSync(path.join(targetDir, 'plan.md'), planRes.response.text(), 'utf8');
 
     // 5. Generate Task Checklist (tasks.md)
@@ -137,7 +157,7 @@ It must include:
   - [ ] Task Title: details...
   - [ ] Sub-task...
 Return only the markdown checklist.`;
-    const tasksRes = await model.generateContent(tasksPrompt);
+    const tasksRes = await generateAndTrack(model, tasksPrompt, 'SpecKit: Tasks Checklist');
     fs.writeFileSync(path.join(targetDir, 'tasks.md'), tasksRes.response.text(), 'utf8');
 
     // 6. Generate Tech Research (research.md)
@@ -151,7 +171,7 @@ It must include:
 - Evaluation of integration challenges (potential gotchas, edge cases, error state handling).
 - Recommendations for scaling, caching, or third-party SDK choices.
 Return only the markdown document.`;
-    const researchRes = await model.generateContent(researchPrompt);
+    const researchRes = await generateAndTrack(model, researchPrompt, 'SpecKit: Research');
     fs.writeFileSync(path.join(targetDir, 'research.md'), researchRes.response.text(), 'utf8');
 
     logCallback('All Spec Kit documents generated successfully!');

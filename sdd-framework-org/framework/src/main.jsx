@@ -18,6 +18,8 @@ import RequirementAgent from './pages/RequirementAgent';
 import ValidatorAgent from './pages/ValidatorAgent';
 import AgentOrchestrator from './pages/AgentOrchestrator';
 import ChatbotWidget from './components/ChatbotWidget';
+import HeaderTokenBadge from './components/HeaderTokenBadge';
+import TokenTrackerWidget from './components/TokenTrackerWidget';
 
 import './index.css';
 
@@ -38,6 +40,7 @@ function Layout({ children }) {
   const [specs, setSpecs] = useState([]);
   const [activeSpec, setActiveSpec] = useState('');
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+  const [isTokenModalOpen, setIsTokenModalOpen] = useState(false);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
@@ -227,6 +230,9 @@ function Layout({ children }) {
               ))}
             </select>
 
+            {/* Token Tracker Header Badge */}
+            <HeaderTokenBadge onClick={() => setIsTokenModalOpen(true)} />
+
             {/* Light bulb theme toggle */}
             <button
               onClick={toggleTheme}
@@ -244,6 +250,10 @@ function Layout({ children }) {
         </div>
       </main>
       <ChatbotWidget />
+      <TokenTrackerWidget 
+        isOpen={isTokenModalOpen} 
+        onClose={() => setIsTokenModalOpen(false)} 
+      />
     </div>
   );
 }

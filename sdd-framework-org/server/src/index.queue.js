@@ -7,6 +7,7 @@ const fs = require('fs');
 // Load environment variables and vector db services
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const { indexDocument } = require('./services/vectorDb.service');
+const tokenTracker = require('./services/tokenTracker.service');
 
 const app = express();
 const PORT = 7001;
@@ -29,6 +30,35 @@ if (fs.existsSync(modelsConfigPath)) {
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Token Usage Tracker API endpoints
+app.get('/api/tokens/summary', (req, res) => {
+  try {
+    const summary = tokenTracker.getSummary();
+    res.json({ success: true, ...summary });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/tokens/history', (req, res) => {
+  try {
+    const modelFilter = req.query.model || '';
+    const history = tokenTracker.getHistory(modelFilter);
+    res.json({ success: true, history });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/tokens/clear', (req, res) => {
+  try {
+    const result = tokenTracker.clearHistory();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 // Setup multer file uploads
 const uploadsDir = path.join(__dirname, 'uploads');
