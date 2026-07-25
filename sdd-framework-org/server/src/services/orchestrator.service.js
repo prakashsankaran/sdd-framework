@@ -8,31 +8,11 @@ const tokenTracker = require('./tokenTracker.service');
 // Initialize Gemini Client
 const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-// Load model registry configuration
-const modelsConfigPath = path.resolve(__dirname, '../config/models.json');
-let modelsConfig = {
-  active_llm: process.env.ACTIVE_LLM || "gemini-2.0-flash",
-  active_slm: process.env.ACTIVE_SLM || "gemini-2.0-flash",
-  models: [
-    { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", provider: "google", type: "LLM", apiKeyEnv: "GEMINI_API_KEY" },
-    { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash", provider: "google", type: "SLM", apiKeyEnv: "GEMINI_API_KEY" },
-    { id: "gpt-4o", name: "GPT-4o", provider: "openai", type: "LLM", apiKeyEnv: "OPENAI_API_KEY" },
-    { id: "gpt-4o-mini", name: "GPT-4o-Mini", provider: "openai", type: "SLM", apiKeyEnv: "OPENAI_API_KEY" },
-    { id: "claude-3-5-sonnet", name: "Claude 3.5 Sonnet", provider: "anthropic", type: "LLM", apiKeyEnv: "ANTHROPIC_API_KEY" }
-  ]
-};
-
-if (fs.existsSync(modelsConfigPath)) {
-  try {
-    modelsConfig = JSON.parse(fs.readFileSync(modelsConfigPath, 'utf8'));
-  } catch (err) {
-    console.error('Failed to load models.json, using defaults.', err);
-  }
-}
-
-// Override active models from env if specified
-modelsConfig.active_llm = process.env.ACTIVE_LLM || modelsConfig.active_llm;
-modelsConfig.active_slm = process.env.ACTIVE_SLM || modelsConfig.active_slm;
+// Load model registry configuration dynamically
+const { getModelsConfig } = require('../config/modelsHelper');
+const modelsConfig = new Proxy({}, {
+  get: (target, prop) => getModelsConfig()[prop]
+});
 
 // Find model helper
 function getModelMeta(modelId) {

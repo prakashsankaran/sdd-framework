@@ -13,18 +13,10 @@ const app = express();
 const PORT = 7001;
 
 // Load models configuration dynamically
-const modelsConfigPath = path.resolve(__dirname, 'config/models.json');
-let modelsConfig = {
-  active_llm: "gemini-3.5-flash",
-  active_slm: "gemini-3.1-flash-lite"
-};
-if (fs.existsSync(modelsConfigPath)) {
-  try {
-    modelsConfig = JSON.parse(fs.readFileSync(modelsConfigPath, 'utf8'));
-  } catch (err) {
-    console.error('Failed to load models.json in index.queue.js:', err.message);
-  }
-}
+const { getModelsConfig } = require('./config/modelsHelper');
+const modelsConfig = new Proxy({}, {
+  get: (target, prop) => getModelsConfig()[prop]
+});
 
 // Enable CORS & JSON parsers
 app.use(cors());
@@ -1773,7 +1765,7 @@ app.post('/api/generate/:type', (req, res) => {
   setTimeout(() => {
     if (!jobs[jobId]) return;
     jobs[jobId].status = 'processing';
-    jobs[jobId].logs.push(`[Router] Selected prioritized model: gemini-3.5-flash`);
+    jobs[jobId].logs.push(`[Router] Selected prioritized model: ${modelsConfig.active_llm}`);
     jobs[jobId].logs.push(`[Model] Establishing connection (Timeout guard 5000ms)...`);
 
     setTimeout(() => {
@@ -1836,7 +1828,7 @@ app.post('/generate/:type', (req, res) => {
   setTimeout(() => {
     if (!jobs[jobId]) return;
     jobs[jobId].status = 'processing';
-    jobs[jobId].logs.push(`[Router] Selected prioritized model: gemini-3.5-flash`);
+    jobs[jobId].logs.push(`[Router] Selected prioritized model: ${modelsConfig.active_llm}`);
     jobs[jobId].logs.push(`[Model] Establishing connection...`);
 
     setTimeout(() => {

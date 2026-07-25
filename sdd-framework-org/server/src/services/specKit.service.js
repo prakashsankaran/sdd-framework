@@ -4,7 +4,7 @@ const fs = require('fs');
 const tokenTracker = require('./tokenTracker.service');
 
 const SPECS_DIR = path.resolve(__dirname, '../../../specs');
-const TEXT_MODEL = 'gemini-3.1-flash-lite';
+const { getModelsConfig } = require('../config/modelsHelper');
 
 function getGenAI() {
   if (!process.env.GEMINI_API_KEY) {
@@ -14,13 +14,14 @@ function getGenAI() {
 }
 
 // Helper to wrap generateContent and log token usage
-async function generateAndTrack(model, prompt, agentName, modelName = TEXT_MODEL) {
+async function generateAndTrack(model, prompt, agentName, modelName) {
+  const finalModelName = modelName || getModelsConfig().active_slm;
   const result = await model.generateContent(prompt);
   const responseText = result.response.text();
   const usage = result.response.usageMetadata || {};
 
   tokenTracker.recordUsage({
-    model: modelName,
+    model: finalModelName,
     agentName: agentName,
     promptTokens: usage.promptTokenCount || 0,
     completionTokens: usage.candidatesTokenCount || 0,
@@ -59,7 +60,7 @@ async function getNextFolderIndex(requirementsText) {
 
     // Query Gemini to get a 2-3 word slug for the feature
     const ai = getGenAI();
-    const model = ai.getGenerativeModel({ model: TEXT_MODEL });
+    const model = ai.getGenerativeModel({ model: getModelsConfig().active_slm });
     const prompt = `Convert the following requirements description into a short 2-3 word lowercase feature slug, separated by hyphens. Only return the slug, no other text or explanation. E.g., "user authentication" -> "user-auth" or "SSO integration" -> "sso-integration".
 Requirements: ${requirementsText.substring(0, 300)}`;
 
@@ -86,7 +87,7 @@ Requirements: ${requirementsText.substring(0, 300)}`;
 async function generateSpecKit(requirementsText, logCallback = () => {}) {
   try {
     const ai = getGenAI();
-    const model = ai.getGenerativeModel({ model: TEXT_MODEL });
+    const model = ai.getGenerativeModel({ model: getModelsConfig().active_slm });
 
     // 1. Determine folder name
     logCallback('Analyzing requirements and generating feature slug...');

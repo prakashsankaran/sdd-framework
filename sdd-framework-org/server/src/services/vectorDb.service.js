@@ -3,6 +3,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
+const { getModelsConfig } = require('../config/modelsHelper');
 
 const COLLECTION_NAME = 'agent_documents';
 const EMBEDDING_MODEL = 'gemini-embedding-001';
@@ -413,7 +414,7 @@ Human-Friendly Answer:`;
 
     // 5. Call Gemini 2.0 Flash for intelligent RAG-based answers
     const ai = getGenAI();
-    const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = ai.getGenerativeModel({ model: getModelsConfig().active_llm });
     const result = await model.generateContent(systemPrompt);
     const answerText = result.response.text();
 
