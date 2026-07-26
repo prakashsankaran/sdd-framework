@@ -1,6 +1,7 @@
 {
   "active_llm": "gemini-3.5-flash",
   "active_slm": "gemini-3.1-flash-lite",
+  "ai_srb_enabled": true,
   "models": [
     {
       "id": "gemini-3.5-flash",

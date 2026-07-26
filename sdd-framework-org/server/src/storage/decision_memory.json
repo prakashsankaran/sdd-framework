@@ -1,0 +1,180 @@
+[
+  {
+    "project": "002-meeting-action-mgmt",
+    "decision": "...",
+    "alternatives_rejected": [
+      "..."
+    ],
+    "reason": "...",
+    "risks": [
+      "..."
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "Enterprise Claims & Intelligence Platform (ECIP)",
+    "decision": "Executive Approval to Proceed to Implementation",
+    "alternatives_rejected": [],
+    "reason": "The updated Technical Specification (spec_v2.md) successfully mitigates historical points of operational failure. It addresses critical security, performance, and synchronization issues, resulting in a Low-Medium risk profile. The system is highly aligned with strategic goals—specifically, enhancing operational efficiency via direct-to-storage ingestion, modernizing intelligent search safely, preserving brand trust, and minimizing compute/infrastructure spend.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "Enterprise Claims & Intelligence Platform (ECIP)",
+    "decision": "Rejection of Initial Submission & Mandate of a Bounded Alignment Process",
+    "alternatives_rejected": [
+      "lengthy or superficial workshops"
+    ],
+    "reason": "The initial project submission was rejected due to the complete absence of a specification (spec.md), original requirements, project constitution, or implementation plans. To bootstrap a compliant Minimum Viable Specification (MVS) without inviting scope creep or risking another non-compliant draft, the board resolved to bypass lengthy or superficial workshops in favor of a strictly bounded 4-hour Technical Alignment Session followed by a strict 48-hour MVS delivery deadline.",
+    "risks": [
+      "scope creep",
+      "risking another non-compliant draft"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "Enterprise Claims & Intelligence Platform (ECIP)",
+    "decision": "Implementation of Asynchronous Direct-to-Storage Ingestion",
+    "alternatives_rejected": [
+      "proxying large files"
+    ],
+    "reason": "To eliminate Out-of-Memory (OOM) application crashes, API gateway timeouts (504s), and high compute overhead associated with proxying large files. Clients upload binary/media payloads directly to S3/Object Storage using presigned URLs. Processing is managed asynchronously via background worker pools (RabbitMQ), with the API returning an immediate 202 Accepted response.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "Enterprise Claims & Intelligence Platform (ECIP)",
+    "decision": "Mandated Metadata Pre-Filtering for Vector/Semantic Search Security",
+    "alternatives_rejected": [],
+    "reason": "To protect sensitive, private customer claims data and prevent Broken Object-Level Authorization (BOLA) / horizontal privilege escalation. The architecture extracts user session authorization tokens (including JWT metadata like tenant_id, department, and clearance_level) and maps them directly to strict metadata pre-filtering or Row-Level Security (RLS) queries at the vector database level.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "Enterprise Claims & Intelligence Platform (ECIP)",
+    "decision": "Adoption of the Transactional Outbox Pattern for Cache Synchronization",
+    "alternatives_rejected": [],
+    "reason": "To prevent data inconsistency, cache drift, and stale database state reads in the Redis State Cache. The system implements an event-driven Transactional Outbox pattern with Change Data Capture (CDC) or Message Relays to guarantee strict synchronization between PostgreSQL and Redis.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "Enterprise Claims & Intelligence Platform (ECIP)",
+    "decision": "Cost Optimization via Decoupled Database Infrastructure (PostgreSQL + pgvector + Redis)",
+    "alternatives_rejected": [
+      "expensive, proprietary third-party vector databases"
+    ],
+    "reason": "To avoid the astronomical costs, management overhead, and architectural complexity of provisioning expensive, proprietary third-party vector databases. The project leverages existing database investments by utilizing pgvector directly alongside the primary PostgreSQL database and Redis.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-visitor-management",
+    "decision": "Adopt \"Goldilocks\" Architecture",
+    "alternatives_rejected": [
+      "Event Sourcing"
+    ],
+    "reason": "Balances performance and integrity by using native PostgreSQL constraints and the Outbox Pattern, avoiding the over-engineering of Event Sourcing.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-visitor-management",
+    "decision": "Implement Notification Outbox Pattern",
+    "alternatives_rejected": [
+      "Synchronous 'mock' notifications"
+    ],
+    "reason": "Replaces synchronous notifications that cause 504 errors and block the UI; ensures API response SLA < 2s via background worker processing.",
+    "risks": [
+      "504 errors",
+      "UI blocking"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-visitor-management",
+    "decision": "Hardened Database Constraints (BR-01)",
+    "alternatives_rejected": [
+      "Application-level validation logic"
+    ],
+    "reason": "Shifts unique mobile validation to PostgreSQL Partial Unique Index to eliminate race conditions.",
+    "risks": [
+      "Race conditions"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-visitor-management",
+    "decision": "Enforced PII Data Lifecycle Management",
+    "alternatives_rejected": [
+      "Manual cleanup"
+    ],
+    "reason": "Replaces manual, error-prone cleanup with an automated 30-day anonymization process to ensure regulatory compliance.",
+    "risks": [
+      "Regulatory non-compliance",
+      "Manual processing errors"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-visitor-management",
+    "decision": "Frontend/Backend Separation with Cookie-Based Auth",
+    "alternatives_rejected": [
+      "LocalStorage for session management"
+    ],
+    "reason": "Decoupling facilitates independent auditability and scalability; mandates secure cookies to mitigate XSS/CSRF risks.",
+    "risks": [
+      "XSS",
+      "CSRF"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-visitor-management",
+    "decision": "Presigned URLs for Photo Uploads",
+    "alternatives_rejected": [
+      "Proxying uploads through Express application server"
+    ],
+    "reason": "Offloads file handling directly to object storage to prevent OOM (Out of Memory) errors.",
+    "risks": [
+      "OOM errors"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-visitor-management",
+    "decision": "BOLA Protection via JWT Validation",
+    "alternatives_rejected": [
+      "Endpoint-level validation without JWT claim verification"
+    ],
+    "reason": "Hardens security by requiring endpoints to validate emp_id directly from the JWT sub claim, preventing unauthorized access.",
+    "risks": [
+      "Unauthorized access to other users' data (BOLA)"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-visitor-management",
+    "decision": "Asynchronous Reporting Workflow",
+    "alternatives_rejected": [
+      "Synchronous reporting generation"
+    ],
+    "reason": "Offloads report generation to a background process to ensure the main thread remains responsive.",
+    "risks": [
+      "Main thread blocking"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-visitor-management",
+    "decision": "Implementation of Row-Level Security (RLS)",
+    "alternatives_rejected": [
+      "Application-level data filtering"
+    ],
+    "reason": "Adds a foundational security layer to VisitHistory to ensure data access is strictly scoped to the authorized employee.",
+    "risks": [
+      "Unauthorized data access"
+    ],
+    "outcome": "Approved"
+  }
+]

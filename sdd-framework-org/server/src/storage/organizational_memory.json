@@ -1,0 +1,26 @@
+[
+  {
+    "project": "Order Ingestion Platform v1",
+    "decision": "Use Redis Caching for Inventory Counts",
+    "outcome": "Cache desynchronization caused inventory errors and duplicate sales.",
+    "lesson": "Never cache transactional database states in Redis without implementing strict event-driven cache invalidation or Pub/Sub cache invalidation triggers."
+  },
+  {
+    "project": "Corporate RAG Copilot",
+    "decision": "Global Vector Search without Session Metadata Filtering",
+    "outcome": "Critical security finding where standard employees retrieved restricted salary and HR documents via natural language semantic queries (BOLA bypass).",
+    "lesson": "Mandate Row-Level Security (RLS) or enforce metadata pre-filtering on the vector database session level using the authenticated user's authorized IDs."
+  },
+  {
+    "project": "Customer Claim Ingestion Service",
+    "decision": "Synchronous Media File Uploads and Processing",
+    "outcome": "Severe API Gateway timeouts (504) and thread pool exhaustion when large claims audio files were processed directly on main worker threads.",
+    "lesson": "Enforce direct-to-storage uploads via presigned URLs and run ingestion processing completely asynchronously via background job queues, immediately returning a 202 Accepted status."
+  },
+  {
+    "project": "Real-time Chat Notification Service",
+    "decision": "Direct video uploads to backend API instances",
+    "outcome": "Application crashed with Out-Of-Memory (OOM) errors during peak concurrent usage.",
+    "lesson": "Bypass application servers for large binary payloads. Clients should upload directly to AWS S3 / Cloud Storage using presigned URLs, then fire a lightweight notification trigger."
+  }
+]

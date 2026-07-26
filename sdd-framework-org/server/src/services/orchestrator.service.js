@@ -149,9 +149,13 @@ const StateAnnotation = Annotation.Root({
   })
 });
 
-// Helper: Read active spec.md content
+// Helper: Read active spec.md content (prioritize spec_v2.md)
 function getSpecContent(activeSpec) {
   try {
+    const specV2Path = path.resolve(__dirname, '../../../specs', activeSpec, 'spec_v2.md');
+    if (modelsConfig.ai_srb_enabled !== false && fs.existsSync(specV2Path)) {
+      return fs.readFileSync(specV2Path, 'utf8');
+    }
     const specPath = path.resolve(__dirname, '../../../specs', activeSpec, 'spec.md');
     if (fs.existsSync(specPath)) {
       return fs.readFileSync(specPath, 'utf8');
@@ -166,6 +170,16 @@ function getSpecContent(activeSpec) {
 // Evaluates the complexity of requirements and decides between active LLM and active SLM
 async function selectorNode(state) {
   const currentStage = state.currentStage || 'functional-spec';
+  
+  if (currentStage === 'ai-srb') {
+    return {
+      logs: [
+        `[Selector] Analyzing stage: "ai-srb". Routing to AI-SRB Debate Engine LangGraph subgraph.`
+      ],
+      modelDecision: { [currentStage]: { model: modelsConfig.active_llm || 'gemini-3.5-flash', reasoning: 'Sub-graph requires active LLM for debate governance.' } }
+    };
+  }
+
   const specText = getSpecContent(state.activeSpec) || 'No specification files enqueued.';
   
   const prompt = `You are the AI Model Selector Agent for a multi-agent framework.
@@ -216,6 +230,32 @@ Return your decision in JSON format:
 // Node 2: Generation / Compilation Node
 async function generatorNode(state) {
   const currentStage = state.currentStage || 'functional-spec';
+
+  if (currentStage === 'ai-srb') {
+    try {
+      const { aisrbGraph } = require('./aisrbGraph.service');
+      const subgraphInitialState = {
+        activeSpec: state.activeSpec,
+        logs: [`[Orchestrator] Invoking AI-SRB Debate Engine subgraph...`]
+      };
+      const config = { configurable: { thread_id: `aisrb-${state.activeSpec}-${Date.now()}` } };
+      const finalSubgraphState = await aisrbGraph.invoke(subgraphInitialState, config);
+      const report = finalSubgraphState.approval_result?.report || 'AI-SRB execution finished.';
+      return {
+        logs: [
+          `[Orchestrator] AI-SRB Debate Engine subgraph execution complete.`,
+          `[Orchestrator] spec_v2.md generated and signed off.`
+        ],
+        results: {
+          'ai-srb': report
+        }
+      };
+    } catch (err) {
+      console.error('[Orchestrator] Subgraph error in generatorNode:', err);
+      throw err;
+    }
+  }
+
   const specText = getSpecContent(state.activeSpec);
   const decision = state.modelDecision[currentStage] || { model: 'gemini-3.1-flash-lite' };
   const stageFeedback = state.feedback[currentStage] || '';
@@ -864,9 +904,10 @@ module.exports = {
     const threadId = `thread-${Date.now()}`;
     const config = { configurable: { thread_id: threadId } };
     
+    const initialStage = modelsConfig.ai_srb_enabled !== false ? 'ai-srb' : 'spec-to-story';
     const initialState = {
       activeSpec,
-      currentStage: 'spec-to-story',
+      currentStage: initialStage,
       logs: [`[Queue] Initializing LangGraph multi-agent orchestrator for spec: ${activeSpec}...`],
       results: {},
       modelDecision: {},
@@ -903,7 +944,11 @@ module.exports = {
       }
 
       // 2. Determine next stage
-      const stagesOrder = [
+      const stagesOrder = [];
+      if (modelsConfig.ai_srb_enabled !== false) {
+        stagesOrder.push('ai-srb');
+      }
+      stagesOrder.push(
         'spec-to-story',
         'user-stories',
         'ux-wireframe',
@@ -912,7 +957,7 @@ module.exports = {
         'database-design',
         'test-cases',
         'traceability-matrix'
-      ];
+      );
       const currentIndex = stagesOrder.indexOf(stage);
       let nextStage = stage;
       let logMsg = '';
