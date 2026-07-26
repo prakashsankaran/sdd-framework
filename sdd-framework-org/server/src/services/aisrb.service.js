@@ -25,8 +25,8 @@ async function generateWithRetryAndFallback(ai, prompt, agentName, logCallback =
   
   const fallbackModels = [
     primaryModel,
-    'gemini-2.0-flash',
-    'gemini-1.5-flash',
+    'gemini-3.6-flash',
+    'gemini-3.5-flash-lite',
     'gemini-3.1-flash-lite'
   ].filter((value, index, self) => self.indexOf(value) === index); // unique values
 
@@ -58,10 +58,12 @@ async function generateWithRetryAndFallback(ai, prompt, agentName, logCallback =
         return responseText;
       } catch (err) {
         lastError = err;
+        const errMsg = (err.message || '').toLowerCase();
+        const isQuotaExceeded = errMsg.includes('quota exceeded') || errMsg.includes('exceeded your current quota') || errMsg.includes('quotafailure');
         const status = err.status || (err.message && err.message.includes('503') ? 503 : null);
         const isRateLimitOrDemand = status === 503 || status === 429 || err.message.includes('high demand') || err.message.includes('Rate limit');
 
-        if (isRateLimitOrDemand && attempt < attempts) {
+        if (isRateLimitOrDemand && !isQuotaExceeded && attempt < attempts) {
           const backoffTime = Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 1000);
           logCallback(`[Resilience] Model "${modelName}" failed for "${agentName}" (${err.message || '503/429'}). Retrying in ${backoffTime}ms (Attempt ${attempt}/${attempts})...`);
           await delay(backoffTime);

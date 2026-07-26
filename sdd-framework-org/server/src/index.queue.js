@@ -401,6 +401,8 @@ function updateActiveRun(folder, msg) {
   }
 }
 
+global.updateActiveRun = updateActiveRun;
+
 app.post('/api/specs/validate', async (req, res) => {
   const { folder } = req.body;
   if (!folder) {

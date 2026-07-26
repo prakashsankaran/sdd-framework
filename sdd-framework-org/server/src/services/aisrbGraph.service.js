@@ -1280,6 +1280,11 @@ const compiledAisrbGraph = aisrbWorkflow.compile({
   interruptBefore: ['humanApproval']
 });
 
+const compiledAisrbGraphNoInterrupt = aisrbWorkflow.compile({
+  checkpointer
+});
+
 module.exports = {
-  aisrbGraph: compiledAisrbGraph
+  aisrbGraph: compiledAisrbGraph,
+  aisrbGraphNoInterrupt: compiledAisrbGraphNoInterrupt
 };
