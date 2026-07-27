@@ -14,6 +14,19 @@ const modelsConfig = new Proxy({}, {
   get: (target, prop) => getModelsConfig()[prop]
 });
 
+// Load subagents configuration dynamically
+function getSubagentsConfig() {
+  const configPath = path.resolve(__dirname, '../config/subagents_config.json');
+  if (fs.existsSync(configPath)) {
+    try {
+      return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    } catch (err) {
+      console.error('[Orchestrator] Failed to load subagents_config.json:', err.message);
+    }
+  }
+  return null;
+}
+
 // Find model helper
 function getModelMeta(modelId) {
   return modelsConfig.models.find(m => m.id === modelId) || { id: modelId, name: modelId, provider: 'google' };
@@ -149,10 +162,25 @@ const StateAnnotation = Annotation.Root({
   })
 });
 
-// Helper: Read active spec.md content
+// Helper: find the latest version of spec.md (spec_v9.md down to spec_v2.md, then spec.md)
+function getLatestSpecFilename(specsDir, filename) {
+  if (filename === 'spec.md') {
+    for (let v = 9; v >= 2; v--) {
+      const vName = `spec_v${v}.md`;
+      if (fs.existsSync(path.join(specsDir, vName))) {
+        return vName;
+      }
+    }
+  }
+  return filename;
+}
+
+// Helper: Read active spec.md content (prioritize latest spec_vX.md)
 function getSpecContent(activeSpec) {
   try {
-    const specPath = path.resolve(__dirname, '../../../specs', activeSpec, 'spec.md');
+    const specsDir = path.resolve(__dirname, '../../../specs', activeSpec);
+    const resolvedSpec = getLatestSpecFilename(specsDir, 'spec.md');
+    const specPath = path.join(specsDir, resolvedSpec);
     if (fs.existsSync(specPath)) {
       return fs.readFileSync(specPath, 'utf8');
     }
@@ -166,6 +194,16 @@ function getSpecContent(activeSpec) {
 // Evaluates the complexity of requirements and decides between active LLM and active SLM
 async function selectorNode(state) {
   const currentStage = state.currentStage || 'functional-spec';
+  
+  if (currentStage === 'ai-srb') {
+    return {
+      logs: [
+        `[Selector] Analyzing stage: "ai-srb". Routing to AI-SRB Debate Engine LangGraph subgraph.`
+      ],
+      modelDecision: { [currentStage]: { model: modelsConfig.active_llm || 'gemini-3.5-flash', reasoning: 'Sub-graph requires active LLM for debate governance.' } }
+    };
+  }
+
   const specText = getSpecContent(state.activeSpec) || 'No specification files enqueued.';
   
   const prompt = `You are the AI Model Selector Agent for a multi-agent framework.
@@ -216,7 +254,33 @@ Return your decision in JSON format:
 // Node 2: Generation / Compilation Node
 async function generatorNode(state) {
   const currentStage = state.currentStage || 'functional-spec';
-  const specText = getSpecContent(state.activeSpec);
+
+  if (currentStage === 'ai-srb') {
+    const { aisrbGraphNoInterrupt } = require('./aisrbGraph.service');
+    const config = { configurable: { thread_id: `aisrb-${state.activeSpec}-${Date.now()}` } };
+    try {
+      const subgraphInitialState = {
+        activeSpec: state.activeSpec,
+        human_approval_required: false,
+        logs: [`[Orchestrator] Invoking AI-SRB Debate Engine subgraph...`]
+      };
+      const finalSubgraphState = await aisrbGraphNoInterrupt.invoke(subgraphInitialState, config);
+      const report = finalSubgraphState.approval_result?.report || 'AI-SRB execution finished.';
+      return {
+        logs: [
+          `[Orchestrator] AI-SRB Debate Engine subgraph execution complete.`,
+          `[Orchestrator] spec_v2.md generated and signed off.`
+        ],
+        results: {
+          'ai-srb': report
+        }
+      };
+    } catch (err) {
+      console.error('[Orchestrator] Subgraph error in generatorNode:', err);
+      throw err;
+    }
+  }
+
   const decision = state.modelDecision[currentStage] || { model: 'gemini-3.1-flash-lite' };
   const stageFeedback = state.feedback[currentStage] || '';
   const modelTracker = { activeModel: decision.model };
@@ -225,6 +289,36 @@ async function generatorNode(state) {
     `[Generator] Activating ${currentStage} agent...`,
     `[Generator] Processing draft output using ${decision.model}...`
   ];
+
+  let specText = '';
+  const subagentsConfig = getSubagentsConfig();
+  const subagentCfg = subagentsConfig?.subagents?.[currentStage];
+  try {
+    const specsDir = path.resolve(__dirname, '../../../specs', state.activeSpec);
+    if (subagentCfg && Array.isArray(subagentCfg.input_files)) {
+      const fileContents = [];
+      subagentCfg.input_files.forEach(filename => {
+        const resolvedFilename = getLatestSpecFilename(specsDir, filename);
+        const filePath = path.join(specsDir, resolvedFilename);
+        if (fs.existsSync(filePath)) {
+          const content = fs.readFileSync(filePath, 'utf8');
+          fileContents.push(`--- FILE: ${resolvedFilename} ---\n${content}`);
+        } else {
+          logs.push(`[Orchestrator] Warning: Configured input file "${filename}" (resolved to: "${resolvedFilename}") not found at path: ${filePath}`);
+        }
+      });
+      if (fileContents.length > 0) {
+        specText = fileContents.join('\n\n');
+      } else {
+        specText = getSpecContent(state.activeSpec);
+      }
+    } else {
+      specText = getSpecContent(state.activeSpec);
+    }
+  } catch (err) {
+    logs.push(`[Orchestrator] Error loading dynamic inputs: ${err.message}`);
+    specText = getSpecContent(state.activeSpec);
+  }
 
   if (stageFeedback) {
     logs.push(`[Generator] Incorporating human review feedback: "${stageFeedback}"`);
@@ -249,21 +343,7 @@ async function generatorNode(state) {
     let generatorPrompt = '';
 
     if (currentStage === 'functional-spec') {
-      generatorPrompt = `You are a Principal Business Analyst and Senior Technical Writer with deep enterprise documentation expertise.
-
-Analyze the following specification document carefully:
-${specText}
-
-Your task is to generate a comprehensive, client-ready Functional Specification Document (FSD) as clean, premium-styled HTML.
-
-CRITICAL RULES:
-- Do NOT wrap your output in markdown code blocks. Start directly with raw HTML (e.g. <div> or <article>).
-- Use an inline dark-mode style: dark background (#0f172a), light text, accent colors (#6366f1 indigo for headings, #22d3ee cyan for section badges).
-- Be INTELLIGENT: If a section is clearly NOT applicable based on the specification (e.g. no notifications mentioned → skip Section 10), omit it entirely rather than generating placeholder/empty content.
-- For every section that IS applicable, be thorough, specific, and derive content directly from the provided specification — do not hallucinate or fabricate details.
-- Use real IDs: FR-001, FR-002, BR-001, etc. derived from actual requirements in the spec.
-
-Generate ALL of the following sections that are applicable. Skip sections that are genuinely not applicable:
+      const defaultFsdExpectations = `Generate ALL of the following sections that are applicable. Skip sections that are genuinely not applicable:
 
 DOCUMENT INFORMATION (always include):
 - Document Title, Project Name, Version, Status, Author, Reviewers, Approvers, Revision Log, Distribution List
@@ -355,6 +435,25 @@ TABLE OF CONTENTS (always include)
 18. APPENDIX
     - Glossary of terms
     - Abbreviations`;
+
+      const fsdExpectations = subagentCfg?.expectations || defaultFsdExpectations;
+
+      generatorPrompt = `You are a Principal Business Analyst and Senior Technical Writer with deep enterprise documentation expertise.
+
+Analyze the following specification document carefully:
+${specText}
+
+Your task is to generate a comprehensive, client-ready Functional Specification Document (FSD) as clean, premium-styled HTML.
+
+CRITICAL RULES:
+- Do NOT wrap your output in markdown code blocks. Start directly with raw HTML (e.g. <div> or <article>).
+- Use an inline dark-mode style: dark background (#0f172a), light text, accent colors (#6366f1 indigo for headings, #22d3ee cyan for section badges).
+- Be INTELLIGENT: If a section is clearly NOT applicable based on the specification (e.g. no notifications mentioned → skip Section 10), omit it entirely rather than generating placeholder/empty content.
+- For every section that IS applicable, be thorough, specific, and derive content directly from the provided specification — do not hallucinate or fabricate details.
+- Use real IDs: FR-001, FR-002, BR-001, etc. derived from actual requirements in the spec.
+
+Expectations / Requirements:
+${fsdExpectations}`;
       if (stageFeedback) {
         generatorPrompt += `\n\nHuman Review Feedback to apply: "${stageFeedback}"`;
       }
@@ -373,6 +472,9 @@ Rules:
 3. Use a custom font (e.g. Plus Jakarta Sans or Inter via Google Fonts link) and FontAwesome icons (via CDN: https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css).
 4. Integrate details parsed directly from the spec: use the system title, specific user actions, API paths, and database fields to construct form fields and page context.
 5. Do NOT enclose your output in markdown code blocks or write introduction/explanation sentences. Respond ONLY with the complete raw HTML code (beginning with <!DOCTYPE html>).`;
+      if (subagentCfg?.expectations) {
+        generatorPrompt += `\n\nCustom design directives / expectations to follow: "${subagentCfg.expectations}"`;
+      }
       if (stageFeedback) {
         generatorPrompt += `\n\nHuman Review Feedback to apply: "${stageFeedback}"`;
       }
@@ -388,7 +490,36 @@ Rules:
       }
       resultOutput = wireframeHtml.trim();
 
-    } else if (currentStage === 'tech-architecture') {
+      const defaultTechExpectations = `Generate ALL applicable sections. Skip non-applicable ones:
+
+DOCUMENT INFORMATION (always): Title, Project Name, Version, Status, Author, Reviewers, Approvers, Revision Log, Distribution List
+TABLE OF CONTENTS (always)
+1. Introduction (1.1 Purpose, 1.2 Scope, 1.3 Audience, 1.4 References)
+2. Solution Overview (architecture summary, tech stack table, deployment model)
+3. Architecture Diagrams (Context, Container, Component, Deployment, Sequence — as applicable)
+4. Technology Stack (table: Layer | Technology | Version | Purpose | Justification)
+5. Application Architecture (modules, responsibilities, dependencies, interaction patterns)
+6. Component Design (per component: purpose, responsibilities, interfaces, dependencies, failure handling, logging, config)
+7. API Specifications (per endpoint: path, method, headers, auth, request schema, response schema, error codes, retry, timeout, rate limits, examples)
+8. Authentication & Authorization (JWT, OAuth/OIDC, SSO, MFA, session, RBAC — only what applies)
+9. Authorization Matrix (Role vs Permission table)
+10. Data Flow (sequence diagrams, request lifecycle, data movement)
+11. Database Design Summary (entities, relationships, indexes, partitioning)
+12. Integration Design (external systems, protocols, retries, circuit breaker, webhooks, queues — only if integrations exist)
+13. Error Handling (exception hierarchy, retries, fallbacks, DLQ)
+14. Logging (log levels, correlation IDs, sensitive data masking, aggregation)
+15. Monitoring & Observability (metrics, health checks, alerts, dashboards — if applicable)
+16. Performance Design (caching, pagination, compression, batching, async, load balancing)
+17. Security Design (encryption, secrets, key vault, OWASP, CSRF, CORS, rate limiting)
+18. Scalability (horizontal, vertical, auto-scaling)
+19. Deployment (environment matrix Dev/QA/UAT/Prod, CI/CD, rollback, blue-green)
+20. Infrastructure (cloud resources, networking, storage, compute — only what is relevant)
+21. Disaster Recovery (backup, restore, RPO, RTO)
+22. Risks (technical risks with likelihood, impact, mitigation)
+23. Future Enhancements (roadmap, deferred decisions)`;
+
+      const techExpectations = subagentCfg?.expectations || defaultTechExpectations;
+
       generatorPrompt = `You are a Principal Solutions Architect and Senior Technical Writer with deep cloud-native and enterprise architecture expertise.
 
 Analyze the following specification document carefully:
@@ -418,33 +549,8 @@ BLUEPRINT RULES:
 - Include all major system components, databases, external services, and their connections.
 - Use descriptive node labels.
 
-Generate ALL applicable sections. Skip non-applicable ones:
-
-DOCUMENT INFORMATION (always): Title, Project Name, Version, Status, Author, Reviewers, Approvers, Revision Log, Distribution List
-TABLE OF CONTENTS (always)
-1. Introduction (1.1 Purpose, 1.2 Scope, 1.3 Audience, 1.4 References)
-2. Solution Overview (architecture summary, tech stack table, deployment model)
-3. Architecture Diagrams (Context, Container, Component, Deployment, Sequence — as applicable)
-4. Technology Stack (table: Layer | Technology | Version | Purpose | Justification)
-5. Application Architecture (modules, responsibilities, dependencies, interaction patterns)
-6. Component Design (per component: purpose, responsibilities, interfaces, dependencies, failure handling, logging, config)
-7. API Specifications (per endpoint: path, method, headers, auth, request schema, response schema, error codes, retry, timeout, rate limits, examples)
-8. Authentication & Authorization (JWT, OAuth/OIDC, SSO, MFA, session, RBAC — only what applies)
-9. Authorization Matrix (Role vs Permission table)
-10. Data Flow (sequence diagrams, request lifecycle, data movement)
-11. Database Design Summary (entities, relationships, indexes, partitioning)
-12. Integration Design (external systems, protocols, retries, circuit breaker, webhooks, queues — only if integrations exist)
-13. Error Handling (exception hierarchy, retries, fallbacks, DLQ)
-14. Logging (log levels, correlation IDs, sensitive data masking, aggregation)
-15. Monitoring & Observability (metrics, health checks, alerts, dashboards — if applicable)
-16. Performance Design (caching, pagination, compression, batching, async, load balancing)
-17. Security Design (encryption, secrets, key vault, OWASP, CSRF, CORS, rate limiting)
-18. Scalability (horizontal, vertical, auto-scaling)
-19. Deployment (environment matrix Dev/QA/UAT/Prod, CI/CD, rollback, blue-green)
-20. Infrastructure (cloud resources, networking, storage, compute — only what is relevant)
-21. Disaster Recovery (backup, restore, RPO, RTO)
-22. Risks (technical risks with likelihood, impact, mitigation)
-23. Future Enhancements (roadmap, deferred decisions)`;
+Expectations / Requirements:
+${techExpectations}`;
 
       if (stageFeedback) {
         generatorPrompt += `\n\nHuman Review Feedback to apply: "${stageFeedback}"`;
@@ -551,7 +657,7 @@ Skip sections that are not applicable based on the spec. Be thorough and specifi
   ],
   "logs": [
     "[Info] Starting compliance scanner...",
-    "[Audit] Database schemas scanned. TLS enforced.",
+"[Audit] Database schemas scanned. TLS enforced.",
     "[Security] Audit logs enabled."
   ]
 }`;
@@ -565,7 +671,11 @@ Skip sections that are not applicable based on the spec. Be thorough and specifi
 Analyze the specification document:
 ${specText}
 
-${stageSchemaInstructions}`;
+Instructions:
+${stageSchemaInstructions}
+
+${subagentCfg?.expectations ? `Specific Expectations / Scope:
+${subagentCfg.expectations}` : ''}`;
         if (stageFeedback) {
           generatorPrompt += `\n\nHuman Review Feedback to apply: "${stageFeedback}"`;
         }
@@ -582,9 +692,9 @@ ${specText}
 
 Your task is to decompose the specification into a comprehensive backlog of Agile User Stories.
 Requirements:
-1. Decompose the specification document comprehensively to generate at least 5 to 7 detailed, distinct user stories.
+${subagentCfg?.expectations || `1. Decompose the specification document comprehensively to generate at least 5 to 7 detailed, distinct user stories.
 2. Every story must follow the 'As a [role], I want to [action], So that [benefit]' format.
-3. Cover all key functional areas described in the specification — do not fabricate details not present.
+3. Cover all key functional areas described in the specification — do not fabricate details not present.`}
 
 Format Instructions:
 ${stageSchemaInstructions}
@@ -595,8 +705,8 @@ ${specText}
 
 Your task is to create a complete JIRA project backlog spreadsheet.
 Requirements:
-1. Decompose the specification document comprehensively to create a backlog of at least 6 to 10 JIRA issues (mix of Stories, Tasks, and Bugs).
-2. Make them specific to the product described in the specification — do not use generic placeholders.
+${subagentCfg?.expectations || `1. Decompose the specification document comprehensively to create a backlog of at least 6 to 10 JIRA issues (mix of Stories, Tasks, and Bugs).
+2. Make them specific to the product described in the specification — do not use generic placeholders.`}
 
 Format Instructions:
 ${stageSchemaInstructions}
@@ -608,6 +718,10 @@ ${specText}
 
 Instructions:
 ${stageSchemaInstructions}
+
+${subagentCfg?.expectations ? `Specific Expectations:
+${subagentCfg.expectations}` : ''}
+
 Do not include any explanation or markdown outside the JSON block. Return ONLY valid JSON.`;
         }
 
@@ -864,9 +978,10 @@ module.exports = {
     const threadId = `thread-${Date.now()}`;
     const config = { configurable: { thread_id: threadId } };
     
+    const initialStage = modelsConfig.ai_srb_enabled !== false ? 'ai-srb' : 'spec-to-story';
     const initialState = {
       activeSpec,
-      currentStage: 'spec-to-story',
+      currentStage: initialStage,
       logs: [`[Queue] Initializing LangGraph multi-agent orchestrator for spec: ${activeSpec}...`],
       results: {},
       modelDecision: {},
@@ -903,7 +1018,11 @@ module.exports = {
       }
 
       // 2. Determine next stage
-      const stagesOrder = [
+      const stagesOrder = [];
+      if (modelsConfig.ai_srb_enabled !== false) {
+        stagesOrder.push('ai-srb');
+      }
+      stagesOrder.push(
         'spec-to-story',
         'user-stories',
         'ux-wireframe',
@@ -912,7 +1031,7 @@ module.exports = {
         'database-design',
         'test-cases',
         'traceability-matrix'
-      ];
+      );
       const currentIndex = stagesOrder.indexOf(stage);
       let nextStage = stage;
       let logMsg = '';

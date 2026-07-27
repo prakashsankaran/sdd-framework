@@ -1,0 +1,68 @@
+{
+  "matrix": [
+    {
+      "reqId": "FR-01",
+      "userStoryId": "US-001: Visitor Registration",
+      "techSpec": "Section 4.1: POST /api/visitors/check-in, Section 5: VisitHistory table",
+      "dbTables": "Visitors, VisitHistory",
+      "testCases": "TC-REG-01, TC-REG-02"
+    },
+    {
+      "reqId": "FR-02",
+      "userStoryId": "US-002: Check-In Logic",
+      "techSpec": "Section 2.2: Flow 1, Section 5: Constraints & Triggers",
+      "dbTables": "VisitHistory",
+      "testCases": "TC-CI-01, TC-CI-02"
+    },
+    {
+      "reqId": "FR-03",
+      "userStoryId": "US-003: Async Notifications",
+      "techSpec": "Section 4.1: Async notification dispatch, Section 6: Performance",
+      "dbTables": "N/A (External Email/Queue)",
+      "testCases": "TC-NOT-01"
+    },
+    {
+      "reqId": "FR-04",
+      "userStoryId": "US-004: Search Functionality",
+      "techSpec": "Section 3.4: Filtered search query logic",
+      "dbTables": "Visitors, VisitHistory",
+      "testCases": "TC-SRCH-01"
+    },
+    {
+      "reqId": "FR-05",
+      "userStoryId": "US-005: Reporting",
+      "techSpec": "Section 4.3: GET /api/reports/export",
+      "dbTables": "VisitHistory",
+      "testCases": "TC-REP-01"
+    },
+    {
+      "reqId": "FR-06",
+      "userStoryId": "US-006: Admin Employee CRUD",
+      "techSpec": "Section 2.2: Flow 3, Section 5: Employees Table",
+      "dbTables": "Employees",
+      "testCases": "TC-ADM-01, TC-ADM-02"
+    },
+    {
+      "reqId": "FR-07",
+      "userStoryId": "US-007: Visitor Type Management",
+      "techSpec": "Section 3.7: Admin configuration",
+      "dbTables": "VisitorTypes",
+      "testCases": "TC-ADM-03"
+    },
+    {
+      "reqId": "FR-08",
+      "userStoryId": "US-008: Employee Portal",
+      "techSpec": "Section 6: Hybrid Authorization, Section 4.8",
+      "dbTables": "VisitHistory, Employees",
+      "testCases": "TC-PORTAL-01"
+    },
+    {
+      "reqId": "SEC-01",
+      "userStoryId": "US-009: Security & Compliance",
+      "techSpec": "Section 6: RLS, S3 Lifecycle, PII Anonymization",
+      "dbTables": "Audit_Logs, VisitHistory",
+      "testCases": "TC-SEC-01, TC-SEC-02, TC-SEC-03"
+    }
+  ],
+  "coverage": "100% Traceability Coverage"
+}

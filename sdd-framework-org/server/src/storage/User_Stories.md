@@ -1,115 +1,99 @@
 # Agile User Stories Backlog
 
-## US-SYS-01: Automated Meeting Ingestion
-* **As a:** Standard Employee
-* **I want to:** Have my calendar meetings automatically synced and processed by the platform
-* **So that:** I can save time on manual entry and ensure all meeting context is captured
+## US-VMS-01: Visitor Registration and Check-In
+* **As a:** Receptionist
+* **I want to:** register a visitor and upload their photo via a secure S3 process
+* **So that:** we maintain an accurate digital log of all arrivals while ensuring photo storage compliance
 
 ### Acceptance Criteria
-- System successfully connects to Outlook/Google Calendar via OAuth
-- System creates a Meeting record upon sync
-- System triggers transcription workflow once the meeting starts
-
-* **Priority:** High
-* **Story Points:** 5
-* **Technical Notes:** Requires integration with O365/Google Workspace APIs. Need a web hook listener for calendar updates.
-
----
-
-## US-SYS-02: AI-Powered Action Extraction
-* **As a:** Project Manager
-* **I want to:** Have the system automatically extract action items from meeting transcripts
-* **So that:** I can focus on managing the project rather than documenting meeting minutes
-
-### Acceptance Criteria
-- System correctly identifies owner, due date, and task description
-- System maps extracted data to the defined JSON schema
-- System assigns status 'OPEN' by default upon creation
+- System validates mobile number against existing active visits to prevent duplicates
+- System generates a presigned S3 URL for secure photo upload
+- Record is created with 'Checked-In' status upon successful upload
+- Triggers async notification to the designated employee
 
 * **Priority:** High
 * **Story Points:** 8
-* **Technical Notes:** Use NER and Intent Classification via LLM. Post-process to map speakers to known user IDs.
+* **Technical Notes:** Requires integration with S3 presigned URL API; implement RLS and DB trigger trg_verify_employee_active.
 
 ---
 
-## US-SYS-03: Action Item Status Updates
-* **As a:** Standard Employee
-* **I want to:** Update the status of my assigned action items
-* **So that:** My project manager has visibility into my progress
+## US-VMS-02: Visitor Check-Out
+* **As a:** Receptionist
+* **I want to:** mark a visitor as checked-out
+* **So that:** the visit history is finalized and the record can be archived for compliance
 
 ### Acceptance Criteria
-- Ability to transition status between OPEN, IN_PROGRESS, BLOCKED, and COMPLETED
-- Changes are logged in the system audit trail
-- Status changes are reflected in real-time dashboards
+- System records the precise end time
+- Ensures check_out time is chronologically after check_in time
+- Record is moved to archived state
 
-* **Priority:** Medium
+* **Priority:** High
 * **Story Points:** 3
-* **Technical Notes:** Expose PUT /api/v1/actions/{id} endpoint with status validation against the defined ENUM.
+* **Technical Notes:** Enforce CHECK (check_out > check_in) constraint at the database level.
 
 ---
 
-## US-SYS-04: Strategic Risk Detection
-* **As a:** Executive
-* **I want to:** Monitor meeting transcripts for high-level risks
-* **So that:** I can intervene early in projects that show signs of blockers or negative sentiment
+## US-VMS-03: Employee Visitor Portal
+* **As a:** Employee
+* **I want to:** view my specific incoming visitor logs
+* **So that:** I can stay informed about my appointments while maintaining data privacy
 
 ### Acceptance Criteria
-- System flags transcript segments as High, Medium, or Low risk
-- Executive dashboard displays aggregated risk levels across projects
-- System alerts when a 'Critical' risk is detected
+- Must support JWT-based authentication
+- PII must be appropriately masked based on system configuration
+- Results are restricted to the logged-in user's own data only
 
 * **Priority:** Medium
 * **Story Points:** 5
-* **Technical Notes:** Implement pattern matching and sentiment analysis on processed transcripts stored in the database.
+* **Technical Notes:** Use PostgreSQL RLS with SET LOCAL app.current_user_id to ensure BOLA mitigation.
 
 ---
 
-## US-SYS-05: Semantic Knowledge Retrieval
-* **As a:** Project Manager
-* **I want to:** Query past meetings and decisions using natural language
-* **So that:** I can retrieve context from months of meetings without manually reading through transcripts
-
-### Acceptance Criteria
-- System accepts natural language search queries
-- Search results return relevant meeting segments
-- Vector search engine performs matching against stored embeddings
-
-* **Priority:** Medium
-* **Story Points:** 8
-* **Technical Notes:** Leverage Qdrant for vector storage. Generate embeddings using 1536-dimensional model.
-
----
-
-## US-SYS-06: Role-Based Access Control Implementation
+## US-VMS-04: Administrator User Management
 * **As a:** Administrator
-* **I want to:** Define strict access policies based on user roles and meeting participation
-* **So that:** Sensitive organizational data remains private and secure
+* **I want to:** manage employee active status and visitor types
+* **So that:** the system reflects current organizational staff and registration categories
 
 ### Acceptance Criteria
-- Users can only access meetings they participated in
-- PMs access is restricted to their project scope
-- Admin role provides global read/write access
-- MFA is required for all Manager/Admin login attempts
+- Admin can toggle is_active status for employees
+- Admin can update the Visitor Type dropdown labels
+- Changes are reflected immediately in registration flows
 
 * **Priority:** High
 * **Story Points:** 5
-* **Technical Notes:** Enforce RBAC at the API middleware level. Use JWT claims to verify permissions on every request.
+* **Technical Notes:** Restricted to Admin role via controller-level validation.
 
 ---
 
-## US-SYS-07: Secure Audit Logging
+## US-VMS-05: Visitor Data Reporting
 * **As a:** Administrator
-* **I want to:** Review a detailed log of all administrative actions and AI queries
-* **So that:** I can maintain compliance and investigate potential security incidents
+* **I want to:** export visitor logs as a CSV file
+* **So that:** I can perform compliance auditing and department-specific reporting
 
 ### Acceptance Criteria
-- Every data export and system change is recorded
-- Audit logs include timestamp, User ID, and IP address
-- Logs are immutable and stored in the AuditLog table
+- Support filtering by date range, visitor type, and employee
+- Download triggers a CSV file export
+- Requires secure authentication and authorization
 
-* **Priority:** Low
-* **Story Points:** 3
-* **Technical Notes:** Implement a database trigger or middleware to capture request context for the AuditLog table.
+* **Priority:** Medium
+* **Story Points:** 5
+* **Technical Notes:** Implement GET /api/reports/export with Content-Disposition headers.
+
+---
+
+## US-VMS-06: Data Privacy Lifecycle Maintenance
+* **As a:** System
+* **I want to:** automatically anonymize PII and purge old media
+* **So that:** the application remains compliant with data retention and privacy policies
+
+### Acceptance Criteria
+- S3 files are purged after 14 days
+- PII for records older than 30 days is anonymized via background worker
+- Process runs nightly without interrupting system performance
+
+* **Priority:** High
+* **Story Points:** 8
+* **Technical Notes:** Requires a cron-based background job. S3 lifecycle policies should be utilized for media.
 
 ---
 

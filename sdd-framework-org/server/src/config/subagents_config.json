@@ -1,0 +1,62 @@
+{
+  "subagents": {
+    "spec-to-story": {
+      "input_files": [
+        "spec.md",
+        "constitution.md"
+      ],
+      "expectations": "Decompose the specification document comprehensively to generate detailed, distinct user stories in the format: 'As a [role], I want to [action], So that [benefit]'."
+    },
+    "user-stories": {
+      "input_files": [
+        "spec.md",
+        "plan.md",
+        "tasks.md"
+      ],
+      "expectations": "Compile the stories and tasks into a tabular format structured for direct JIRA import. Ensure proper classification of Story, Task, and Bug issues."
+    },
+    "ux-wireframe": {
+      "input_files": [
+        "spec.md",
+        "constitution.md"
+      ],
+      "expectations": "Generate raw, standalone HTML/CSS code for high-fidelity interactive wireframes. Apply elegant styling, responsive card structures, and realistic placeholder data."
+    },
+    "functional-spec": {
+      "input_files": [
+        "spec.md",
+        "plan.md"
+      ],
+      "expectations": "Draft a comprehensive Functional Specification Document in HTML format detailing objectives, user personas, system workflows, and operational rules."
+    },
+    "tech-architecture": {
+      "input_files": [
+        "spec.md",
+        "plan.md",
+        "research.md"
+      ],
+      "expectations": "Produce technical designs including system components, sequence flows, data models, third-party integrations, and infrastructure blueprints."
+    },
+    "database-design": {
+      "input_files": [
+        "spec.md",
+        "plan.md"
+      ],
+      "expectations": "Generate complete database entity definitions, relationship mapping via Mermaid ERD syntax, and a clean PostgreSQL SQL DDL deployment script."
+    },
+    "test-cases": {
+      "input_files": [
+        "spec.md"
+      ],
+      "expectations": "Generate test scenarios, negative/boundary test suites, regression test cases, and high-coverage test cases formatted in a clean HTML dashboard."
+    },
+    "traceability-matrix": {
+      "input_files": [
+        "spec.md",
+        "plan.md",
+        "tasks.md"
+      ],
+      "expectations": "Construct a traceability matrix mapping Requirement IDs to User Stories, database schemas, and corresponding test cases to verify 100% specification coverage."
+    }
+  }
+}

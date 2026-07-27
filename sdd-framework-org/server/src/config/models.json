@@ -1,12 +1,24 @@
 {
   "active_llm": "gemini-3.5-flash",
-  "active_slm": "gemini-3.1-flash-lite",
+  "active_slm": "gemini-3.5-flash-lite",
+  "ai_srb_enabled": true,
+  "debate_policy": {
+    "execution_mode": "production",
+    "max_concurrency": 4
+  },
   "models": [
     {
       "id": "gemini-3.5-flash",
       "name": "Gemini 3.5 Flash",
       "provider": "google",
       "type": "LLM",
+      "apiKeyEnv": "GEMINI_API_KEY"
+    },
+    {
+      "id": "gemini-3.5-flash-lite",
+      "name": "Gemini 3.5 Flash Lite",
+      "provider": "google",
+      "type": "SLM",
       "apiKeyEnv": "GEMINI_API_KEY"
     },
     {

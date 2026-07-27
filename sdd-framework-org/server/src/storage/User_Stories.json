@@ -1,110 +1,95 @@
 {
   "stories": [
     {
-      "id": "US-SYS-01",
-      "title": "Automated Meeting Ingestion",
-      "asA": "Standard Employee",
-      "iWantTo": "Have my calendar meetings automatically synced and processed by the platform",
-      "soThat": "I can save time on manual entry and ensure all meeting context is captured",
+      "id": "US-VMS-01",
+      "title": "Visitor Registration and Check-In",
+      "asA": "Receptionist",
+      "iWantTo": "register a visitor and upload their photo via a secure S3 process",
+      "soThat": "we maintain an accurate digital log of all arrivals while ensuring photo storage compliance",
       "criteria": [
-        "System successfully connects to Outlook/Google Calendar via OAuth",
-        "System creates a Meeting record upon sync",
-        "System triggers transcription workflow once the meeting starts"
-      ],
-      "priority": "High",
-      "points": 5,
-      "techNotes": "Requires integration with O365/Google Workspace APIs. Need a web hook listener for calendar updates."
-    },
-    {
-      "id": "US-SYS-02",
-      "title": "AI-Powered Action Extraction",
-      "asA": "Project Manager",
-      "iWantTo": "Have the system automatically extract action items from meeting transcripts",
-      "soThat": "I can focus on managing the project rather than documenting meeting minutes",
-      "criteria": [
-        "System correctly identifies owner, due date, and task description",
-        "System maps extracted data to the defined JSON schema",
-        "System assigns status 'OPEN' by default upon creation"
+        "System validates mobile number against existing active visits to prevent duplicates",
+        "System generates a presigned S3 URL for secure photo upload",
+        "Record is created with 'Checked-In' status upon successful upload",
+        "Triggers async notification to the designated employee"
       ],
       "priority": "High",
       "points": 8,
-      "techNotes": "Use NER and Intent Classification via LLM. Post-process to map speakers to known user IDs."
+      "techNotes": "Requires integration with S3 presigned URL API; implement RLS and DB trigger trg_verify_employee_active."
     },
     {
-      "id": "US-SYS-03",
-      "title": "Action Item Status Updates",
-      "asA": "Standard Employee",
-      "iWantTo": "Update the status of my assigned action items",
-      "soThat": "My project manager has visibility into my progress",
+      "id": "US-VMS-02",
+      "title": "Visitor Check-Out",
+      "asA": "Receptionist",
+      "iWantTo": "mark a visitor as checked-out",
+      "soThat": "the visit history is finalized and the record can be archived for compliance",
       "criteria": [
-        "Ability to transition status between OPEN, IN_PROGRESS, BLOCKED, and COMPLETED",
-        "Changes are logged in the system audit trail",
-        "Status changes are reflected in real-time dashboards"
+        "System records the precise end time",
+        "Ensures check_out time is chronologically after check_in time",
+        "Record is moved to archived state"
       ],
-      "priority": "Medium",
+      "priority": "High",
       "points": 3,
-      "techNotes": "Expose PUT /api/v1/actions/{id} endpoint with status validation against the defined ENUM."
+      "techNotes": "Enforce CHECK (check_out > check_in) constraint at the database level."
     },
     {
-      "id": "US-SYS-04",
-      "title": "Strategic Risk Detection",
-      "asA": "Executive",
-      "iWantTo": "Monitor meeting transcripts for high-level risks",
-      "soThat": "I can intervene early in projects that show signs of blockers or negative sentiment",
+      "id": "US-VMS-03",
+      "title": "Employee Visitor Portal",
+      "asA": "Employee",
+      "iWantTo": "view my specific incoming visitor logs",
+      "soThat": "I can stay informed about my appointments while maintaining data privacy",
       "criteria": [
-        "System flags transcript segments as High, Medium, or Low risk",
-        "Executive dashboard displays aggregated risk levels across projects",
-        "System alerts when a 'Critical' risk is detected"
+        "Must support JWT-based authentication",
+        "PII must be appropriately masked based on system configuration",
+        "Results are restricted to the logged-in user's own data only"
       ],
       "priority": "Medium",
       "points": 5,
-      "techNotes": "Implement pattern matching and sentiment analysis on processed transcripts stored in the database."
+      "techNotes": "Use PostgreSQL RLS with SET LOCAL app.current_user_id to ensure BOLA mitigation."
     },
     {
-      "id": "US-SYS-05",
-      "title": "Semantic Knowledge Retrieval",
-      "asA": "Project Manager",
-      "iWantTo": "Query past meetings and decisions using natural language",
-      "soThat": "I can retrieve context from months of meetings without manually reading through transcripts",
-      "criteria": [
-        "System accepts natural language search queries",
-        "Search results return relevant meeting segments",
-        "Vector search engine performs matching against stored embeddings"
-      ],
-      "priority": "Medium",
-      "points": 8,
-      "techNotes": "Leverage Qdrant for vector storage. Generate embeddings using 1536-dimensional model."
-    },
-    {
-      "id": "US-SYS-06",
-      "title": "Role-Based Access Control Implementation",
+      "id": "US-VMS-04",
+      "title": "Administrator User Management",
       "asA": "Administrator",
-      "iWantTo": "Define strict access policies based on user roles and meeting participation",
-      "soThat": "Sensitive organizational data remains private and secure",
+      "iWantTo": "manage employee active status and visitor types",
+      "soThat": "the system reflects current organizational staff and registration categories",
       "criteria": [
-        "Users can only access meetings they participated in",
-        "PMs access is restricted to their project scope",
-        "Admin role provides global read/write access",
-        "MFA is required for all Manager/Admin login attempts"
+        "Admin can toggle is_active status for employees",
+        "Admin can update the Visitor Type dropdown labels",
+        "Changes are reflected immediately in registration flows"
       ],
       "priority": "High",
       "points": 5,
-      "techNotes": "Enforce RBAC at the API middleware level. Use JWT claims to verify permissions on every request."
+      "techNotes": "Restricted to Admin role via controller-level validation."
     },
     {
-      "id": "US-SYS-07",
-      "title": "Secure Audit Logging",
+      "id": "US-VMS-05",
+      "title": "Visitor Data Reporting",
       "asA": "Administrator",
-      "iWantTo": "Review a detailed log of all administrative actions and AI queries",
-      "soThat": "I can maintain compliance and investigate potential security incidents",
+      "iWantTo": "export visitor logs as a CSV file",
+      "soThat": "I can perform compliance auditing and department-specific reporting",
       "criteria": [
-        "Every data export and system change is recorded",
-        "Audit logs include timestamp, User ID, and IP address",
-        "Logs are immutable and stored in the AuditLog table"
+        "Support filtering by date range, visitor type, and employee",
+        "Download triggers a CSV file export",
+        "Requires secure authentication and authorization"
       ],
-      "priority": "Low",
-      "points": 3,
-      "techNotes": "Implement a database trigger or middleware to capture request context for the AuditLog table."
+      "priority": "Medium",
+      "points": 5,
+      "techNotes": "Implement GET /api/reports/export with Content-Disposition headers."
+    },
+    {
+      "id": "US-VMS-06",
+      "title": "Data Privacy Lifecycle Maintenance",
+      "asA": "System",
+      "iWantTo": "automatically anonymize PII and purge old media",
+      "soThat": "the application remains compliant with data retention and privacy policies",
+      "criteria": [
+        "S3 files are purged after 14 days",
+        "PII for records older than 30 days is anonymized via background worker",
+        "Process runs nightly without interrupting system performance"
+      ],
+      "priority": "High",
+      "points": 8,
+      "techNotes": "Requires a cron-based background job. S3 lifecycle policies should be utilized for media."
     }
   ]
 }

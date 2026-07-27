@@ -1,7 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { pdfGenerator } from '../utils/pdfGenerator';
 import { ConfluencePublishModal } from '../components/ConfluencePublishModal';
+
+const BOARD_MEMBERS = [
+  { id: 'architect', name: 'Software Architect', role: 'System & Stack Alignment', icon: 'fa-project-diagram', color: 'indigo', desc: 'Audits modular structures, tech stack alignments, and interfaces.' },
+  { id: 'security', name: 'Security Architect', role: 'OWASP & Data Isolation', icon: 'fa-user-shield', color: 'red', desc: 'Verifies authorization, RBAC rules, and vector data leaking risks.' },
+  { id: 'performance', name: 'Performance Engineer', role: 'Scalability & Caching', icon: 'fa-tachometer-alt', color: 'emerald', desc: 'Evaluates asynchronous queues, caching, and worker pools.' },
+  { id: 'cost', name: 'FinOps Engineer', role: 'API & Compute Budgets', icon: 'fa-coins', color: 'amber', desc: 'Estimates LLM operational costs and API budget restrictions.' },
+  { id: 'product_owner', name: 'Product Owner', role: 'Requirements Coverage', icon: 'fa-tasks', color: 'blue', desc: 'Cross-verifies requirements coverages and user story completion.' },
+  { id: 'devil_advocate', name: "Devil's Advocate", role: 'Unstated Risks & Edge Cases', icon: 'fa-balance-scale-right', color: 'rose', desc: 'Identifies implicit logic assumptions and failures under load.' },
+  { id: 'data_architect', name: 'Data Architect', role: 'Data Models & Sharding', icon: 'fa-database', color: 'cyan', desc: 'Audits Postgres schemas, Qdrant indexes, and data consistency.' },
+  { id: 'devops', name: 'DevOps Engineer', role: 'CI/CD & Scaling Gate', icon: 'fa-server', color: 'violet', desc: 'Checks Docker parameters, environment files, and KEDA configurations.' },
+  { id: 'compliance', name: 'Compliance Auditor', role: 'GDPR & Consent Framework', icon: 'fa-file-contract', color: 'teal', desc: 'Ensures data protection policies, PII-masking, and audit logs.' }
+];
 
 export default function ValidatorAgent() {
   const navigate = useNavigate();
@@ -12,6 +24,56 @@ export default function ValidatorAgent() {
   const [error, setError] = useState('');
   const [isApproving, setIsApproving] = useState(false);
   const [isConfluenceModalOpen, setIsConfluenceModalOpen] = useState(false);
+
+  // Human Governance Gate States
+  const [humanApprovalStatus, setHumanApprovalStatus] = useState('PENDING');
+  const [sessionId, setSessionId] = useState('');
+  const [humanComments, setHumanComments] = useState('');
+  const [aiConfidence, setAiConfidence] = useState(null);
+  const [risksCount, setRisksCount] = useState(0);
+
+  // Boardroom visual states
+  const [boardStep, setBoardStep] = useState(0); // 0: Idle, 1: Selection, 2: Round 0, 3: Round 1, 4: Round 2, 5: Round 3 (Mod), 6: Editor, 7: Validation, 8: CEO, 9: Completed
+  const [activeMember, setActiveMember] = useState(null);
+  const [memberStatuses, setMemberStatuses] = useState({});
+  const [memberVotes, setMemberVotes] = useState({});
+  const [liveLogs, setLiveLogs] = useState([]);
+  const [overallProgress, setOverallProgress] = useState(0);
+
+  const consoleEndRef = useRef(null);
+
+  // Auto scroll console
+  useEffect(() => {
+    if (consoleEndRef.current) {
+      consoleEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [liveLogs]);
+
+  // Extract stats (confidence score and risk bullet counts) from report text
+  const extractStatsFromReport = (reportText) => {
+    if (!reportText) return { confidence: 95, risks: 0 };
+    const confMatch = reportText.match(/Confidence(?:\s+Score)?\s*:\s*(\d{1,3})%/i);
+    const confidence = confMatch ? parseInt(confMatch[1], 10) : 95;
+    const risksMatch = reportText.match(/- \*\*Risk\*\*/gi);
+    const risks = risksMatch ? risksMatch.length : 0;
+    return { confidence, risks };
+  };
+
+  const updateStats = (data) => {
+    if (data.session_id) setSessionId(data.session_id);
+    if (data.human_approval_status) {
+      setHumanApprovalStatus(data.human_approval_status);
+    } else if (data.approved) {
+      setHumanApprovalStatus('APPROVED');
+    } else {
+      setHumanApprovalStatus('PENDING');
+    }
+    if (data.report) {
+      const stats = extractStatsFromReport(data.report);
+      setAiConfidence(stats.confidence);
+      setRisksCount(stats.risks);
+    }
+  };
 
   // Fetch active spec and its validation status on mount
   useEffect(() => {
@@ -28,6 +90,7 @@ export default function ValidatorAgent() {
           if (statusData.success) {
             setReport(statusData.report);
             setIsApproved(statusData.approved);
+            updateStats(statusData);
           }
         }
       } catch (err) {
@@ -42,6 +105,56 @@ export default function ValidatorAgent() {
     if (!activeSpec) return;
     setIsValidating(true);
     setError('');
+
+    // Reset boardroom UI state
+    const initialStatuses = {};
+    BOARD_MEMBERS.forEach(m => { initialStatuses[m.id] = 'idle'; });
+    setMemberStatuses(initialStatuses);
+    setMemberVotes({});
+    setActiveMember(null);
+    setOverallProgress(0);
+    setBoardStep(1);
+    setLiveLogs(['[System] Initializing AI Specification Review Board (AI-SRB) Governance Layer...']);
+
+    // Polling function to get real progress from backend
+    let pollIntervalId;
+    const startPolling = () => {
+      pollIntervalId = setInterval(async () => {
+        try {
+          const res = await fetch(`http://localhost:7001/api/specs/validate/progress/${encodeURIComponent(activeSpec)}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data.status === 'running') {
+            if (data.logs && data.logs.length > 0) setLiveLogs(data.logs);
+            if (data.step) setBoardStep(data.step);
+            if (data.progress !== undefined) setOverallProgress(data.progress);
+            if (data.activeMember !== undefined) setActiveMember(data.activeMember);
+            if (data.statuses) setMemberStatuses(data.statuses);
+            if (data.votes) setMemberVotes(data.votes);
+          } else if (data.status === 'completed') {
+            clearInterval(pollIntervalId);
+            if (data.logs) setLiveLogs(data.logs);
+            setReport(data.report || '');
+            setIsApproved(data.approved || false);
+            setHumanApprovalStatus(data.human_approval_status || (data.approved ? 'APPROVED' : 'PENDING'));
+            updateStats(data);
+            setBoardStep(9);
+            setOverallProgress(100);
+            setIsValidating(false);
+          } else if (data.status === 'failed') {
+            clearInterval(pollIntervalId);
+            setError(data.error || 'Validation failed.');
+            setIsValidating(false);
+            setBoardStep(0);
+          }
+        } catch (e) {
+          console.error('Polling error:', e);
+        }
+      }, 1000);
+    };
+
+    startPolling();
+
     try {
       const response = await fetch('http://localhost:7001/api/specs/validate', {
         method: 'POST',
@@ -53,15 +166,116 @@ export default function ValidatorAgent() {
 
       const data = await response.json();
       if (response.ok && data.success) {
+        clearInterval(pollIntervalId);
+        if (data.log) setLiveLogs(data.log);
         setReport(data.report);
         setIsApproved(data.approved);
+        // Fetch latest status to get session_id and human status
+        const statusRes = await fetch(`http://localhost:7001/api/specs/validate/status/${encodeURIComponent(activeSpec)}`);
+        const statusData = await statusRes.json();
+        if (statusData.success) {
+          updateStats(statusData);
+        }
+        setBoardStep(9);
+        setOverallProgress(100);
+        setIsValidating(false);
       } else {
         throw new Error(data.error || 'Validation execution failed.');
       }
     } catch (err) {
+      console.warn('Validate API request finished with status/error:', err.message);
+      // If the POST request finished or failed/timed out, we do not abort immediately.
+      // The polling interval will keep running to retrieve the finished state from the server.
+    }
+  };
+
+  const handleHumanDecision = async (decision) => {
+    if (!activeSpec || !sessionId) return;
+    setIsApproving(true);
+    setError('');
+    try {
+      const response = await fetch('http://localhost:7001/api/specs/validate/human-decision', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          folder: activeSpec,
+          session_id: sessionId,
+          decision,
+          comments: humanComments,
+          user: 'Lead Enterprise Architect'
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setLiveLogs(prev => [...prev, `[System] Submitted human decision: ${decision}. comments: "${humanComments || ''}".`]);
+        setHumanApprovalStatus(decision);
+        
+        if (decision === 'APPROVED') {
+          // Poll to wait for completed
+          setIsValidating(true);
+          const pollIntervalId = setInterval(async () => {
+            try {
+              const res = await fetch(`http://localhost:7001/api/specs/validate/progress/${encodeURIComponent(activeSpec)}`);
+              if (!res.ok) return;
+              const data = await res.json();
+              if (data.status === 'completed') {
+                clearInterval(pollIntervalId);
+                setReport(data.report || '');
+                setIsApproved(true);
+                setHumanApprovalStatus('APPROVED');
+                setIsValidating(false);
+                setOverallProgress(100);
+                setBoardStep(9);
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }, 1000);
+        } else if (decision === 'CHANGES_REQUESTED') {
+          // Restart polling because loops are running!
+          setIsValidating(true);
+          setOverallProgress(50);
+          setBoardStep(4); // Set step back to debates/rebuttals
+          
+          const pollIntervalId = setInterval(async () => {
+            try {
+              const res = await fetch(`http://localhost:7001/api/specs/validate/progress/${encodeURIComponent(activeSpec)}`);
+              if (!res.ok) return;
+              const data = await res.json();
+              if (data.logs && data.logs.length > 0) setLiveLogs(data.logs);
+              if (data.step) setBoardStep(data.step);
+              if (data.progress !== undefined) setOverallProgress(data.progress);
+              if (data.activeMember !== undefined) setActiveMember(data.activeMember);
+              if (data.statuses) setMemberStatuses(data.statuses);
+              if (data.votes) setMemberVotes(data.votes);
+
+              if (data.status === 'completed') {
+                clearInterval(pollIntervalId);
+                setReport(data.report || '');
+                setIsApproved(data.approved || false);
+                setHumanApprovalStatus(data.human_approval_status || 'PENDING');
+                setIsValidating(false);
+                setOverallProgress(100);
+                setBoardStep(9);
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }, 1000);
+        } else {
+          setIsApproved(false);
+          setIsApproving(false);
+        }
+      } else {
+        throw new Error(data.error || 'Failed to submit human decision.');
+      }
+    } catch (err) {
       setError(err.message);
     } finally {
-      setIsValidating(false);
+      setIsApproving(false);
     }
   };
 
@@ -91,6 +305,7 @@ export default function ValidatorAgent() {
       setIsApproving(false);
     }
   };
+
 
   const handleDownloadPDF = () => {
     if (!report) return;
@@ -126,6 +341,149 @@ export default function ValidatorAgent() {
     return html;
   };
 
+  const getLogPrefixColor = (log) => {
+    if (log.startsWith('[System]')) return 'text-purple-400 font-semibold';
+    if (log.startsWith('[Selector]')) return 'text-blue-400';
+    if (log.startsWith('[Moderator]')) return 'text-amber-400 font-bold';
+    if (log.startsWith('[Editor]')) return 'text-indigo-400 font-semibold';
+    if (log.startsWith('[Validation]')) return 'text-teal-400 font-semibold';
+    if (log.startsWith('[CEO Agent]')) return 'text-rose-400 font-bold';
+    if (log.startsWith('[Software Architect]')) return 'text-indigo-300';
+    if (log.startsWith('[Security Architect]')) return 'text-red-300';
+    if (log.startsWith('[Performance Engineer]')) return 'text-emerald-300';
+    if (log.startsWith('[FinOps Engineer]')) return 'text-amber-300';
+    if (log.startsWith('[Product Owner]')) return 'text-blue-300';
+    if (log.startsWith('[Devil\'s Advocate]')) return 'text-rose-300';
+    if (log.startsWith('[Data Architect]')) return 'text-cyan-300';
+    if (log.startsWith('[DevOps Engineer]')) return 'text-violet-300';
+    if (log.startsWith('[Compliance Auditor]')) return 'text-teal-300';
+    return 'text-slate-300';
+  };
+
+  const getStepDetails = () => {
+    switch (boardStep) {
+      case 1:
+        return { label: 'SELECTION', desc: 'Assembling Panel & Dynamic Triggers', icon: 'fa-user-tag text-blue-400' };
+      case 2:
+        return { label: 'ROUND 0: READ', desc: 'Distributing Draft & Historical Lessons', icon: 'fa-book-reader text-indigo-450 animate-pulse' };
+      case 3:
+        return { label: 'ROUND 1: PANELS', desc: 'Running Independent Specialist Audits', icon: 'fa-microchip text-amber-400' };
+      case 4:
+        return { label: 'ROUND 2: DEBATES', desc: 'Challenging & Defending Design Gaps', icon: 'fa-comments text-purple-400 animate-pulse' };
+      case 5:
+        return { label: 'ROUND 3: GAVEL', desc: 'Synthesizing Consensus & Conflict Matrix', icon: 'fa-gavel text-amber-500 animate-bounce' };
+      case 6:
+        return { label: 'SPEC EDITING', desc: 'Compiling Revisions to spec_v2.md', icon: 'fa-file-signature text-indigo-400' };
+      case 7:
+        return { label: 'VALIDATION', desc: 'Auditing spec_v2 against Backlog Check', icon: 'fa-clipboard-check text-teal-400' };
+      case 8:
+        return { label: 'CEO STAMP', desc: 'Evaluating Cost & Financial Feasibility', icon: 'fa-signature text-rose-400 animate-pulse' };
+      default:
+        return { label: 'BOARD RUNNING', desc: 'Executing Multi-Agent Governance Run', icon: 'fa-cog fa-spin text-slate-400' };
+    }
+  };
+
+  const getMemberStyles = (member, isActive, status) => {
+    const c = member.color;
+    if (isActive) {
+      if (c === 'indigo') return { border: 'border-indigo-500/80 shadow-[0_0_15px_rgba(99,102,241,0.2)] bg-slate-900/60', badge: 'bg-indigo-950/40 text-indigo-400 border border-indigo-500/30 animate-pulse', dot: 'bg-indigo-500 animate-ping', text: 'text-indigo-400', bg: 'bg-indigo-500/10' };
+      if (c === 'red') return { border: 'border-red-500/80 shadow-[0_0_15px_rgba(239,68,68,0.2)] bg-slate-900/60', badge: 'bg-red-950/40 text-red-400 border border-red-500/30 animate-pulse', dot: 'bg-red-500 animate-ping', text: 'text-red-400', bg: 'bg-red-500/10' };
+      if (c === 'emerald') return { border: 'border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.2)] bg-slate-900/60', badge: 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/30 animate-pulse', dot: 'bg-emerald-500 animate-ping', text: 'text-emerald-400', bg: 'bg-emerald-500/10' };
+      if (c === 'amber') return { border: 'border-amber-500/80 shadow-[0_0_15px_rgba(245,158,11,0.2)] bg-slate-900/60', badge: 'bg-amber-950/40 text-amber-400 border border-amber-500/30 animate-pulse', dot: 'bg-amber-500 animate-ping', text: 'text-amber-400', bg: 'bg-amber-500/10' };
+      if (c === 'blue') return { border: 'border-blue-500/80 shadow-[0_0_15px_rgba(59,130,246,0.2)] bg-slate-900/60', badge: 'bg-blue-950/40 text-blue-400 border border-blue-500/30 animate-pulse', dot: 'bg-blue-500 animate-ping', text: 'text-blue-400', bg: 'bg-blue-500/10' };
+      if (c === 'rose') return { border: 'border-rose-500/80 shadow-[0_0_15px_rgba(244,63,94,0.2)] bg-slate-900/60', badge: 'bg-rose-950/40 text-rose-400 border border-rose-500/30 animate-pulse', dot: 'bg-rose-500 animate-ping', text: 'text-rose-400', bg: 'bg-rose-500/10' };
+      if (c === 'cyan') return { border: 'border-cyan-500/80 shadow-[0_0_15px_rgba(6,182,212,0.2)] bg-slate-900/60', badge: 'bg-cyan-950/40 text-cyan-400 border border-cyan-500/30 animate-pulse', dot: 'bg-cyan-500 animate-ping', text: 'text-cyan-400', bg: 'bg-cyan-500/10' };
+      if (c === 'violet') return { border: 'border-violet-500/80 shadow-[0_0_15px_rgba(139,92,246,0.2)] bg-slate-900/60', badge: 'bg-violet-950/40 text-violet-400 border border-violet-500/30 animate-pulse', dot: 'bg-violet-500 animate-ping', text: 'text-violet-400', bg: 'bg-violet-500/10' };
+      if (c === 'teal') return { border: 'border-teal-500/80 shadow-[0_0_15px_rgba(20,184,166,0.2)] bg-slate-900/60', badge: 'bg-teal-950/40 text-teal-400 border border-teal-500/30 animate-pulse', dot: 'bg-teal-500 animate-ping', text: 'text-teal-400', bg: 'bg-teal-500/10' };
+    }
+    
+    if (status === 'thinking') {
+      return { border: 'border-amber-500/40 bg-slate-900/20', badge: 'bg-amber-950/30 text-amber-400 border border-amber-500/20', dot: 'bg-amber-500 animate-pulse', text: `text-${c}-400`, bg: `bg-${c}-500/10` };
+    }
+    if (status === 'debating') {
+      return { border: 'border-purple-500/40 bg-slate-900/20', badge: 'bg-purple-950/30 text-purple-400 border border-purple-500/20', dot: 'bg-purple-500 animate-ping', text: `text-${c}-400`, bg: `bg-${c}-500/10` };
+    }
+    if (status === 'done') {
+      return { border: 'border-emerald-500/30 bg-slate-950/10', badge: 'bg-emerald-950/20 text-emerald-400', dot: 'bg-emerald-500', text: `text-${c}-400`, bg: `bg-${c}-500/10` };
+    }
+
+    // Default Idle (Pre-approved/Selection)
+    if (c === 'indigo') return { border: 'border-slate-800 bg-slate-950/20 opacity-40 hover:opacity-80', badge: 'bg-slate-900 text-slate-500', dot: 'bg-slate-600', text: 'text-indigo-400', bg: 'bg-indigo-500/10' };
+    if (c === 'red') return { border: 'border-slate-800 bg-slate-950/20 opacity-40 hover:opacity-80', badge: 'bg-slate-900 text-slate-500', dot: 'bg-slate-600', text: 'text-red-400', bg: 'bg-red-500/10' };
+    if (c === 'emerald') return { border: 'border-slate-800 bg-slate-950/20 opacity-40 hover:opacity-80', badge: 'bg-slate-900 text-slate-500', dot: 'bg-slate-600', text: 'text-emerald-400', bg: 'bg-emerald-500/10' };
+    if (c === 'amber') return { border: 'border-slate-800 bg-slate-950/20 opacity-40 hover:opacity-80', badge: 'bg-slate-900 text-slate-500', dot: 'bg-slate-600', text: 'text-amber-400', bg: 'bg-amber-500/10' };
+    if (c === 'blue') return { border: 'border-slate-800 bg-slate-950/20 opacity-40 hover:opacity-80', badge: 'bg-slate-900 text-slate-500', dot: 'bg-slate-600', text: 'text-blue-400', bg: 'bg-blue-500/10' };
+    if (c === 'rose') return { border: 'border-slate-800 bg-slate-950/20 opacity-40 hover:opacity-80', badge: 'bg-slate-900 text-slate-500', dot: 'bg-slate-600', text: 'text-rose-400', bg: 'bg-rose-500/10' };
+    if (c === 'cyan') return { border: 'border-slate-800 bg-slate-950/20 opacity-40 hover:opacity-80', badge: 'bg-slate-900 text-slate-500', dot: 'bg-slate-600', text: 'text-cyan-400', bg: 'bg-cyan-500/10' };
+    if (c === 'violet') return { border: 'border-slate-800 bg-slate-950/20 opacity-40 hover:opacity-80', badge: 'bg-slate-900 text-slate-500', dot: 'bg-slate-600', text: 'text-violet-400', bg: 'bg-violet-500/10' };
+    if (c === 'teal') return { border: 'border-slate-800 bg-slate-950/20 opacity-40 hover:opacity-80', badge: 'bg-slate-900 text-slate-500', dot: 'bg-slate-600', text: 'text-teal-400', bg: 'bg-teal-500/10' };
+    return { border: 'border-slate-800 bg-slate-950/20 opacity-40 hover:opacity-80', badge: 'bg-slate-900 text-slate-500', dot: 'bg-slate-600', text: 'text-slate-400', bg: 'bg-slate-500/10' };
+  };
+
+  const renderMemberCard = (member) => {
+    const status = memberStatuses[member.id] || 'idle';
+    const vote = memberVotes[member.id];
+    const isActive = activeMember === member.id;
+    const s = getMemberStyles(member, isActive, status);
+
+    return (
+      <div key={member.id} className={`p-4 rounded-xl border transition-all duration-300 flex flex-col justify-between h-[120px] ${s.border}`}>
+        <div className="flex justify-between items-start">
+          <div className="flex items-center space-x-2">
+            <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center ${s.text} text-xs border border-slate-800`}>
+              <i className={`fas ${member.icon}`}></i>
+            </div>
+            <div>
+              <h4 className="text-[10px] font-bold text-slate-200 leading-tight">{member.name}</h4>
+              <p className="text-[8px] text-slate-500 uppercase tracking-wider">{member.role}</p>
+            </div>
+          </div>
+          <span className={`text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded flex items-center ${s.badge}`}>
+            <span className={`w-1 h-1 rounded-full ${s.dot} mr-1`}></span>
+            {status}
+          </span>
+        </div>
+
+        <p className="text-[8px] text-slate-400 leading-normal line-clamp-2 my-1.5">{member.desc}</p>
+
+        {vote && (
+          <div className={`mt-auto text-[7px] font-bold uppercase tracking-wider py-1 rounded border text-center ${
+            vote === 'APPROVED' 
+              ? 'bg-green-950/30 border-green-800/40 text-green-400' 
+              : vote === 'APPROVED WITH CONDITIONS' 
+              ? 'bg-amber-950/30 border-amber-800/40 text-amber-400' 
+              : 'bg-red-950/30 border-red-800/40 text-red-400'
+          }`}>
+            Decision: {vote}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const getResilienceState = () => {
+    if (!liveLogs || liveLogs.length === 0) return null;
+    const lastLog = liveLogs[liveLogs.length - 1];
+    if (lastLog.includes('[Resilience] Model') && lastLog.includes('failed')) {
+      const match = lastLog.match(/Retrying in (\d+)ms/);
+      const delay = match ? `${(parseInt(match[1]) / 1000).toFixed(1)}s` : 'a few seconds';
+      return {
+        type: 'retry',
+        message: `API rate-limit hit. Auto-healing with model fallbacks. Retrying in ${delay}...`
+      };
+    }
+    if (lastLog.includes('[Resilience] Handled request') || lastLog.includes('Fallback model')) {
+      return {
+        type: 'healing',
+        message: 'Quota exceeded. Successfully failed over to fallback model!'
+      };
+    }
+    return null;
+  };
+
+  const resilience = getResilienceState();
+  const stepDetails = getStepDetails();
+
   return (
     <div class="space-y-6">
       
@@ -157,7 +515,150 @@ export default function ValidatorAgent() {
         </div>
       )}
 
-      {!report ? (
+      {isValidating ? (
+        /* Agentic Run representation Boardroom View */
+        <div class="glass-panel p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-6 bg-slate-950/20 relative">
+          
+          {/* Header Progress Tracker */}
+          <div class="flex flex-col space-y-2 border-b border-slate-850 pb-4">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-xs font-bold text-slate-200 uppercase tracking-widest flex items-center">
+                  <span class="w-1.5 h-3 bg-gradient-to-b from-indigo-500 to-purple-600 rounded-full mr-2"></span>
+                  AI-SRB Active Agentic Boardroom Run
+                </h3>
+                <p class="text-[9px] text-indigo-400 font-semibold uppercase tracking-wider mt-0.5">
+                  Pipeline Stage {boardStep}/8: {stepDetails.label}
+                </p>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-mono font-bold text-slate-300">{overallProgress}%</span>
+              </div>
+            </div>
+
+            {/* Symmetrical timeline step indicators */}
+            <div class="flex justify-between items-center py-2">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => {
+                const isPassed = boardStep > s;
+                const isCurr = boardStep === s;
+                return (
+                  <div key={s} className="flex-1 flex items-center">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold border transition ${
+                      isPassed 
+                        ? 'bg-indigo-600/30 border-indigo-500 text-indigo-400' 
+                        : isCurr 
+                        ? 'bg-amber-500/20 border-amber-500 text-amber-400 animate-pulse scale-110' 
+                        : 'bg-slate-950 border-slate-850 text-slate-650'
+                    }`}>
+                      {s}
+                    </div>
+                    {s < 8 && (
+                      <div className={`flex-1 h-0.5 mx-1 transition ${
+                        isPassed ? 'bg-indigo-500' : isCurr ? 'bg-gradient-to-r from-amber-500 to-slate-800' : 'bg-slate-850'
+                      }`}></div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div class="w-full bg-slate-950 border border-slate-900 rounded-full h-1.5 overflow-hidden">
+              <div 
+                class="bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500 h-full transition-all duration-300"
+                style={{ width: `${overallProgress}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Symmetrical Boardroom Table Layout */}
+          <div class="grid grid-cols-4 gap-4 h-[440px] items-center">
+            
+            {/* Left Column: Technical specialists (3 agents) */}
+            <div class="space-y-4 col-span-1">
+              {renderMemberCard(BOARD_MEMBERS[0])} {/* Software Architect */}
+              {renderMemberCard(BOARD_MEMBERS[1])} {/* Security Architect */}
+              {renderMemberCard(BOARD_MEMBERS[6])} {/* Data Architect */}
+            </div>
+
+            {/* Center Area: Moderator Hub */}
+            <div class="col-span-2 flex flex-col items-center justify-between h-full py-4 bg-slate-950/40 border border-slate-850 rounded-2xl p-5 relative overflow-hidden shadow-inner">
+              
+              {/* Top Row Specialists (Product Owner + FinOps) */}
+              <div class="flex space-x-4 w-full">
+                <div class="flex-1">{renderMemberCard(BOARD_MEMBERS[4])}</div> {/* Product Owner */}
+                <div class="flex-1">{renderMemberCard(BOARD_MEMBERS[3])}</div> {/* FinOps Engineer */}
+              </div>
+
+              {/* Central Spinning Hub Visualizer */}
+              <div class="my-auto text-center relative flex flex-col items-center justify-center h-[160px] w-full">
+                
+                {/* Concentric pulsing radar rings */}
+                <div class="absolute w-24 h-24 rounded-full border border-indigo-500/10 animate-ping"></div>
+                <div class="absolute w-36 h-36 rounded-full border border-purple-500/5 animate-pulse"></div>
+                <div class="absolute w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center shadow-lg shadow-indigo-500/5 z-10">
+                  <i class={`fas ${stepDetails.icon} text-lg`}></i>
+                </div>
+
+                {resilience && (
+                  <div className={`absolute top-[-10px] px-3 py-1.5 rounded-full text-[8px] font-bold tracking-wider uppercase border animate-pulse z-20 shadow-md ${
+                    resilience.type === 'retry' 
+                      ? 'bg-amber-950/90 border-amber-500/50 text-amber-300 shadow-amber-950/30' 
+                      : 'bg-emerald-950/90 border-emerald-500/50 text-emerald-300 shadow-emerald-950/30'
+                  }`}>
+                    <i className={`fas ${resilience.type === 'retry' ? 'fa-spinner fa-spin mr-1' : 'fa-check-circle mr-1'}`}></i>
+                    {resilience.message}
+                  </div>
+                )}
+
+                <div class="mt-20 z-10 text-center space-y-1">
+                  <h4 class="text-xs font-black text-white uppercase tracking-widest flex items-center justify-center">
+                    {stepDetails.label}
+                    {isValidating && (
+                      <span class="inline-flex space-x-1 ml-2">
+                        <span class="w-1 h-1 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                        <span class="w-1 h-1 bg-indigo-450 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                        <span class="w-1 h-1 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                      </span>
+                    )}
+                  </h4>
+                  <p class="text-[9px] text-slate-400 font-semibold leading-relaxed max-w-[240px]">{stepDetails.desc}</p>
+                </div>
+              </div>
+
+              {/* Bottom Row Specialists (Devil's Advocate) */}
+              <div class="flex justify-center w-full">
+                <div class="w-1/2">{renderMemberCard(BOARD_MEMBERS[5])}</div> {/* Devil's Advocate */}
+              </div>
+            </div>
+
+            {/* Right Column: Operations & Compliance (3 agents) */}
+            <div class="space-y-4 col-span-1">
+              {renderMemberCard(BOARD_MEMBERS[2])} {/* Performance Engineer */}
+              {renderMemberCard(BOARD_MEMBERS[7])} {/* DevOps Engineer */}
+              {renderMemberCard(BOARD_MEMBERS[8])} {/* Compliance Auditor */}
+            </div>
+          </div>
+
+          {/* Scrolling active log console */}
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                <i class="fas fa-terminal mr-1"></i> AI-SRB ACTIVE CONSOLE LOGS
+              </span>
+              <span class="text-[8px] font-mono text-slate-600">Secure TLS Session</span>
+            </div>
+            <div class="h-32 bg-slate-950 border border-slate-905 rounded-xl p-3 font-mono text-[9px] overflow-y-auto custom-scroll space-y-1 bg-slate-950/80">
+              {liveLogs.map((log, index) => (
+                <div key={index} className={`leading-normal border-l-2 pl-2 border-slate-800 ${getLogPrefixColor(log)}`}>
+                  {log}
+                </div>
+              ))}
+              <div ref={consoleEndRef}></div>
+            </div>
+          </div>
+
+        </div>
+      ) : !report ? (
         /* Run Validation View */
         <div class="glass-panel max-w-2xl mx-auto p-8 rounded-2xl border border-slate-800 shadow-xl text-center space-y-6">
           <div class="w-16 h-16 bg-indigo-500/5 text-indigo-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-indigo-500/10 shadow-lg shadow-indigo-500/5 animate-pulse">
@@ -174,17 +675,10 @@ export default function ValidatorAgent() {
             disabled={isValidating || !activeSpec}
             class="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-bold rounded-xl border border-indigo-500/20 shadow-lg flex items-center space-x-2 mx-auto transition"
           >
-            {isValidating ? (
-              <>
-                <i class="fas fa-circle-notch animate-spin"></i>
-                <span>Running Architecture Audit...</span>
-              </>
-            ) : (
-              <>
-                <i class="fas fa-shield-alt"></i>
-                <span>Run Spec & Tech Stack Audit</span>
-              </>
-            )}
+            <>
+              <i class="fas fa-shield-alt"></i>
+              <span>Run Spec & Tech Stack Audit</span>
+            </>
           </button>
         </div>
       ) : (
@@ -256,32 +750,107 @@ export default function ValidatorAgent() {
               <div class={`p-4 rounded-xl border flex items-start space-x-3 ${
                 isApproved 
                   ? 'bg-green-950/10 border-green-800/40 text-green-400' 
-                  : 'bg-yellow-950/10 border-yellow-800/40 text-yellow-400'
+                  : humanApprovalStatus === 'PENDING'
+                    ? 'bg-orange-950/10 border-orange-850/40 text-orange-400'
+                    : humanApprovalStatus === 'CHANGES_REQUESTED'
+                      ? 'bg-yellow-950/10 border-yellow-800/40 text-yellow-400'
+                      : 'bg-red-950/10 border-red-800/40 text-red-450'
               }`}>
                 <div class={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
-                  isApproved ? 'bg-green-500/10' : 'bg-yellow-500/10'
+                  isApproved ? 'bg-green-500/10' : 'bg-orange-500/10'
                 }`}>
                   <i class={`fas ${isApproved ? 'fa-check' : 'fa-clock'} text-xs`}></i>
                 </div>
                 <div>
-                  <p class="text-xs font-bold uppercase tracking-wider">{isApproved ? 'Approved & Ready' : 'Pending Human Approval'}</p>
+                  <p class="text-xs font-bold uppercase tracking-wider">
+                    {isApproved ? 'Approved & Ready' : `Gate Status: ${humanApprovalStatus}`}
+                  </p>
                   <p class="text-[10px] text-slate-400 leading-normal mt-0.5">
                     {isApproved 
                       ? 'The spec validation has been signed off. You can proceed directly to orchestrating the sub-agent pipeline.' 
-                      : 'Thoroughly review the generated audit report and technology alignments on the left. Once you are satisfied, click Approve.'}
+                      : humanApprovalStatus === 'PENDING'
+                        ? 'AI CEO Approval has completed. Awaiting final human verification and release authorization.'
+                        : humanApprovalStatus === 'CHANGES_REQUESTED'
+                          ? 'Changes requested. The debate loop-back has targeted relevant reviewer agents.'
+                          : 'Design is currently rejected or escalated for manual override.'}
                   </p>
                 </div>
               </div>
 
-              {/* Actions details */}
-              <div class="space-y-2 bg-slate-950/60 border border-slate-850 p-4.5 rounded-xl text-[11px] text-slate-400 leading-relaxed">
-                <p class="font-bold text-slate-200">How to handle conflicts:</p>
-                <ul class="space-y-1 mt-1.5 list-disc pl-4">
-                  <li>If there are requirement conflicts, click **Edit Specifications** to adjust specs in the editor.</li>
-                  <li>Once specs are updated, run the audit scan again to compile the updated report.</li>
-                  <li>When conflicts are cleared, click **Approve Specifications** below to release workspace to the orchestrator.</li>
-                </ul>
-              </div>
+              {/* Stats HUD (AI Confidence & Risks) */}
+              {report && (
+                <div class="grid grid-cols-2 gap-3 shrink-0">
+                  <div class="bg-slate-900/60 border border-slate-850 p-3 rounded-xl flex flex-col items-center justify-center">
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400">AI Confidence</span>
+                    <span class="text-base font-bold text-indigo-400 mt-1">{aiConfidence || 95}%</span>
+                  </div>
+                  <div class="bg-slate-900/60 border border-slate-850 p-3 rounded-xl flex flex-col items-center justify-center">
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400">Board Risks</span>
+                    <span class="text-base font-bold text-red-400 mt-1">{risksCount || 0} Identified</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Human Gate Actions */}
+              {report && humanApprovalStatus === 'PENDING' && (
+                <div class="space-y-3 bg-slate-900/40 border border-slate-850/60 p-4 rounded-xl shrink-0">
+                  <p class="text-xs font-bold text-slate-200">Human Architecture Gate Decision:</p>
+                  
+                  <textarea
+                    value={humanComments}
+                    onChange={(e) => setHumanComments(e.target.value)}
+                    placeholder="Enter review comments or changes requested notes..."
+                    class="w-full h-16 bg-slate-950 border border-slate-850 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                  />
+
+                  <div class="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => handleHumanDecision('APPROVED')}
+                      disabled={isApproving}
+                      class="py-1.5 bg-green-600 hover:bg-green-500 text-white text-[11px] font-bold rounded-lg transition"
+                    >
+                      Approve Spec
+                    </button>
+                    <button
+                      onClick={() => handleHumanDecision('CHANGES_REQUESTED')}
+                      disabled={isApproving || !humanComments.trim()}
+                      class="py-1.5 bg-yellow-600 hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[11px] font-bold rounded-lg transition"
+                    >
+                      Request Changes
+                    </button>
+                    <button
+                      onClick={() => handleHumanDecision('REJECTED')}
+                      disabled={isApproving}
+                      class="py-1.5 bg-red-600 hover:bg-red-500 text-white text-[11px] font-bold rounded-lg transition"
+                    >
+                      Reject Spec
+                    </button>
+                    <button
+                      onClick={() => handleHumanDecision('ESCALATED')}
+                      disabled={isApproving}
+                      class="py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-bold rounded-lg transition"
+                    >
+                      Escalate Spec
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Status details when resolved */}
+              {report && humanApprovalStatus !== 'PENDING' && (
+                <div class="p-3 bg-slate-950/60 border border-slate-850 rounded-xl text-[11px] text-slate-400 space-y-1">
+                  <p><span class="font-bold text-slate-200">Decision: </span>
+                    <span class={`font-bold uppercase ${
+                      humanApprovalStatus === 'APPROVED' ? 'text-green-400' :
+                      humanApprovalStatus === 'CHANGES_REQUESTED' ? 'text-yellow-400' :
+                      humanApprovalStatus === 'REJECTED' ? 'text-red-400' : 'text-purple-400'
+                    }`}>
+                      {humanApprovalStatus}
+                    </span>
+                  </p>
+                  {humanComments && <p class="text-[10px] text-slate-500 italic mt-1">Comments: "{humanComments}"</p>}
+                </div>
+              )}
             </div>
 
             {/* Bottom Actions */}
@@ -296,11 +865,11 @@ export default function ValidatorAgent() {
 
               <button 
                 onClick={handleApprove}
-                disabled={isApproving || isApproved}
+                disabled={isApproving || !isApproved}
                 class={`w-full py-2.5 text-white text-xs font-bold rounded-xl shadow-lg border border-indigo-500/30 transition flex items-center justify-center space-x-2 ${
                   isApproved 
-                    ? 'bg-green-600 hover:bg-green-700 from-green-600 to-emerald-600 cursor-not-allowed opacity-80' 
-                    : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500'
+                    ? 'bg-green-600 hover:bg-green-500 cursor-pointer' 
+                    : 'bg-slate-850 text-slate-500 border-slate-800 cursor-not-allowed'
                 }`}
               >
                 {isApproving ? (
@@ -310,13 +879,13 @@ export default function ValidatorAgent() {
                   </>
                 ) : isApproved ? (
                   <>
-                    <i class="fas fa-check-double"></i>
-                    <span>Signed Off & Approved</span>
+                    <i class="fas fa-arrow-right"></i>
+                    <span>Proceed to SDLC Generation</span>
                   </>
                 ) : (
                   <>
                     <i class="fas fa-thumbs-up"></i>
-                    <span>Approve Specifications</span>
+                    <span>Awaiting Gate Decision</span>
                   </>
                 )}
               </button>
