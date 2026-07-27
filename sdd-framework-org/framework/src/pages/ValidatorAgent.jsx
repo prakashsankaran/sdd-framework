@@ -41,6 +41,7 @@ export default function ValidatorAgent() {
   const [overallProgress, setOverallProgress] = useState(0);
 
   const consoleEndRef = useRef(null);
+  const pollIntervalRef = useRef(null);
 
   // Auto scroll console
   useEffect(() => {
@@ -75,6 +76,51 @@ export default function ValidatorAgent() {
     }
   };
 
+  const startPollingProgress = (specName) => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+    }
+
+    pollIntervalRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`http://localhost:7001/api/specs/validate/progress/${encodeURIComponent(specName)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.status === 'running') {
+          if (data.logs && data.logs.length > 0) setLiveLogs(data.logs);
+          if (data.step) setBoardStep(data.step);
+          if (data.progress !== undefined) setOverallProgress(data.progress);
+          if (data.activeMember !== undefined) setActiveMember(data.activeMember);
+          if (data.statuses) setMemberStatuses(data.statuses);
+          if (data.votes) setMemberVotes(data.votes);
+        } else if (data.status === 'completed') {
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
+          if (data.logs) setLiveLogs(data.logs);
+          setReport(data.report || '');
+          setIsApproved(data.approved || false);
+          setHumanApprovalStatus(data.human_approval_status || (data.approved ? 'APPROVED' : 'PENDING'));
+          updateStats(data);
+          setBoardStep(9);
+          setOverallProgress(100);
+          setIsValidating(false);
+        } else if (data.status === 'failed') {
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
+          setError(data.error || 'Validation failed.');
+          setIsValidating(false);
+          setBoardStep(0);
+        }
+      } catch (e) {
+        console.error('Polling error:', e);
+      }
+    }, 1000);
+  };
+
   // Fetch active spec and its validation status on mount
   useEffect(() => {
     const fetchActiveSpecAndStatus = async () => {
@@ -84,13 +130,30 @@ export default function ValidatorAgent() {
         if (specData.success && specData.activeSpec) {
           setActiveSpec(specData.activeSpec);
           
-          // Fetch validation status for active spec
-          const statusRes = await fetch(`http://localhost:7001/api/specs/validate/status/${encodeURIComponent(specData.activeSpec)}`);
-          const statusData = await statusRes.json();
-          if (statusData.success) {
-            setReport(statusData.report);
-            setIsApproved(statusData.approved);
-            updateStats(statusData);
+          // Check if there is an active run in progress
+          const progressRes = await fetch(`http://localhost:7001/api/specs/validate/progress/${encodeURIComponent(specData.activeSpec)}`);
+          const progressData = await progressRes.json();
+          
+          if (progressData.status === 'running') {
+            setIsValidating(true);
+            if (progressData.logs) setLiveLogs(progressData.logs);
+            if (progressData.step) setBoardStep(progressData.step);
+            if (progressData.progress !== undefined) setOverallProgress(progressData.progress);
+            if (progressData.activeMember !== undefined) setActiveMember(progressData.activeMember);
+            if (progressData.statuses) setMemberStatuses(progressData.statuses);
+            if (progressData.votes) setMemberVotes(progressData.votes);
+            
+            // Resume polling
+            startPollingProgress(specData.activeSpec);
+          } else {
+            // Fetch validation status for active spec
+            const statusRes = await fetch(`http://localhost:7001/api/specs/validate/status/${encodeURIComponent(specData.activeSpec)}`);
+            const statusData = await statusRes.json();
+            if (statusData.success) {
+              setReport(statusData.report);
+              setIsApproved(statusData.approved);
+              updateStats(statusData);
+            }
           }
         }
       } catch (err) {
@@ -99,6 +162,13 @@ export default function ValidatorAgent() {
       }
     };
     fetchActiveSpecAndStatus();
+
+    // Cleanup interval on unmount
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
   }, []);
 
   const handleValidate = async () => {
@@ -116,44 +186,7 @@ export default function ValidatorAgent() {
     setBoardStep(1);
     setLiveLogs(['[System] Initializing AI Specification Review Board (AI-SRB) Governance Layer...']);
 
-    // Polling function to get real progress from backend
-    let pollIntervalId;
-    const startPolling = () => {
-      pollIntervalId = setInterval(async () => {
-        try {
-          const res = await fetch(`http://localhost:7001/api/specs/validate/progress/${encodeURIComponent(activeSpec)}`);
-          if (!res.ok) return;
-          const data = await res.json();
-          if (data.status === 'running') {
-            if (data.logs && data.logs.length > 0) setLiveLogs(data.logs);
-            if (data.step) setBoardStep(data.step);
-            if (data.progress !== undefined) setOverallProgress(data.progress);
-            if (data.activeMember !== undefined) setActiveMember(data.activeMember);
-            if (data.statuses) setMemberStatuses(data.statuses);
-            if (data.votes) setMemberVotes(data.votes);
-          } else if (data.status === 'completed') {
-            clearInterval(pollIntervalId);
-            if (data.logs) setLiveLogs(data.logs);
-            setReport(data.report || '');
-            setIsApproved(data.approved || false);
-            setHumanApprovalStatus(data.human_approval_status || (data.approved ? 'APPROVED' : 'PENDING'));
-            updateStats(data);
-            setBoardStep(9);
-            setOverallProgress(100);
-            setIsValidating(false);
-          } else if (data.status === 'failed') {
-            clearInterval(pollIntervalId);
-            setError(data.error || 'Validation failed.');
-            setIsValidating(false);
-            setBoardStep(0);
-          }
-        } catch (e) {
-          console.error('Polling error:', e);
-        }
-      }, 1000);
-    };
-
-    startPolling();
+    startPollingProgress(activeSpec);
 
     try {
       const response = await fetch('http://localhost:7001/api/specs/validate', {
@@ -166,7 +199,10 @@ export default function ValidatorAgent() {
 
       const data = await response.json();
       if (response.ok && data.success) {
-        clearInterval(pollIntervalId);
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
         if (data.log) setLiveLogs(data.log);
         setReport(data.report);
         setIsApproved(data.approved);

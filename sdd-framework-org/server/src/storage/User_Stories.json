@@ -1,95 +1,170 @@
 {
   "stories": [
     {
-      "id": "US-VMS-01",
-      "title": "Visitor Registration and Check-In",
-      "asA": "Receptionist",
-      "iWantTo": "register a visitor and upload their photo via a secure S3 process",
-      "soThat": "we maintain an accurate digital log of all arrivals while ensuring photo storage compliance",
+      "id": "US-SYS-01",
+      "title": "Asynchronous Shelf Image Upload and Ingestion",
+      "asA": "Store Associate",
+      "iWantTo": "upload a shelf bay photograph via multipart form-data with zone and associate IDs, so that I receive an immediate 202 Accepted status and a polling token while heavy CV processing runs in the background.",
       "criteria": [
-        "System validates mobile number against existing active visits to prevent duplicates",
-        "System generates a presigned S3 URL for secure photo upload",
-        "Record is created with 'Checked-In' status upon successful upload",
-        "Triggers async notification to the designated employee"
+        "File extension must be .jpg, .jpeg, or .png, and image dimensions must be at least 800x600 pixels.",
+        "Zone ID must exist in the active planogram database schema; invalid IDs return a 400 Bad Request.",
+        "Payloads exceeding 10MB return 413 Payload Too Large.",
+        "System streams binary payload locally and returns a JSON response containing image_id, polling URI, upload timestamp, and status QUEUED."
+      ],
+      "priority": "High",
+      "points": 5,
+      "techNotes": "Implement POST /api/v1/shelf/analyze endpoint with multipart handling, async background worker dispatch, and validation against planogram schema."
+    },
+    {
+      "id": "US-SYS-02",
+      "title": "Shelf Gap and Anomaly Detection with Graceful Degradation",
+      "asA": "Store Associate",
+      "iWantTo": "have captured shelf images automatically evaluated for empty facings, low-stock zones, and price-label mismatches within a strict 2005ms timeout window, so that detection failures gracefully load pre-seeded synthetic data.",
+      "criteria": [
+        "CV processing model executes within a strict 2,500ms timeout window.",
+        "If live inference times out or confidence falls below threshold (confidence < 0.70), automatically trigger fallback mechanism loading synthetic anomaly records from shelf_events.csv.",
+        "Outputs array of detected anomalies with issue_type, bounding_box coordinates, and confidence_score."
       ],
       "priority": "High",
       "points": 8,
-      "techNotes": "Requires integration with S3 presigned URL API; implement RLS and DB trigger trg_verify_employee_active."
+      "techNotes": "Integrate modular CV/OCR service with timeout handlers and fallback loader tied to shelf_events."
     },
     {
-      "id": "US-VMS-02",
-      "title": "Visitor Check-Out",
-      "asA": "Receptionist",
-      "iWantTo": "mark a visitor as checked-out",
-      "soThat": "the visit history is finalized and the record can be archived for compliance",
+      "id": "US-SYS-03",
+      "title": "Planogram and Inventory Cross-Reference",
+      "asA": "Store Associate",
+      "iWantTo": "match detected SKUs against expected planogram facings and query backroom inventory quantities, so that stock differentials and backroom availability are accurately evaluated.",
       "criteria": [
-        "System records the precise end time",
-        "Ensures check_out time is chronologically after check_in time",
-        "Record is moved to archived state"
+        "Query indexed relational tables utilizing optimized B-tree path indexes for zone_id and sku_id.",
+        "Match detected SKU against planogram.csv expected facings.",
+        "Query inventory.csv for on_shelf_qty and backroom_qty, outputting an enriched event object."
+      ],
+      "priority": "High",
+      "points": 5,
+      "techNotes": "Implement database join and query optimization using SQLite/PostgreSQL B-tree indexes defined in DDL."
+    },
+    {
+      "id": "US-SYS-04",
+      "title": "Prioritized Recommendation Generation with Point-in-Time Snapshots",
+      "asA": "Store Manager",
+      "iWantTo": "view prioritized restocking recommendations accompanied by immutable point-in-time financial snapshots, so that corrective actions are executed based on accurate pricing and sales velocity.",
+      "criteria": [
+        "If on_shelf_qty == 0 AND backroom_qty > 0, assign Priority: HIGH, Recommendation: 'Refill from backroom'.",
+        "If on_shelf_qty < reorder_threshold, assign Priority: MEDIUM, Recommendation: 'Replenish before evening rush'.",
+        "Capture current product attributes (unit_price, product_name) as immutable point-in-time snapshots in event records."
+      ],
+      "priority": "High",
+      "points": 5,
+      "techNotes": "Implement recommendation scoring engine applying business logic rules and snapshot attribute copying during event creation."
+    },
+    {
+      "id": "US-SYS-05",
+      "title": "Optimistic-Locked Human-in-the-Loop Approval Gate",
+      "asA": "Store Manager",
+      "iWantTo": "approve or reject shelf event recommendations using optimistic concurrency control, so that race conditions are eliminated and an immutable audit trail is recorded.",
+      "criteria": [
+        "User must possess STORE_ASSOCIATE or STORE_MANAGER role.",
+        "State transition requires conditional match: WHERE event_id = :id AND version = :v AND human_status = 'PENDING'; version mismatch returns 409 Conflict.",
+        "Upon successful update, increment version = version + 1 and write an immutable entry to the dedicated audit_logs table."
+      ],
+      "priority": "High",
+      "points": 5,
+      "techNotes": "Implement POST /api/v1/shelf/events/{event_id}/approve with version checking and atomic audit logging."
+    },
+    {
+      "id": "US-SYS-06",
+      "title": "Issue and Impact Dashboard with Snapshot Valuation",
+      "asA": "Retail Operations / Merchandising Head",
+      "iWantTo": "monitor active store bottlenecks and estimated sales recovery values on an executive dashboard, so that historical price drift is prevented using point-in-time snapshot valuations.",
+      "criteria": [
+        "Real-time calculation of active store bottlenecks utilizing captured point-in-time financial values.",
+        "Aggregate issues by category and compute estimated sales recovery value based on snapshot unit_price multiplied by missing facings.",
+        "Output dashboard JSON payload containing metrics summary, category distribution charts, and actionable task queues."
+      ],
+      "priority": "Medium",
+      "points": 5,
+      "techNotes": "Develop aggregation queries combining shelf_events snapshots and category groupings for frontend rendering."
+    },
+    {
+      "id": "US-SYS-07",
+      "title": "Requirements Traceability Matrix (RTM) Integration",
+      "asA": "Retail IT / AI Governance Team",
+      "iWantTo": "query the end-to-end traceability mapping for any requirement ID, so that I can inspect the unbroken lineage from business requirements to ADRs, source files, and test cases.",
+      "criteria": [
+        "Accept requirement ID query parameter (REQ-001 through REQ-008).",
+        "Validate link existence across git commit history and test artifacts.",
+        "Map 1-to-N relationships between requirement IDs, user stories, ADR identifiers, source file paths, and test suite functions returning a unified traceability graph."
+      ],
+      "priority": "Medium",
+      "points": 3,
+      "techNotes": "Implement GET /api/v1/traceability/{requirement_id} endpoint querying traceability_matrix table."
+    },
+    {
+      "id": "US-SYS-08",
+      "title": "Automated Artifact Generation and Build Compliance",
+      "asA": "Retail IT / AI Governance Team",
+      "iWantTo": "compile Spec Kit artifacts, ADR documents, unit test execution reports, and governance checklists upon build triggers, so that static build outputs remain compliant.",
+      "criteria": [
+        "Markdown and JSON schema compliance checks execute successfully during system build.",
+        "Generate artifact bundle including README.md, ADR-001.md, and test execution summaries."
+      ],
+      "priority": "Low",
+      "points": 3,
+      "techNotes": "Configure automated CI build scripts to aggregate documentation, ADRs, and test report bundles."
+    },
+    {
+      "id": "US-SEC-01",
+      "title": "Role-Based Access Control (RBAC) Enforcement",
+      "asA": "Retail IT / AI Governance Team",
+      "iWantTo": "enforce granular role-based access control across all API endpoints, so that Store Associates, Store Managers, and Admins can only execute authorized operations.",
+      "criteria": [
+        "Store Associates are restricted to initiating image uploads, viewing recommendations, and submitting preliminary approval requests.",
+        "Store Managers are authorized for optimistic-locked final approvals, stock overrides, and financial recovery dashboards.",
+        "IT Administrators possess full read/write access to traceability mappings, audit logs, and configuration parameters."
       ],
       "priority": "High",
       "points": 3,
-      "techNotes": "Enforce CHECK (check_out > check_in) constraint at the database level."
+      "techNotes": "Implement middleware for JWT role extraction and endpoint authorization checks."
     },
     {
-      "id": "US-VMS-03",
-      "title": "Employee Visitor Portal",
-      "asA": "Employee",
-      "iWantTo": "view my specific incoming visitor logs",
-      "soThat": "I can stay informed about my appointments while maintaining data privacy",
+      "id": "US-SEC-02",
+      "title": "Facial Anonymization and Synthetic Data Isolation",
+      "asA": "Retail IT / AI Governance Team",
+      "iWantTo": "ensure captured shelf images pass through pre-processing facial masking and that demo pipelines strictly use synthetic datasets, so that data privacy and PII protection mandates are maintained.",
       "criteria": [
-        "Must support JWT-based authentication",
-        "PII must be appropriately masked based on system configuration",
-        "Results are restricted to the logged-in user's own data only"
-      ],
-      "priority": "Medium",
-      "points": 5,
-      "techNotes": "Use PostgreSQL RLS with SET LOCAL app.current_user_id to ensure BOLA mitigation."
-    },
-    {
-      "id": "US-VMS-04",
-      "title": "Administrator User Management",
-      "asA": "Administrator",
-      "iWantTo": "manage employee active status and visitor types",
-      "soThat": "the system reflects current organizational staff and registration categories",
-      "criteria": [
-        "Admin can toggle is_active status for employees",
-        "Admin can update the Visitor Type dropdown labels",
-        "Changes are reflected immediately in registration flows"
+        "Captured shelf images containing customer or associate faces pass through a pre-processing masking filter before permanent storage; raw unmasked images are prohibited.",
+        "Hackathon and mock execution pipelines strictly utilize synthetic datasets (products.csv, inventory.csv, planogram.csv) with no production CCTV feeds or real PII ingested."
       ],
       "priority": "High",
       "points": 5,
-      "techNotes": "Restricted to Admin role via controller-level validation."
+      "techNotes": "Incorporate image pre-processing masking middleware and seed data constraints for test environments."
     },
     {
-      "id": "US-VMS-05",
-      "title": "Visitor Data Reporting",
-      "asA": "Administrator",
-      "iWantTo": "export visitor logs as a CSV file",
-      "soThat": "I can perform compliance auditing and department-specific reporting",
+      "id": "US-SEC-03",
+      "title": "Transport and Storage Encryption Security",
+      "asA": "Retail IT / AI Governance Team",
+      "iWantTo": "enforce TLS 1.3 encryption in transit and AES-256 storage encryption at rest, so that sensitive retail data and credentials remain secure.",
       "criteria": [
-        "Support filtering by date range, visitor type, and employee",
-        "Download triggers a CSV file export",
-        "Requires secure authentication and authorization"
-      ],
-      "priority": "Medium",
-      "points": 5,
-      "techNotes": "Implement GET /api/reports/export with Content-Disposition headers."
-    },
-    {
-      "id": "US-VMS-06",
-      "title": "Data Privacy Lifecycle Maintenance",
-      "asA": "System",
-      "iWantTo": "automatically anonymize PII and purge old media",
-      "soThat": "the application remains compliant with data retention and privacy policies",
-      "criteria": [
-        "S3 files are purged after 14 days",
-        "PII for records older than 30 days is anonymized via background worker",
-        "Process runs nightly without interrupting system performance"
+        "All client-to-server and inter-service communications must be encrypted using Transport Layer Security (TLS) version 1.3 with plaintext HTTP disabled.",
+        "SQLite and PostgreSQL databases must enforce AES-256 storage encryption.",
+        "Sensitive API keys, database credentials, and JWT secrets must be managed via secure environment variables (.env) and excluded from version control."
       ],
       "priority": "High",
-      "points": 8,
-      "techNotes": "Requires a cron-based background job. S3 lifecycle policies should be utilized for media."
+      "points": 3,
+      "techNotes": "Configure server transport security settings, database encryption parameters, and environment secret injection."
+    },
+    {
+      "id": "US-SEC-04",
+      "title": "Append-Only Audit Logging",
+      "asA": "Retail IT / AI Governance Team",
+      "iWantTo": "automatically record every administrative override, human approval action, and system anomaly flag into an immutable audit log, so that complete system transparency and traceability are guaranteed.",
+      "criteria": [
+        "Every approval, override, and anomaly flag writes an immutable entry to the append-only audit_logs table.",
+        "Audit log entries contain UTC ISO-8601 timestamp, user Actor ID & Role, client source IP, action category, description, and prior vs. new state hash verification with payload snapshots."
+      ],
+      "priority": "High",
+      "points": 3,
+      "techNotes": "Implement centralized audit logging service capturing state hashes and payload snapshots on state-changing operations."
     }
   ]
 }

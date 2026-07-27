@@ -46,6 +46,37 @@ function estimateTokens(text) {
   return Math.ceil(text.length / 4);
 }
 
+const PRICING = {
+  // prices per 1 token (cost = promptTokens * promptRate + completionTokens * completionRate)
+  // standard Gemini Flash rate: Input: $0.075 / 1M, Output: $0.30 / 1M
+  'gemini-3.5-flash': { prompt: 0.075 / 1000000, completion: 0.30 / 1000000 },
+  'gemini-2.0-flash': { prompt: 0.075 / 1000000, completion: 0.30 / 1000000 },
+  'gemini-1.5-flash': { prompt: 0.075 / 1000000, completion: 0.30 / 1000000 },
+  'gemini-2.5-flash': { prompt: 0.075 / 1000000, completion: 0.30 / 1000000 },
+  
+  // Lite / 8B rate: Input: $0.0375 / 1M, Output: $0.15 / 1M
+  'gemini-3.5-flash-lite': { prompt: 0.0375 / 1000000, completion: 0.15 / 1000000 },
+  'gemini-3.1-flash-lite': { prompt: 0.0375 / 1000000, completion: 0.15 / 1000000 },
+  'gemini-1.5-flash-8b': { prompt: 0.0375 / 1000000, completion: 0.15 / 1000000 },
+  
+  // OpenAI
+  'gpt-4o': { prompt: 2.50 / 1000000, completion: 10.00 / 1000000 },
+  'gpt-4o-mini': { prompt: 0.15 / 1000000, completion: 0.60 / 1000000 },
+  
+  // Anthropic
+  'claude-3-5-sonnet': { prompt: 3.00 / 1000000, completion: 15.00 / 1000000 },
+  
+  // Fallback default
+  'default': { prompt: 0.075 / 1000000, completion: 0.30 / 1000000 }
+};
+
+function calculateCost(model, promptTokens, completionTokens) {
+  const modelStr = (model || '').toLowerCase();
+  const modelKey = Object.keys(PRICING).find(k => modelStr.includes(k)) || 'default';
+  const rates = PRICING[modelKey];
+  return (promptTokens * rates.prompt) + (completionTokens * rates.completion);
+}
+
 /**
  * Records a token consumption entry.
  */
@@ -64,6 +95,7 @@ function recordUsage({
   const finalPromptTokens = promptTokens || estimateTokens(promptText);
   const finalCompletionTokens = completionTokens || estimateTokens(responseText);
   const finalTotalTokens = totalTokens || (finalPromptTokens + finalCompletionTokens);
+  const cost = calculateCost(model, finalPromptTokens, finalCompletionTokens);
 
   const entry = {
     id: `tok_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
@@ -72,7 +104,8 @@ function recordUsage({
     agentName: agentName || 'System Agent',
     promptTokens: finalPromptTokens,
     completionTokens: finalCompletionTokens,
-    totalTokens: finalTotalTokens
+    totalTokens: finalTotalTokens,
+    cost
   };
 
   history.unshift(entry); // Newest first
@@ -95,6 +128,7 @@ function getSummary() {
   let grandTotalTokens = 0;
   let grandTotalPromptTokens = 0;
   let grandTotalCompletionTokens = 0;
+  let grandTotalCost = 0;
 
   history.forEach(entry => {
     const modelKey = entry.model || 'unknown';
@@ -104,18 +138,23 @@ function getSummary() {
         totalTokens: 0,
         promptTokens: 0,
         completionTokens: 0,
+        cost: 0,
         callCount: 0
       };
     }
 
+    const entryCost = entry.cost !== undefined ? entry.cost : calculateCost(entry.model, entry.promptTokens || 0, entry.completionTokens || 0);
+
     byModel[modelKey].totalTokens += entry.totalTokens || 0;
     byModel[modelKey].promptTokens += entry.promptTokens || 0;
     byModel[modelKey].completionTokens += entry.completionTokens || 0;
+    byModel[modelKey].cost += entryCost;
     byModel[modelKey].callCount += 1;
 
     grandTotalTokens += entry.totalTokens || 0;
     grandTotalPromptTokens += entry.promptTokens || 0;
     grandTotalCompletionTokens += entry.completionTokens || 0;
+    grandTotalCost += entryCost;
   });
 
   return {
@@ -123,6 +162,7 @@ function getSummary() {
     grandTotalTokens,
     grandTotalPromptTokens,
     grandTotalCompletionTokens,
+    grandTotalCost,
     totalCalls: history.length
   };
 }
@@ -132,8 +172,15 @@ function getSummary() {
  */
 function getHistory(filterModel = '') {
   const history = readHistory();
-  if (!filterModel) return history;
-  return history.filter(item => item.model.toLowerCase() === filterModel.toLowerCase());
+  const mapped = history.map(item => {
+    if (item.cost !== undefined) return item;
+    return {
+      ...item,
+      cost: calculateCost(item.model, item.promptTokens || 0, item.completionTokens || 0)
+    };
+  });
+  if (!filterModel) return mapped;
+  return mapped.filter(item => item.model.toLowerCase() === filterModel.toLowerCase());
 }
 
 /**

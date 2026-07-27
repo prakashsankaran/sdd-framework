@@ -16,6 +16,14 @@ function getGenAI() {
  */
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+const withTimeout = (promise, ms, errMsg = 'Request timed out') => {
+  let timeoutId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(errMsg)), ms);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
+};
+
 /**
  * Generates content using the configured active LLM, with exponential backoff retries and fallback models
  */
@@ -36,8 +44,18 @@ async function generateWithRetryAndFallback(ai, prompt, agentName, logCallback =
     let attempts = 3;
     for (let attempt = 1; attempt <= attempts; attempt++) {
       try {
-        const modelInstance = ai.getGenerativeModel({ model: modelName });
-        const result = await modelInstance.generateContent(prompt);
+        const modelInstance = ai.getGenerativeModel(
+          { model: modelName },
+          { requestOptions: { timeout: 25000 } }
+        );
+        
+        // Execute generateContent wrapped in a 30-second timeout promise
+        const result = await withTimeout(
+          modelInstance.generateContent(prompt),
+          30000,
+          `Request to model "${modelName}" for "${agentName}" timed out after 30s`
+        );
+        
         const responseText = result.response.text();
         const usage = result.response.usageMetadata || {};
 
@@ -61,11 +79,11 @@ async function generateWithRetryAndFallback(ai, prompt, agentName, logCallback =
         const errMsg = (err.message || '').toLowerCase();
         const isQuotaExceeded = errMsg.includes('quota exceeded') || errMsg.includes('exceeded your current quota') || errMsg.includes('quotafailure');
         const status = err.status || (err.message && err.message.includes('503') ? 503 : null);
-        const isRateLimitOrDemand = status === 503 || status === 429 || err.message.includes('high demand') || err.message.includes('Rate limit');
+        const isRateLimitOrDemand = status === 503 || status === 429 || err.message.includes('high demand') || err.message.includes('Rate limit') || errMsg.includes('timed out') || errMsg.includes('timeout');
 
         if (isRateLimitOrDemand && !isQuotaExceeded && attempt < attempts) {
           const backoffTime = Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 1000);
-          logCallback(`[Resilience] Model "${modelName}" failed for "${agentName}" (${err.message || '503/429'}). Retrying in ${backoffTime}ms (Attempt ${attempt}/${attempts})...`);
+          logCallback(`[Resilience] Model "${modelName}" failed for "${agentName}" (${err.message || '503/429/Timeout'}). Retrying in ${backoffTime}ms (Attempt ${attempt}/${attempts})...`);
           await delay(backoffTime);
         } else {
           break;

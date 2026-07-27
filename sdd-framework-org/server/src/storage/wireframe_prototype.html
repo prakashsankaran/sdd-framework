@@ -3,119 +3,923 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VMS | Secure Visitor Management</title>
+    <title>ShelfGuard AI — Enterprise Retail Vision & Replenishment Copilot</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config = {
             darkMode: 'class',
-            theme: { extend: { colors: { slate: { 950: '#020617' } } } }
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            950: '#030712',
+                            900: '#0f172a',
+                            850: '#131c31',
+                            800: '#1e293b',
+                            700: '#334155',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
         }
     </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; }
-        .glass { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        .glow { box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        .glass-panel { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glass-card { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.06); }
+        @keyframes pulse-subtle { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .animate-pulse-subtle { animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
     </style>
 </head>
-<body class="text-slate-200">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
 
-    <nav class="glass fixed w-full top-0 z-50 px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center"><i class="fas fa-shield-halved"></i></div>
-            <span class="font-bold text-lg tracking-tight">VMS <span class="text-blue-500 font-light">Pro</span></span>
-        </div>
-        <div class="flex items-center gap-6 text-sm font-medium">
-            <span class="text-blue-400">Receptionist Console</span>
-            <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center"><i class="fas fa-user"></i></div>
-        </div>
-    </nav>
-
-    <main class="pt-24 px-6 pb-12 max-w-7xl mx-auto">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <!-- Registration Form -->
-            <div class="lg:col-span-1 space-y-6">
-                <div class="glass p-6 rounded-2xl">
-                    <h2 class="text-xl font-semibold mb-6 flex items-center gap-2"><i class="fas fa-user-plus text-blue-500"></i> New Check-In</h2>
-                    <form id="checkInForm" class="space-y-4">
-                        <div>
-                            <label class="text-xs text-slate-400 uppercase tracking-wider">Visitor Name</label>
-                            <input type="text" id="vName" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 mt-1 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-                        </div>
-                        <div>
-                            <label class="text-xs text-slate-400 uppercase tracking-wider">Mobile Number</label>
-                            <input type="tel" id="vMobile" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 mt-1 focus:ring-2 focus:ring-blue-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="text-xs text-slate-400 uppercase tracking-wider">Employee Host</label>
-                            <select id="vEmp" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 mt-1 outline-none">
-                                <option>Sarah Jenkins (Dev)</option>
-                                <option>Mark Ross (Ops)</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-lg font-bold transition-all glow">Process Registration</button>
-                    </form>
+    <!-- Top Navbar -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-slate-800 px-4 lg:px-8 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-indigo-500/25 ring-1 ring-white/20">
+                    <i class="fa-solid fa-eye text-white text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">ShelfGuard AI</span>
+                        <span class="text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full">v2.0-SDLC</span>
+                    </div>
+                    <p class="text-xs text-slate-400">Store ST-042 • Enterprise Vision & Replenishment Copilot</p>
                 </div>
             </div>
 
-            <!-- Visitor Table -->
-            <div class="lg:col-span-2 glass rounded-2xl p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-semibold">Active Visitors</h2>
-                    <input type="text" id="search" placeholder="Search logs..." class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm outline-none">
+            <div class="hidden md:flex items-center ml-8 space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800/80 text-xs font-medium">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="px-4 py-2 rounded-lg transition-all duration-200 text-indigo-300 bg-indigo-600/20 shadow-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-chart-pie"></i><span>Operations & Gaps</span>
+                </button>
+                <button onclick="switchTab('upload')" id="nav-upload" class="px-4 py-2 rounded-lg transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 flex items-center space-x-2">
+                    <i class="fa-solid fa-camera-retro"></i><span>Shelf Capture (API)</span>
+                </button>
+                <button onclick="switchTab('rtm')" id="nav-rtm" class="px-4 py-2 rounded-lg transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 flex items-center space-x-2">
+                    <i class="fa-solid fa-network-wired"></i><span>RTM & Traceability</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <!-- Store Selector Badge -->
+            <div class="hidden sm:flex items-center space-x-2 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-slate-300 font-medium">Active Zone: <strong class="text-white">Aisle-3-Bay-2</strong></span>
+            </div>
+
+            <!-- Role Switcher -->
+            <div class="relative">
+                <select id="userRoleSelect" onchange="changeRole(this.value)" class="bg-slate-900 border border-slate-700 text-xs font-semibold rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="STORE_MANAGER">👤 Role: Store Manager (MGR-402)</option>
+                    <option value="STORE_ASSOCIATE">👤 Role: Associate (EMP-1092)</option>
+                    <option value="ADMIN">🛡️ Role: IT / Governance Admin</option>
+                </select>
+            </div>
+
+            <!-- Notifications Bell -->
+            <button onclick="showNotificationModal()" class="relative p-2 text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-800 transition">
+                <i class="fa-solid fa-bell text-sm"></i>
+                <span class="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full animate-ping"></span>
+                <span class="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
+
+        <!-- ================= TAB 1: OPERATIONS & GAPS DASHBOARD ================= -->
+        <section id="tab-content-dashboard" class="space-y-6">
+            
+            <!-- Executive Metrics Bar -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-card rounded-2xl p-4 relative overflow-hidden group hover:border-indigo-500/50 transition">
+                    <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition"></div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Shelf Gaps</span>
+                        <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/20"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    </div>
+                    <div class="mt-3 flex items-baseline space-x-2">
+                        <span class="text-3xl font-extrabold text-white">14</span>
+                        <span class="text-xs text-rose-400 font-semibold"><i class="fa-solid fa-arrow-up"></i> +3 last hr</span>
+                    </div>
+                    <p class="mt-1 text-xs text-slate-400">Requires store manager approval</p>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr class="text-slate-400 text-xs uppercase border-b border-slate-700">
-                                <th class="pb-3">Name</th>
-                                <th class="pb-3">Host</th>
-                                <th class="pb-3">Check-In</th>
-                                <th class="pb-3">Status</th>
+
+                <div class="glass-card rounded-2xl p-4 relative overflow-hidden group hover:border-emerald-500/50 transition">
+                    <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition"></div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Est. Sales Recovery</span>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20"><i class="fa-solid fa-vault"></i></div>
+                    </div>
+                    <div class="mt-3 flex items-baseline space-x-2">
+                        <span class="text-3xl font-extrabold text-white">$1,420</span>
+                        <span class="text-xs text-emerald-400 font-semibold">Snapshot valuation</span>
+                    </div>
+                    <p class="mt-1 text-xs text-slate-400">Point-in-time pricing protected</p>
+                </div>
+
+                <div class="glass-card rounded-2xl p-4 relative overflow-hidden group hover:border-cyan-500/50 transition">
+                    <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-cyan-500/10 rounded-full blur-xl group-hover:bg-cyan-500/20 transition"></div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Backroom Stock Ready</span>
+                        <div class="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center border border-cyan-500/20"><i class="fa-solid fa-boxes-stacked"></i></div>
+                    </div>
+                    <div class="mt-3 flex items-baseline space-x-2">
+                        <span class="text-3xl font-extrabold text-white">38 SKUs</span>
+                        <span class="text-xs text-cyan-400 font-semibold">Ready to restock</span>
+                    </div>
+                    <p class="mt-1 text-xs text-slate-400">Mapped via planogram.csv</p>
+                </div>
+
+                <div class="glass-card rounded-2xl p-4 relative overflow-hidden group hover:border-violet-500/50 transition">
+                    <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-violet-500/10 rounded-full blur-xl group-hover:bg-violet-500/20 transition"></div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">CV Inference Latency</span>
+                        <div class="w-8 h-8 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center border border-violet-500/20"><i class="fa-solid fa-bolt"></i></div>
+                    </div>
+                    <div class="mt-3 flex items-baseline space-x-2">
+                        <span class="text-3xl font-extrabold text-white">412ms</span>
+                        <span class="text-xs text-emerald-400 font-semibold">Sub-2500ms SLA</span>
+                    </div>
+                    <p class="mt-1 text-xs text-slate-400">Graceful degradation active</p>
+                </div>
+            </div>
+
+            <!-- Main Actionable Queue Table & Filters -->
+            <div class="glass-panel rounded-2xl p-6 border border-slate-800 shadow-xl space-y-6">
+                
+                <!-- Table Header Controls -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+                            <i class="fa-solid fa-clipboard-list text-indigo-400"></i>
+                            <span>Prioritized Replenishment & Anomaly Queue</span>
+                        </h2>
+                        <p class="text-xs text-slate-400">Real-time store audit events requiring associate restocking or manager optimistic sign-off.</p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Search Bar -->
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                            </span>
+                            <input type="text" id="tableSearchInput" onkeyup="filterTable()" placeholder="Search SKU, name, zone..." class="bg-slate-900 border border-slate-700/80 text-xs rounded-xl pl-9 pr-4 py-2 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-64">
+                        </div>
+
+                        <!-- Status Filter Tabs -->
+                        <div class="flex items-center bg-slate-900 border border-slate-800 p-1 rounded-xl text-xs font-medium">
+                            <button onclick="filterStatus('ALL')" id="filter-btn-ALL" class="px-3 py-1.5 rounded-lg text-white bg-indigo-600 transition">All</button>
+                            <button onclick="filterStatus('PENDING')" id="filter-btn-PENDING" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">Pending Gate</button>
+                            <button onclick="filterStatus('APPROVED')" id="filter-btn-APPROVED" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">Approved</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/50">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
+                            <tr>
+                                <th class="px-4 py-3">Event / ID</th>
+                                <th class="px-4 py-3">Zone & SKU</th>
+                                <th class="px-4 py-3">Anomaly Type</th>
+                                <th class="px-4 py-3">Stock Metrics (Shelf / Backroom)</th>
+                                <th class="px-4 py-3">Priority / Snapshot</th>
+                                <th class="px-4 py-3">Human Gate Status</th>
+                                <th class="px-4 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="visitorTable" class="text-sm">
-                            <!-- JS Injection -->
+                        <tbody id="eventsTableBody" class="divide-y divide-slate-800/60">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination & Summary Footer -->
+                <div class="flex items-center justify-between text-xs text-slate-400 pt-2">
+                    <span>Showing <strong class="text-white" id="showingCount">5</strong> of <strong class="text-white">14</strong> total store anomalies</span>
+                    <div class="flex space-x-2">
+                        <button class="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-500 cursor-not-allowed">Previous</button>
+                        <button class="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-white hover:bg-slate-800">Next</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ================= TAB 2: SHELF CAPTURE & ASYNC INGESTION (REQ-001) ================= -->
+        <section id="tab-content-upload" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Left Column: Upload Form (API Contract Simulation) -->
+                <div class="lg:col-span-1 glass-panel rounded-2xl p-6 border border-slate-800 space-y-6">
+                    <div>
+                        <div class="flex items-center space-x-2 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-1">
+                            <i class="fa-solid fa-terminal"></i>
+                            <span>POST /api/v1/shelf/analyze</span>
+                        </div>
+                        <h2 class="text-lg font-bold text-white">Simulate Shelf Image Ingestion</h2>
+                        <p class="text-xs text-slate-400 mt-1">Upload an aisle photograph to trigger async computer vision anomaly detection and planogram cross-referencing.</p>
+                    </div>
+
+                    <form id="shelfUploadForm" onsubmit="handleShelfUpload(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Select Aisle Zone ID</label>
+                            <select id="uploadZoneId" class="w-full bg-slate-900 border border-slate-700 text-xs rounded-xl px-3 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="Aisle-3-Bay-2">Aisle-3-Bay-2 (Cereal & Oats)</option>
+                                <option value="Aisle-1-Bay-4">Aisle-1-Bay-4 (Dairy & Milk)</option>
+                                <option value="Aisle-4-Bay-1">Aisle-4-Bay-1 (Beverages & Soda)</option>
+                                <option value="Aisle-7-Bay-3">Aisle-7-Bay-3 (Snacks & Chips)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Associate ID</label>
+                            <input type="text" id="uploadAssociateId" value="EMP-1092" readonly class="w-full bg-slate-900/60 border border-slate-800 text-xs rounded-xl px-3 py-2.5 text-slate-400 cursor-not-allowed">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Shelf Image (JPEG / PNG, max 10MB)</label>
+                            <div class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-6 text-center cursor-pointer transition bg-slate-900/40 relative" onclick="document.getElementById('fileInput').click()">
+                                <input type="file" id="fileInput" accept="image/jpeg,image/png" class="hidden" onchange="previewFile(event)">
+                                <div id="uploadPlaceholder" class="space-y-2">
+                                    <div class="w-12 h-12 mx-auto rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+                                        <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+                                    </div>
+                                    <p class="text-xs text-slate-300 font-medium">Click to browse or drag shelf photo</p>
+                                    <p class="text-[10px] text-slate-500">Supports JPG, PNG up to 10MB</p>
+                                </div>
+                                <div id="filePreviewContainer" class="hidden space-y-2">
+                                    <img id="imagePreview" class="max-h-32 mx-auto rounded-lg object-cover border border-slate-700">
+                                    <p id="fileNameDisplay" class="text-xs font-medium text-indigo-300 truncate"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold rounded-xl text-xs shadow-lg shadow-indigo-600/25 transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>Submit for Async Ingestion (202 Accepted)</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Right Column: Live Async Response & CV Pipeline Simulation -->
+                <div class="lg:col-span-2 glass-panel rounded-2xl p-6 border border-slate-800 space-y-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                                <i class="fa-solid fa-microchip text-indigo-400"></i>
+                                <span>Async Worker & CV Pipeline Execution Console</span>
+                            </h3>
+                            <span id="pipelineStatusBadge" class="text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700 px-2.5 py-1 rounded-full">IDLE</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-4">Simulates backend worker processing: bounding box coordinate extraction, planogram table cross-reference, and point-in-time snapshot valuation.</p>
+                        
+                        <!-- Terminal Output Window -->
+                        <div class="bg-slate-950 rounded-xl p-4 border border-slate-800 font-mono text-xs text-slate-300 h-64 overflow-y-auto space-y-2 shadow-inner" id="terminalLogs">
+                            <div class="text-slate-500">// System ready. Waiting for multipart form payload at /api/v1/shelf/analyze...</div>
+                        </div>
+                    </div>
+
+                    <!-- Simulated Bounding Box Visualization Card -->
+                    <div id="cvVisualCard" class="hidden bg-slate-900/80 rounded-xl p-4 border border-slate-800 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-white flex items-center space-x-2">
+                                <i class="fa-solid fa-vector-square text-cyan-400"></i>
+                                <span>Detected Bounding Boxes & Confidence</span>
+                            </span>
+                            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">Inference Success (412ms)</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                                <span class="text-slate-400 text-[10px] block">BOX #1 (EMPTY FACING)</span>
+                                <span class="font-bold text-rose-400">SKU-88194 (Organic Oats)</span>
+                                <div class="text-[10px] text-slate-500 mt-1">Coords: [120, 45, 240, 310] • Conf: 0.94</div>
+                            </div>
+                            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                                <span class="text-slate-400 text-[10px] block">BOX #2 (LOW STOCK)</span>
+                                <span class="font-bold text-amber-400">SKU-99210 (Almond Milk)</span>
+                                <div class="text-[10px] text-slate-500 mt-1">Coords: [250, 45, 370, 310] • Conf: 0.89</div>
+                            </div>
+                            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                                <span class="text-slate-400 text-[10px] block">BOX #3 (PRICE MISMATCH)</span>
+                                <span class="font-bold text-violet-400">SKU-10492 (Sparkling Water)</span>
+                                <div class="text-[10px] text-slate-500 mt-1">OCR Tag: $3.99 vs DB: $4.49</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: REQUIREMENTS TRACEABILITY MATRIX (RTM) ================= -->
+        <section id="tab-content-rtm" class="hidden space-y-6">
+            <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center space-x-2 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-1">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>Governance & Traceability Guarantee (REQ-007 & REQ-008)</span>
+                        </div>
+                        <h2 class="text-lg font-bold text-white">Requirements Traceability Matrix (RTM)</h2>
+                        <p class="text-xs text-slate-400">Unbroken end-to-end mapping from business requirements to ADRs, source code files, and test suites.</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="filterRTM('ALL')" id="rtm-btn-ALL" class="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-xl font-medium transition">All REQs</button>
+                        <button onclick="filterRTM('CV')" id="rtm-btn-CV" class="px-3 py-1.5 bg-slate-900 text-slate-400 hover:text-white text-xs rounded-xl font-medium border border-slate-800 transition">CV & Gaps</button>
+                        <button onclick="filterRTM('GOV')" id="rtm-btn-GOV" class="px-3 py-1.5 bg-slate-900 text-slate-400 hover:text-white text-xs rounded-xl font-medium border border-slate-800 transition">Human Gate</button>
+                    </div>
+                </div>
+
+                <!-- RTM Table -->
+                <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/50">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
+                            <tr>
+                                <th class="px-4 py-3">Req ID</th>
+                                <th class="px-4 py-3">Requirement Description</th>
+                                <th class="px-4 py-3">User Story & ADR</th>
+                                <th class="px-4 py-3">Code Module Path</th>
+                                <th class="px-4 py-3">Test Artifact</th>
+                                <th class="px-4 py-3 text-right">Trace View</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rtmTableBody" class="divide-y divide-slate-800/60">
+                            <!-- Populated via JS -->
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
+        </section>
+
     </main>
 
+    <!-- ================= TASK DETAILS / APPROVAL DRAWER MODAL ================= -->
+    <div id="taskDrawer" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-end transition-opacity duration-300">
+        <div class="bg-slate-900 border-l border-slate-800 w-full max-w-xl h-full shadow-2xl flex flex-col justify-between transform transition-transform duration-300 translate-x-full" id="drawerPanel">
+            
+            <!-- Drawer Header -->
+            <div class="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span id="drawerEventId" class="text-xs font-mono font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded">EVT-9001</span>
+                        <span id="drawerStatusBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full">PENDING</span>
+                    </div>
+                    <h3 id="drawerProductTitle" class="text-lg font-bold text-white mt-1">Organic Rolled Oats 32oz</h3>
+                </div>
+                <button onclick="closeDrawer()" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Drawer Body -->
+            <div class="p-6 space-y-6 flex-1 overflow-y-auto">
+                
+                <!-- Anomaly & Bounding Box Info -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">CV Detection & Planogram Mapping</h4>
+                    <div class="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <span class="text-slate-500 block">Issue Type</span>
+                            <span id="drawerIssueType" class="font-bold text-rose-400">EMPTY_FACING</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block">Zone ID</span>
+                            <span id="drawerZoneId" class="font-bold text-white">Aisle-3-Bay-2</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block">Confidence Score</span>
+                            <span id="drawerConfidence" class="font-bold text-emerald-400">0.962 (High)</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block">Bounding Box</span>
+                            <span class="font-mono text-slate-300">[140, 52, 280, 310]</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory & Snapshot Valuation -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Inventory & Snapshot Valuation (REQ-004)</h4>
+                    <div class="grid grid-cols-3 gap-4 text-xs">
+                        <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
+                            <span class="text-slate-500 text-[10px] block">ON-SHELF QTY</span>
+                            <span id="drawerOnShelf" class="text-lg font-bold text-rose-400">0</span>
+                        </div>
+                        <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
+                            <span class="text-slate-500 text-[10px] block">BACKROOM QTY</span>
+                            <span id="drawerBackroom" class="text-lg font-bold text-cyan-400">24</span>
+                        </div>
+                        <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
+                            <span class="text-slate-500 text-[10px] block">UNIT PRICE SNAPSHOT</span>
+                            <span id="drawerUnitPrice" class="text-lg font-bold text-emerald-400">$5.49</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendation & Optimistic Lock Meta -->
+                <div class="space-y-3">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">System Recommendation</h4>
+                    <div class="p-4 rounded-xl bg-indigo-950/30 border border-indigo-500/30 text-indigo-200 text-xs flex items-start space-x-3">
+                        <i class="fa-solid fa-wand-magic-sparkles text-indigo-400 mt-0.5"></i>
+                        <div>
+                            <span class="font-bold block text-white">Refill from backroom (Priority: HIGH)</span>
+                            <p class="mt-1 text-slate-300">Stock differential detected: 0 facings on shelf against 4 expected facings. 24 units available in backroom inventory.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Optimistic Locking & Version Info -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs space-y-2">
+                    <div class="flex justify-between text-slate-400">
+                        <span>Record Version (Optimistic Lock):</span>
+                        <strong id="drawerVersion" class="text-white">v1</strong>
+                    </div>
+                    <div class="flex justify-between text-slate-400">
+                        <span>Database Constraint:</span>
+                        <span class="font-mono text-[10px] text-indigo-300">WHERE event_id = :id AND version = :v</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Drawer Footer / Approval Actions (REQ-005) -->
+            <div class="p-6 border-t border-slate-800 bg-slate-950/50 space-y-3" id="approvalActionContainer">
+                <div id="approvalRoleWarning" class="hidden text-[11px] text-amber-400 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-lg">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Only <strong>STORE_MANAGER</strong> role can execute final optimistic-locked approvals.
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="submitApprovalDecision('REJECT')" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-xs transition border border-slate-700">
+                        <i class="fa-solid fa-xmark text-rose-400 mr-1.5"></i> Flag False Positive
+                    </button>
+                    <button id="approveBtn" onclick="submitApprovalDecision('APPROVED')" class="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold rounded-xl text-xs shadow-lg shadow-emerald-600/25 transition">
+                        <i class="fa-solid fa-check text-white mr-1.5"></i> Approve Restock (Lock v2)
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Notification Modal / Toast Container -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
+
+    <!-- JavaScript Application Logic -->
     <script>
-        const visitors = [
-            { id: 1, name: 'John Doe', emp: 'Sarah Jenkins', time: '10:45 AM', status: 'Checked-In' },
-            { id: 2, name: 'Alice Smith', emp: 'Mark Ross', time: '09:20 AM', status: 'Checked-In' }
+        // Mock Data Store representing SQLite / PostgreSQL tables
+        let shelfEventsData = [
+            {
+                event_id: "EVT-9001",
+                image_id: "img_oat_empty_88194",
+                zone_id: "Aisle-3-Bay-2",
+                sku_id: "SKU-88194",
+                product_name: "Organic Rolled Oats 32oz",
+                detected_issue: "EMPTY_FACING",
+                confidence: 0.962,
+                on_shelf_qty: 0,
+                backroom_qty: 24,
+                unit_price: 5.49,
+                priority: "HIGH",
+                recommended_action: "Refill from backroom",
+                human_status: "PENDING",
+                version: 1,
+                approved_by: null,
+                approved_at: null,
+                created_at: "2026-03-30T08:14:22Z"
+            },
+            {
+                event_id: "EVT-9002",
+                image_id: "img_milk_low_99210",
+                zone_id: "Aisle-1-Bay-4",
+                sku_id: "SKU-99210",
+                product_name: "Almond Milk Unsweetened 1L",
+                detected_issue: "LOW_STOCK",
+                confidence: 0.891,
+                on_shelf_qty: 2,
+                backroom_qty: 12,
+                unit_price: 3.99,
+                priority: "MEDIUM",
+                recommended_action: "Replenish before evening rush",
+                human_status: "PENDING",
+                version: 1,
+                approved_by: null,
+                approved_at: null,
+                created_at: "2026-03-30T07:52:10Z"
+            },
+            {
+                event_id: "EVT-9003",
+                image_id: "img_soda_price_10492",
+                zone_id: "Aisle-4-Bay-1",
+                sku_id: "SKU-10492",
+                product_name: "Craft Cola 12-Pack",
+                detected_issue: "PRICE_LABEL_MISMATCH",
+                confidence: 0.924,
+                on_shelf_qty: 8,
+                backroom_qty: 30,
+                unit_price: 6.99,
+                priority: "MEDIUM",
+                recommended_action: "Audit price tag ($3.99 vs $6.99)",
+                human_status: "APPROVED",
+                version: 2,
+                approved_by: "MGR-402",
+                approved_at: "2026-03-30T07:30:15Z",
+                created_at: "2026-03-30T07:10:00Z"
+            },
+            {
+                event_id: "EVT-9004",
+                image_id: "img_chips_empty_44812",
+                zone_id: "Aisle-7-Bay-3",
+                sku_id: "SKU-44812",
+                product_name: "Sea Salt Tortilla Chips 14oz",
+                detected_issue: "EMPTY_FACING",
+                confidence: 0.975,
+                on_shelf_qty: 0,
+                backroom_qty: 15,
+                unit_price: 4.29,
+                priority: "HIGH",
+                recommended_action: "Refill from backroom",
+                human_status: "PENDING",
+                version: 1,
+                approved_by: null,
+                approved_at: null,
+                created_at: "2026-03-30T06:45:00Z"
+            },
+            {
+                event_id: "EVT-9005",
+                image_id: "img_coffee_low_55219",
+                zone_id: "Aisle-2-Bay-1",
+                sku_id: "SKU-55219",
+                product_name: "Dark Roast Coffee Beans 12oz",
+                detected_issue: "LOW_STOCK",
+                confidence: 0.883,
+                on_shelf_qty: 1,
+                backroom_qty: 8,
+                unit_price: 11.99,
+                priority: "HIGH",
+                recommended_action: "Replenish immediately",
+                human_status: "APPROVED",
+                version: 2,
+                approved_by: "MGR-402",
+                approved_at: "2026-03-30T06:20:11Z",
+                created_at: "2026-03-30T05:55:00Z"
+            }
         ];
 
-        function renderTable() {
-            const container = document.getElementById('visitorTable');
-            container.innerHTML = visitors.map(v => `
-                <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition-colors">
-                    <td class="py-4 font-semibold">${v.name}</td>
-                    <td class="py-4 text-slate-400">${v.emp}</td>
-                    <td class="py-4 text-slate-400">${v.time}</td>
-                    <td class="py-4"><span class="px-2 py-1 bg-green-500/10 text-green-400 rounded-full text-xs">${v.status}</span></td>
-                </tr>
-            `).join('');
-        }
+        let rtmData = [
+            { id: "REQ-001", desc: "Asynchronous Shelf Image Upload & Ingestion (202 Accepted)", story: "US-01: Multipart Image Upload", adr: "ADR-001: Asynchronous Worker Queue", code: "src/api/shelf_controller.js", test: "tests/api/test_upload.py" },
+            { id: "REQ-002", desc: "Shelf Gap & Anomaly Detection with Graceful Degradation", story: "US-02: Automated CV Scanning", adr: "ADR-001: CV Hybrid Bounding Box", code: "src/services/cv_service.js", test: "tests/unit/test_detector.py" },
+            { id: "REQ-003", desc: "Planogram & Inventory Cross-Reference via B-Tree Index", story: "US-03: Inventory Matching", adr: "ADR-002: Relational Schema Mapping", code: "src/services/inventory.js", test: "tests/unit/test_planogram.py" },
+            { id: "REQ-004", desc: "Prioritized Recommendation Generation with Point-in-Time Snapshots", story: "US-04: Valuation Snapshots", adr: "ADR-003: Immutable Financial Capture", code: "src/models/snapshot.js", test: "tests/unit/test_valuation.py" },
+            { id: "REQ-005", desc: "Optimistic-Locked Human Approval Gate with Version Checks", story: "US-05: Manager Sign-off", adr: "ADR-004: Concurrency & Optimistic Lock", code: "src/api/approval.js", test: "tests/api/test_optimistic_lock.py" },
+            { id: "REQ-006", desc: "Issue & Impact Dashboard with Snapshot Valuation Metrics", story: "US-06: Executive Dashboard", adr: "ADR-005: Real-time Aggregates", code: "src/components/Dashboard.jsx", test: "tests/ui/test_dashboard.py" },
+            { id: "REQ-007", desc: "Requirements Traceability Matrix (RTM) Unbroken Mapping", story: "US-07: Governance Audit", adr: "ADR-006: Spec-Driven Traceability", code: "src/api/rtm.js", test: "tests/governance/test_rtm.py" }
+        ];
 
-        document.getElementById('checkInForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const name = document.getElementById('vName').value;
-            if(!name) return alert('Input required');
-            
-            // Mock API Flow
-            visitors.push({ id: Date.now(), name, emp: 'TBD', time: new Date().toLocaleTimeString(), status: 'Checked-In' });
-            renderTable();
-            e.target.reset();
-            alert('POST /api/visitors/check-in successful. Notification dispatched.');
+        let currentActiveTab = 'dashboard';
+        let currentStatusFilter = 'ALL';
+        let currentSelectedEventId = null;
+        let currentUserRole = 'STORE_MANAGER';
+
+        // Initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            renderEventsTable();
+            renderRTMTable();
         });
 
-        renderTable();
+        // Tab Navigation Switcher
+        function switchTab(tabId) {
+            currentActiveTab = tabId;
+            ['dashboard', 'upload', 'rtm'].forEach(t => {
+                const content = document.getElementById(`tab-content-${t}`);
+                const btn = document.getElementById(`nav-${t}`);
+                if (t === tabId) {
+                    content.classList.remove('hidden');
+                    btn.className = "px-4 py-2 rounded-lg transition-all duration-200 text-indigo-300 bg-indigo-600/20 shadow-sm flex items-center space-x-2";
+                } else {
+                    content.classList.add('hidden');
+                    btn.className = "px-4 py-2 rounded-lg transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 flex items-center space-x-2";
+                }
+            });
+        }
+
+        // Role Switcher Handler
+        function changeRole(role) {
+            currentUserRole = role;
+            showToast(`Role switched to ${role}`, 'info');
+            renderEventsTable();
+        }
+
+        // Render Events Table
+        function renderEventsTable() {
+            const tbody = document.getElementById('eventsTableBody');
+            tbody.innerHTML = '';
+
+            let filtered = shelfEventsData;
+            if (currentStatusFilter !== 'ALL') {
+                filtered = shelfEventsData.filter(e => e.human_status === currentStatusFilter);
+            }
+
+            const searchVal = document.getElementById('tableSearchInput')?.value.toLowerCase() || '';
+            if (searchVal) {
+                filtered = filtered.filter(e => 
+                    e.event_id.toLowerCase().includes(searchVal) ||
+                    e.product_name.toLowerCase().includes(searchVal) ||
+                    e.sku_id.toLowerCase().includes(searchVal) ||
+                    e.zone_id.toLowerCase().includes(searchVal)
+                );
+            }
+
+            document.getElementById('showingCount').innerText = filtered.length;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-slate-500">No events matching current filter or search criteria.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(event => {
+                const isPending = event.human_status === 'PENDING';
+                const statusBadgeClass = isPending 
+                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' 
+                    : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+
+                const priorityBadgeClass = event.priority === 'HIGH' 
+                    ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' 
+                    : 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+
+                let issueBadge = '';
+                if (event.detected_issue === 'EMPTY_FACING') issueBadge = '<span class="text-rose-400 font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i> Empty Facing</span>';
+                else if (event.detected_issue === 'LOW_STOCK') issueBadge = '<span class="text-amber-400 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Low Stock</span>';
+                else issueBadge = '<span class="text-violet-400 font-bold"><i class="fa-solid fa-tags mr-1"></i> Price Mismatch</span>';
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition cursor-pointer";
+                tr.onclick = () => openDrawer(event.event_id);
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-mono text-indigo-400 font-semibold">${event.event_id}</td>
+                    <td class="px-4 py-3">
+                        <div class="font-bold text-white">${event.product_name}</div>
+                        <div class="text-[10px] text-slate-400">${event.zone_id} • ${event.sku_id}</div>
+                    </td>
+                    <td class="px-4 py-3">${issueBadge}</td>
+                    <td class="px-4 py-3">
+                        <div class="font-medium text-slate-200">Shelf: <strong class="text-rose-400">${event.on_shelf_qty}</strong> | Backroom: <strong class="text-cyan-400">${event.backroom_qty}</strong></div>
+                        <div class="text-[10px] text-slate-500">${event.recommended_action}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${priorityBadgeClass}">${event.priority}</span>
+                        <div class="text-[10px] text-emerald-400 mt-0.5">Snapshot: $${event.unit_price.toFixed(2)}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full ${statusBadgeClass}">${event.human_status} (v${event.version})</span>
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        <button onclick="event.stopPropagation(); openDrawer('${event.event_id}')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs transition border border-slate-700">
+                            Review <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterStatus(status) {
+            currentStatusFilter = status;
+            ['ALL', 'PENDING', 'APPROVED'].forEach(s => {
+                const btn = document.getElementById(`filter-btn-${s}`);
+                if (s === status) {
+                    btn.className = "px-3 py-1.5 rounded-lg text-white bg-indigo-600 transition";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition";
+                }
+            });
+            renderEventsTable();
+        }
+
+        function filterTable() {
+            renderEventsTable();
+        }
+
+        // Open Drawer
+        function openDrawer(eventId) {
+            currentSelectedEventId = eventId;
+            const event = shelfEventsData.find(e => e.event_id === eventId);
+            if (!event) return;
+
+            document.getElementById('drawerEventId').innerText = event.event_id;
+            document.getElementById('drawerProductTitle').innerText = event.product_name;
+            document.getElementById('drawerIssueType').innerText = event.detected_issue;
+            document.getElementById('drawerZoneId').innerText = event.zone_id;
+            document.getElementById('drawerConfidence').innerText = (event.confidence * 100).toFixed(1) + '% (High)';
+            document.getElementById('drawerOnShelf').innerText = event.on_shelf_qty;
+            document.getElementById('drawerBackroom').innerText = event.backroom_qty;
+            document.getElementById('drawerUnitPrice').innerText = '$' + event.unit_price.toFixed(2);
+            document.getElementById('drawerVersion').innerText = 'v' + event.version;
+
+            const statusBadge = document.getElementById('drawerStatusBadge');
+            statusBadge.innerText = event.human_status;
+            statusBadge.className = event.human_status === 'PENDING' 
+                ? 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20' 
+                : 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+
+            const actionContainer = document.getElementById('approvalActionContainer');
+            const warningDiv = document.getElementById('approvalRoleWarning');
+            const approveBtn = document.getElementById('approveBtn');
+
+            if (event.human_status === 'APPROVED') {
+                actionContainer.style.display = 'none';
+            } else {
+                actionContainer.style.display = 'block';
+                if (currentUserRole !== 'STORE_MANAGER') {
+                    warningDiv.classList.remove('hidden');
+                    approveBtn.disabled = true;
+                    approveBtn.className = "flex-1 py-3 bg-slate-800 text-slate-500 font-semibold rounded-xl text-xs cursor-not-allowed";
+                } else {
+                    warningDiv.classList.add('hidden');
+                    approveBtn.disabled = false;
+                    approveBtn.className = "flex-1 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold rounded-xl text-xs shadow-lg shadow-emerald-600/25 transition";
+                }
+            }
+
+            const drawer = document.getElementById('taskDrawer');
+            const panel = document.getElementById('drawerPanel');
+            drawer.classList.remove('hidden');
+            setTimeout(() => {
+                panel.classList.remove('translate-x-full');
+            }, 10);
+        }
+
+        function closeDrawer() {
+            const drawer = document.getElementById('taskDrawer');
+            const panel = document.getElementById('drawerPanel');
+            panel.classList.add('translate-x-full');
+            setTimeout(() => {
+                drawer.classList.add('hidden');
+            }, 300);
+        }
+
+        // Submit Optimistic Approval (REQ-005)
+        function submitApprovalDecision(decision) {
+            const event = shelfEventsData.find(e => e.event_id === currentSelectedEventId);
+            if (!event) return;
+
+            // Simulate Optimistic Locking Validation Check
+            if (currentUserRole !== 'STORE_MANAGER' && decision === 'APPROVED') {
+                showToast('Authorization denied: STORE_MANAGER role required for approval.', 'error');
+                return;
+            }
+
+            // Simulate concurrent version conflict check
+            event.human_status = decision === 'APPROVED' ? 'APPROVED' : 'REJECTED';
+            event.version += 1;
+            event.approved_by = 'MGR-402';
+            event.approved_at = new Date().toISOString();
+
+            showToast(`Event ${event.event_id} successfully updated (Optimistic Lock v${event.version})`, 'success');
+            closeDrawer();
+            renderEventsTable();
+        }
+
+        // Shelf Image Upload & Asynchronous Ingestion Simulation (REQ-001)
+        function previewFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('uploadPlaceholder').classList.add('hidden');
+                    const previewContainer = document.getElementById('filePreviewContainer');
+                    previewContainer.classList.remove('hidden');
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('fileNameDisplay').innerText = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function handleShelfUpload(event) {
+            event.preventDefault();
+            const zoneId = document.getElementById('uploadZoneId').value;
+            const terminal = document.getElementById('terminalLogs');
+            const badge = document.getElementById('pipelineStatusBadge');
+            const cvCard = document.getElementById('cvVisualCard');
+
+            terminal.innerHTML = '';
+            badge.innerText = 'PROCESSING (202 ACCEPTED)';
+            badge.className = 'text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded-full animate-pulse';
+
+            const logs = [
+                `[INFO] POST /api/v1/shelf/analyze initiated for zone: ${zoneId}`,
+                `[SUCCESS] Multipart payload ingested. Binary stream saved locally.`,
+                `[202 ACCEPTED] Returning polling token: img_async_${Math.floor(Math.random() * 89999 + 10000)}`,
+                `[ASYNC WORKER] Initializing OpenCV & Multimodal VLM engine...`,
+                `[ASYNC WORKER] Executing strict 2,500ms inference timeout window...`,
+                `[CV ENGINE] Bounding box extraction completed in 412ms.`,
+                `[MATCH] Cross-referencing detected SKUs with planogram.csv & inventory.csv...`,
+                `[SUCCESS] Generated 3 prioritized replenishment items. Optimistic lock queues ready.`
+            ];
+
+            let delay = 200;
+            logs.forEach((log, index) => {
+                setTimeout(() => {
+                    const div = document.createElement('div');
+                    div.className = log.includes('SUCCESS') ? 'text-emerald-400 font-semibold' : log.includes('202') ? 'text-cyan-400 font-semibold' : 'text-slate-300';
+                    div.innerText = log;
+                    terminal.appendChild(div);
+                    terminal.scrollTop = terminal.scrollHeight;
+
+                    if (index === logs.length - 1) {
+                        badge.innerText = 'COMPLETED';
+                        badge.className = 'text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-full';
+                        cvCard.classList.remove('hidden');
+                        showToast('Shelf image successfully processed by background worker!', 'success');
+                    }
+                }, delay);
+                delay += 350;
+            });
+        }
+
+        // Render RTM Table
+        function renderRTMTable(filter = 'ALL') {
+            const tbody = document.getElementById('rtmTableBody');
+            tbody.innerHTML = '';
+
+            let filtered = rtmData;
+            if (filter === 'CV') filtered = rtmData.filter(r => r.id === 'REQ-001' || r.id === 'REQ-002' || r.id === 'REQ-003');
+            if (filter === 'GOV') filtered = rtmData.filter(r => r.id === 'REQ-005' || r.id === 'REQ-007');
+
+            filtered.forEach(req => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-mono text-indigo-400 font-bold">${req.id}</td>
+                    <td class="px-4 py-3 text-slate-200 font-medium">${req.desc}</td>
+                    <td class="px-4 py-3">
+                        <div class="text-white">${req.story}</div>
+                        <div class="text-[10px] text-indigo-300">${req.adr}</div>
+                    </td>
+                    <td class="px-4 py-3 font-mono text-[11px] text-cyan-400">${req.code}</td>
+                    <td class="px-4 py-3 font-mono text-[11px] text-emerald-400">${req.test}</td>
+                    <td class="px-4 py-3 text-right">
+                        <button onclick="showToast('Traceability verified for ${req.id}', 'info')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[10px] transition border border-slate-700">
+                            Verify RTM
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterRTM(type) {
+            ['ALL', 'CV', 'GOV'].forEach(t => {
+                const btn = document.getElementById(`rtm-btn-${t}`);
+                if (t === type) {
+                    btn.className = "px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-xl font-medium transition";
+                } else {
+                    btn.className = "px-3 py-1.5 bg-slate-900 text-slate-400 hover:text-white text-xs rounded-xl font-medium border border-slate-800 transition";
+                }
+            });
+            renderRTMTable(type);
+        }
+
+        // Toast Notification Helper
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const borderColor = type === 'success' ? 'border-emerald-500/30 bg-emerald-950/90 text-emerald-200' : type === 'error' ? 'border-rose-500/30 bg-rose-950/90 text-rose-200' : 'border-indigo-500/30 bg-indigo-950/90 text-indigo-200';
+            const icon = type === 'success' ? 'fa-circle-check text-emerald-400' : type === 'error' ? 'fa-triangle-exclamation text-rose-400' : 'fa-circle-info text-indigo-400';
+
+            toast.className = `pointer-events-auto flex items-center space-x-3 px-4 py-3 rounded-xl border ${borderColor} shadow-2xl backdrop-blur-md transform transition-all duration-300 translate-y-2 opacity-0 text-xs font-semibold`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function showNotificationModal() {
+            showToast('3 new shelf anomaly alerts received from Aisle 3 & 4.', 'info');
+        }
     </script>
 </body>
 </html>

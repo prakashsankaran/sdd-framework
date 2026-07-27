@@ -2,75 +2,183 @@
   "spreadsheet": [
     {
       "id": 1,
-      "summary": "JIRA-001: Implement PostgreSQL RLS and Auth Context",
-      "description": "Configure PostgreSQL Row-Level Security policies on the VisitHistory and Employees tables. Ensure the application middleware correctly sets 'app.current_user_id' per session to enforce data isolation and mitigate BOLA vulnerabilities.",
+      "summary": "JIRA-001: Initialize repository structure and base shells",
+      "description": "Set up Next.js frontend application (App Router), backend API service (FastAPI), configure Tailwind CSS, and UI component libraries.",
       "issueType": "Task",
       "priority": "High",
-      "storyPoints": 8,
-      "labels": "Backend, Security, Database"
+      "storyPoints": 3,
+      "labels": "setup, frontend, backend"
     },
     {
       "id": 2,
-      "summary": "JIRA-002: User Story - Visitor Registration & Check-in",
-      "description": "As a Receptionist, I want to register visitors and capture photos via presigned S3 URLs so that we have a secure, digital record of every visitor. Includes validation against 'idx_unique_active_visitor_mobile'.",
-      "issueType": "Story",
-      "priority": "High",
-      "storyPoints": 5,
-      "labels": "Frontend, Backend, Feature"
+      "summary": "JIRA-002: Initialize Spec Kit and LangGraph multi-agent workspace",
+      "description": "Create initial markdown specs, stories, acceptance criteria, and configure LangGraph agent scaffolding for the 6-agent cockpit.",
+      "issueType": "Task",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "spec-kit, langgraph, architecture"
     },
     {
       "id": 3,
-      "summary": "JIRA-003: Implement Double-Token Authentication",
-      "description": "Develop auth middleware utilizing the Double-Token pattern: 15-minute JWT Access Tokens and HttpOnly, Secure, SameSite=Strict Refresh Token cookies to ensure secure session management.",
+      "summary": "JIRA-003: Populate synthetic CSV datasets",
+      "description": "Populate products.csv, inventory.csv, planogram.csv, and shelf_events.csv initial datasets for data hydration.",
       "issueType": "Task",
       "priority": "High",
-      "storyPoints": 5,
-      "labels": "Security, Auth"
+      "storyPoints": 2,
+      "labels": "data, seeding"
     },
     {
       "id": 4,
-      "summary": "JIRA-004: Develop Nightly PII Anonymization Worker",
-      "description": "Create a background task to identify records older than 30 days and redact/anonymize PII fields in the database to comply with data privacy mandates.",
+      "summary": "JIRA-004: Configure database connection and DDL schemas",
+      "description": "Create products, inventory, planogram, shelf_events, audit_logs, and traceability_matrix tables using SQLite / PostgreSQL with performance indexes.",
       "issueType": "Task",
-      "priority": "Medium",
-      "storyPoints": 3,
-      "labels": "Backend, Compliance"
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "database, backend, ddl"
     },
     {
       "id": 5,
-      "summary": "JIRA-005: User Story - Employee Portal History View",
-      "description": "As an Employee, I want to view logs of my past visitors through my portal so I can maintain awareness of my departmental activity. Data must be filtered by my specific user_id context.",
-      "issueType": "Story",
+      "summary": "JIRA-005: Implement CSV data seed startup scripts",
+      "description": "Write automated startup script to load CSV seed data into relational database tables upon application initialization.",
+      "issueType": "Task",
       "priority": "Medium",
       "storyPoints": 3,
-      "labels": "Frontend, UserPortal"
+      "labels": "database, backend"
     },
     {
       "id": 6,
-      "summary": "JIRA-006: Admin CRUD for Employees and Visitor Types",
-      "description": "Create secure admin endpoints to manage employee 'is_active' status and configure global visitor type dropdown labels.",
+      "summary": "JIRA-006: REQ-001 Asynchronous Shelf Image Upload & Ingestion",
+      "description": "Build multipart form-data upload endpoint supporting image/jpeg and image/png, zone ID, and associate ID validation. Return 202 Accepted with QUEUED status and polling URI.",
       "issueType": "Story",
-      "priority": "Medium",
-      "storyPoints": 3,
-      "labels": "Admin, Backend"
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "api, cv, ingestion"
     },
     {
       "id": 7,
-      "summary": "JIRA-007: Setup Async Notification Microtask Queue",
-      "description": "Implement a non-blocking notification dispatch system that triggers upon successful visitor check-in to ensure API response times remain under 2 seconds.",
+      "summary": "JIRA-007: Implement Data Privacy Masking Utility",
+      "description": "Implement privacy masking / face-blurring utility to strip potential customer or associate faces from captured shelf images before persistent storage.",
       "issueType": "Task",
-      "priority": "Medium",
-      "storyPoints": 5,
-      "labels": "Backend, Performance"
+      "priority": "High",
+      "storyPoints": 3,
+      "labels": "security, privacy, governance"
     },
     {
       "id": 8,
-      "summary": "JIRA-008: Bug - Missing S3 Lifecycle Configuration",
-      "description": "S3 bucket files are currently retained indefinitely. Configure S3 Lifecycle policies to automatically purge media files after 14 days per compliance mandate.",
+      "summary": "JIRA-008: REQ-002 Shelf Gap & Anomaly Detection with Graceful Degradation",
+      "description": "Create service to simulate shelf gap detection, bounding boxes, and OCR price-label comparison within 2,500ms timeout with fallback to synthetic anomaly records.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 8,
+      "labels": "cv, ocr, ai"
+    },
+    {
+      "id": 9,
+      "summary": "JIRA-009: REQ-003 Planogram & Inventory Cross-Reference",
+      "description": "Build matching engine utilizing B-tree indexes to correlate detected SKU against planogram expected facings and inventory on-shelf/backroom quantities.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "inventory, planogram, backend"
+    },
+    {
+      "id": 10,
+      "summary": "JIRA-010: REQ-004 Prioritized Recommendation Generation with Point-in-Time Snapshots",
+      "description": "Implement recommendation scoring algorithm based on unit price, velocity, and stock status, capturing immutable point-in-time financial snapshots.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "recommendations, snapshot, analytics"
+    },
+    {
+      "id": 11,
+      "summary": "JIRA-011: REQ-005 Optimistic-Locked Human-in-the-Loop Approval Gate",
+      "description": "Create task approval endpoint enforcing conditional version matching (409 Conflict on mismatch), incrementing version, and writing immutable entries to audit_logs.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "workflow, approval, security"
+    },
+    {
+      "id": 12,
+      "summary": "JIRA-012: REQ-006 & REQ-007 Issue Impact Dashboard & Traceability APIs",
+      "description": "Expose endpoints for aggregated time-series event metrics with snapshot valuation and requirement traceability matrix mapping (REQ-001 through REQ-008).",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "api, dashboard, traceability"
+    },
+    {
+      "id": 13,
+      "summary": "JIRA-013: Build Navigation, Layout Shell & Component Library",
+      "description": "Create top navigation bar, sidebar routing, drag-and-drop file uploader, bounding box overlay component, and recommendation task action cards.",
+      "issueType": "Task",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "frontend, ui, components"
+    },
+    {
+      "id": 14,
+      "summary": "JIRA-014: Build Store Associate / Manager Dashboard Page",
+      "description": "Develop dashboard displaying summary metrics for shelf issues, out-of-stock items, recovery impact, and active task review queue.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "frontend, dashboard, ui"
+    },
+    {
+      "id": 15,
+      "summary": "JIRA-015: Build Shelf Inspection & Upload Page",
+      "description": "Implement end-to-end frontend flow for uploading shelf images, running analysis, viewing AI detection results, and triggering recommendations.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "frontend, upload, inspection"
+    },
+    {
+      "id": 16,
+      "summary": "JIRA-016: Build SDLC Cockpit & Traceability Page",
+      "description": "Create interactive LangGraph agent timeline view and full requirement traceability click-through tree linking requirements to code and test paths.",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "frontend, traceability, sdlc"
+    },
+    {
+      "id": 17,
+      "summary": "JIRA-017: Build Governance & Audit Log Panel",
+      "description": "Develop governance view displaying compliance checklist, human approval audit trail, privacy notes, and model limitation warnings.",
+      "issueType": "Story",
+      "priority": "Low",
+      "storyPoints": 3,
+      "labels": "frontend, governance, audit"
+    },
+    {
+      "id": 18,
+      "summary": "JIRA-018: Implement Pytest Unit & Integration Test Suites",
+      "description": "Write comprehensive unit tests for image upload workflow, shelf gap detection, backroom inventory check, human approval gate, and traceability link integrity.",
+      "issueType": "Task",
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "testing, pytest, qa"
+    },
+    {
+      "id": 19,
+      "summary": "JIRA-019: End-to-End Demo Polish, ADR Documentation & Antigravity Evidence Pack",
+      "description": "Verify happy path execution, generate ADR documents, bundle Google Antigravity artifacts (code diffs, browser recordings), and record fallback demo video.",
+      "issueType": "Task",
+      "priority": "High",
+      "storyPoints": 3,
+      "labels": "documentation, demo, packaging"
+    },
+    {
+      "id": 20,
+      "summary": "JIRA-020: Resolve Optimistic Locking Race Condition on Rapid Task Approvals",
+      "description": "Fix edge case where simultaneous manager requests bypass version check under high concurrency, ensuring strict 409 Conflict response.",
       "issueType": "Bug",
       "priority": "High",
       "storyPoints": 2,
-      "labels": "Infrastructure, Compliance"
+      "labels": "bug, concurrency, backend"
     }
   ]
 }

@@ -4,12 +4,11 @@ Status: **100% Traceability Coverage Traceability Coverage Achieved**
 
 | Requirement ID (FSD) | User Story ID (JIRA) | Tech Spec Section | Database Tables | Test Case IDs |
 | --- | --- | --- | --- | --- |
-| FR-01 | US-001: Visitor Registration | Section 4.1: POST /api/visitors/check-in, Section 5: VisitHistory table | Visitors, VisitHistory | TC-REG-01, TC-REG-02 |
-| FR-02 | US-002: Check-In Logic | Section 2.2: Flow 1, Section 5: Constraints & Triggers | VisitHistory | TC-CI-01, TC-CI-02 |
-| FR-03 | US-003: Async Notifications | Section 4.1: Async notification dispatch, Section 6: Performance | N/A (External Email/Queue) | TC-NOT-01 |
-| FR-04 | US-004: Search Functionality | Section 3.4: Filtered search query logic | Visitors, VisitHistory | TC-SRCH-01 |
-| FR-05 | US-005: Reporting | Section 4.3: GET /api/reports/export | VisitHistory | TC-REP-01 |
-| FR-06 | US-006: Admin Employee CRUD | Section 2.2: Flow 3, Section 5: Employees Table | Employees | TC-ADM-01, TC-ADM-02 |
-| FR-07 | US-007: Visitor Type Management | Section 3.7: Admin configuration | VisitorTypes | TC-ADM-03 |
-| FR-08 | US-008: Employee Portal | Section 6: Hybrid Authorization, Section 4.8 | VisitHistory, Employees | TC-PORTAL-01 |
-| SEC-01 | US-009: Security & Compliance | Section 6: RLS, S3 Lifecycle, PII Anonymization | Audit_Logs, VisitHistory | TC-SEC-01, TC-SEC-02, TC-SEC-03 |
+| REQ-001 | US-01 | Section 3.1 & 4.1: Asynchronous Shelf Image Upload & Ingestion | shelf_events, audit_logs | test_upload_image, test_analysis.py |
+| REQ-002 | US-02 | Section 3.2 & ADR-001: Shelf Gap & Anomaly Detection with Graceful Degradation | shelf_events | test_detect_empty_facing, test_analysis.py |
+| REQ-003 | US-03 | Section 3.3: Planogram & Inventory Cross-Reference | products, inventory, planogram | test_inventory_service.py, test_backroom_available |
+| REQ-004 | US-04 | Section 3.4: Prioritized Recommendation Generation with Point-in-Time Snapshots | shelf_events, products | test_inventory.py, test_recommendation_scoring |
+| REQ-005 | US-05 | Section 3.5 & 4.2: Optimistic-Locked Human-in-the-Loop Approval Gate | shelf_events, audit_logs | test_pending_until_approved, test_optimistic_lock_conflict |
+| REQ-006 | US-06 | Section 3.6: Issue & Impact Dashboard with Snapshot Valuation | shelf_events, products, inventory | test_dashboard_metrics.py |
+| REQ-007 | US-07 | Section 3.7 & 4.3: Requirements Traceability Matrix (RTM) | traceability_matrix | test_trace_links_exist, test_traceability.py |
+| REQ-008 | US-08 | Section 3.8: Automated Artifact Generation | audit_logs, traceability_matrix | test_artifact_bundler.py |

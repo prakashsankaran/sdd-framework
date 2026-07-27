@@ -1,78 +1,817 @@
-<div style="background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px;">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShelfGuard AI — Comprehensive QA Strategy & Test Artifacts</title>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --border-color: #334155;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --accent-indigo: #6366f1;
+            --accent-cyan: #22d3ee;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --badge-bg: rgba(34, 211, 238, 0.1);
+        }
 
-    <h1 style="color: #6366f1; border-bottom: 2px solid #6366f1; padding-bottom: 10px;">QA Strategy & Engineering Blueprint: Visitor Management System</h1>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    <div style="background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-        <h2 style="color: #22d3ee;">1. Test Strategy Summary</h2>
-        <p><strong>Objective:</strong> Ensure 100% data integrity, secure PII handling, and strict compliance with the defense-in-depth architecture.</p>
-        <p><strong>Approach:</strong> Shift-left testing with automated contract testing for APIs (Pact), RLS policy verification, and automated PII anonymization validation. Performance testing focuses on sub-2s response latency under simulated load.</p>
-        <p><strong>Entry Criteria:</strong> API contract definitions approved, Mock S3 service available, Auth service configured.</p>
-        <p><strong>Exit Criteria:</strong> 100% pass rate on P1/P2 test cases, all security vulnerabilities (CRITICAL/HIGH) resolved, performance benchmarks met.</p>
-    </div>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2rem;
+        }
 
-    <div style="background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-        <h2 style="color: #22d3ee;">2. Detailed Test Cases</h2>
-        <table style="width: 100%; border-collapse: collapse; color: #e2e8f0; font-size: 0.9em;">
-            <thead>
-                <tr style="background: #334155;">
-                    <th style="padding: 12px; border: 1px solid #475569;">TC ID</th>
-                    <th style="padding: 12px; border: 1px solid #475569;">Req ID</th>
-                    <th style="padding: 12px; border: 1px solid #475569;">Scenario</th>
-                    <th style="padding: 12px; border: 1px solid #475569;">Priority</th>
-                    <th style="padding: 12px; border: 1px solid #475569;">Expected Result</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #475569;">TC-001</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">FR-01</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">Unique mobile constraint for active visits</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">P0</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">DB rejects duplicate mobile for active session</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #475569;">TC-002</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">SEC-01</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">Verify RLS enforcement on API</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">P0</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">User cannot access records owned by others</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #475569;">TC-003</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">SEC-02</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">S3 Presigned URL expiration</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">P1</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">Upload fails after URL lifetime</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+        header {
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
 
-    <div style="background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-        <h2 style="color: #22d3ee;">3. Specialized Test Suites</h2>
+        .meta-badge {
+            display: inline-block;
+            background: var(--badge-bg);
+            color: var(--accent-cyan);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+            border: 1px solid rgba(34, 211, 238, 0.3);
+        }
+
+        h1 {
+            color: var(--accent-indigo);
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        h2 {
+            color: var(--accent-indigo);
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-top: 3rem;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h3 {
+            color: var(--accent-cyan);
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        h4 {
+            color: var(--text-main);
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        ul, ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        strong {
+            color: #fff;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-bottom: 2rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-card);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        th, td {
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: rgba(15, 23, 42, 0.7);
+            color: var(--accent-cyan);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: rgba(51, 65, 85, 0.3);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .tag-p1 { background: rgba(244, 63, 94, 0.2); color: var(--accent-rose); border: 1px solid rgba(244, 63, 94, 0.4); }
+        .tag-p2 { background: rgba(245, 158, 11, 0.2); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.4); }
+        .tag-p3 { background: rgba(16, 185, 129, 0.2); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.4); }
+
+        .tag-type { background: rgba(99, 102, 241, 0.2); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.4); }
+
+        .status-badge {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        footer {
+            margin-top: 4rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <span class="meta-badge">Principal QA Architect & Senior Test Engineer Artifact</span>
+        <h1>ShelfGuard AI — Test Strategy & Test Cases Specification</h1>
+        <p class="subtitle">Enterprise Computer Vision Copilot, SDLC Traceability, and Non-Blocking Ingestion Pipeline Test Architecture</p>
+    </header>
+
+    <!-- SECTION 1: Test Strategy Summary -->
+    <section>
+        <h2>1. Test Strategy Summary</h2>
         
-        <h3 style="color: #6366f1;">Security & Privacy Testing</h3>
-        <ul>
-            <li><strong>BOLA/IDOR:</strong> Attempt accessing `/api/visitors/{id}` with a token from a different department.</li>
-            <li><strong>PII Anonymization:</strong> Verify nightly batch job correctly scrubs DB fields older than 30 days.</li>
-            <li><strong>Token Handling:</strong> Verify refresh token rotation and HttpOnly cookie attributes.</li>
-        </ul>
+        <div class="card">
+            <h3>1.1 Scope</h3>
+            <p>The scope encompasses end-to-end functional verification, non-blocking asynchronous queuing behavior, computer vision timeout handling (2,500ms SLA), graceful degradation mechanisms, optimistic concurrency control (version locking), database DDL constraints, role-based access control (RBAC), transport encryption (TLS 1.3), data privacy masking, and the automated Requirements Traceability Matrix (RTM) engine.</p>
+        </div>
 
-        <h3 style="color: #6366f1;">Performance & Boundary Testing</h3>
-        <ul>
-            <li><strong>Constraint Stress:</strong> Attempt visit duration > 480 minutes (Expect 400 Bad Request).</li>
-            <li><strong>Chronology:</strong> Ensure check_out time cannot be earlier than check_in time (DB Trigger check).</li>
-            <li><strong>SLA Monitoring:</strong> Measure 95th percentile response time for `GET /api/reports/export`.</li>
-        </ul>
-    </div>
+        <div class="card">
+            <h3>1.2 Objectives</h3>
+            <ul>
+                <li>Validate that asynchronous payload ingestion correctly processes multipart uploads and returns immediate `202 Accepted` queue tokens.</li>
+                <li>Ensure strict adherence to computer vision processing constraints, including 2,500ms timeout boundaries and fallback synthetic event loading.</li>
+                <li>Verify absolute data integrity under race conditions using SQL optimistic locking (`WHERE version = :v`) during store manager approvals.</li>
+                <li>Guarantee robust security enforcement across RBAC roles, facial anonymization pre-processing, and append-only audit log immutability.</li>
+            </ul>
+        </div>
 
-    <div style="background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px;">
-        <h2 style="color: #22d3ee;">4. Execution Plan</h2>
-        <ul style="list-style: none;">
-            <li><span style="color: #6366f1;">✔ Smoke:</span> Critical paths (Check-in flow, Auth).</li>
-            <li><span style="color: #6366f1;">✔ Sanity:</span> Emp portal access and notification dispatch.</li>
-            <li><span style="color: #6366f1;">✔ Regression:</span> Full suite including RLS policy edge cases and audit log integrity.</li>
-        </ul>
-    </div>
+        <div class="grid-2">
+            <div class="card">
+                <h3>1.3 Entry Criteria</h3>
+                <ul>
+                    <li>Approved functional specification (`spec_v2.md`) and database DDL schema.</li>
+                    <li>Successful deployment of the test environment containers and initial seed datasets (`products.csv`, `inventory.csv`, `planogram.csv`, `shelf_events.csv`).</li>
+                    <li>Passing static code analysis and schema validation reports.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>1.4 Exit Criteria</h3>
+                <ul>
+                    <li>100% execution of P1 (Critical) and P2 (High) test cases with 0 unmitigated defects.</li>
+                    <li>Automated test suite passing rate &ge; 98% across unit, integration, and security suites.</li>
+                    <li>Complete mapping verification across all RTM nodes (`REQ-001` through `REQ-008`).</li>
+                </ul>
+            </div>
+        </div>
 
-</div>
+        <div class="card">
+            <h3>1.5 Test Approach & Levels</h3>
+            <p>A multi-layered test pyramid approach is enforced:</p>
+            <ul>
+                <li><strong>Unit Testing:</strong> Isolated validation of detection algorithms, database schema constraints, and priority scoring functions.</li>
+                <li><strong>Integration Testing:</strong> API endpoint verification, asynchronous worker queue dispatching, and relational cross-referencing against planograms and inventories.</li>
+                <li><strong>System & End-to-End (E2E) Testing:</strong> Simulated store associate uploads through manager approval workflows and impact dashboard snapshot aggregations.</li>
+                <li><strong>Non-Functional Testing:</strong> Security penetration checks, TLS 1.3 verification, concurrency race-condition testing, and CV timeout resiliency testing.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>1.6 Defect Management & Risk Matrix</h3>
+            <ul>
+                <li><strong>Defect Severity Levels:</strong> P1-Blocker (System crash, data corruption, security bypass), P2-Critical (Core feature failure without workaround, CV timeout violation), P3-Major (UI metric drift, minor validation discrepancy), P4-Minor (Cosmetic formatting).</li>
+                <li><strong>Key Risks & Mitigations:</strong> 
+                    <ul>
+                        <li><em>Risk:</em> CV inference latency exceeding 2,500ms window during peak hours.<br><em>Mitigation:</em> Automated graceful degradation fallback testing injecting pre-seeded synthetic anomalies.</li>
+                        <li><em>Risk:</em> Race conditions during simultaneous store manager approvals.<br><em>Mitigation:</em> Rigorous concurrency testing targeting optimistic locking version increments and HTTP 409 responses.</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- SECTION 2: Test Environment -->
+    <section>
+        <h2>2. Test Environment</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Environment Name</th>
+                        <th>Build Version</th>
+                        <th>Database Engine</th>
+                        <th>Key Dependencies & Configuration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>QA Staging (E2E)</strong></td>
+                        <td>v2.0.4-rc1</td>
+                        <td>PostgreSQL 15 (AES-256 Enabled)</td>
+                        <td>LangGraph Agent Runtime, Celery Worker Queue, Redis Broker, JWT Auth Service</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Automated CI Pipeline</strong></td>
+                        <td>v2.0.4-ci</td>
+                        <td>SQLite In-Memory (Test Isolation)</td>
+                        <td>Pytest, Testcontainers, Mock VLM Engine, Synthetic Dataset Seed Files</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Security & Performance Lab</strong></td>
+                        <td>v2.0.4-perf</td>
+                        <td>PostgreSQL 15 (Encrypted Storage)</td>
+                        <td>Locust Load Testing Framework, OWASP ZAP Scanner, TLS 1.3 Termination Proxies</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- SECTION 3: Test Scenarios Summary -->
+    <section>
+        <h2>3. High-Level Test Scenarios (Grouped by Module)</h2>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Module 1: Ingestion & Upload (REQ-001)</h3>
+                <ul>
+                    <li><strong>TS-ING-01:</strong> Valid multipart shelf image upload & queue initialization.</li>
+                    <li><strong>TS-ING-02:</strong> File size and dimension boundary validation checks.</li>
+                    <li><strong>TS-ING-03:</strong> Zone ID validation against active planograms.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>Module 2: Computer Vision & Fallback (REQ-002)</h3>
+                <ul>
+                    <li><strong>TS-CV-01:</strong> Successful bounding box detection within 2,500ms SLA.</li>
+                    <li><strong>TS-CV-02:</strong> Graceful degradation fallback on inference timeout (>2,500ms).</li>
+                    <li><strong>TS-CV-03:</strong> Low confidence threshold fallback (&lt;0.70 confidence).</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>Module 3: Cross-Reference & Scoring (REQ-003, REQ-004)</h3>
+                <ul>
+                    <li><strong>TS-REF-01:</strong> Planogram facing and backroom inventory relational cross-matching.</li>
+                    <li><strong>TS-REF-02:</strong> Priority scoring algorithm verification (HIGH vs. MEDIUM).</li>
+                    <li><strong>TS-REF-03:</strong> Point-in-time financial snapshot capture.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>Module 4: Approvals & Audit (REQ-005, REQ-006, REQ-007, REQ-008)</h3>
+                <ul>
+                    <li><strong>TS-GOV-01:</strong> Optimistic locking concurrency enforcement (HTTP 409 Conflict).</li>
+                    <li><strong>TS-GOV-02:</strong> Immutable audit logging on state transitions.</li>
+                    <li><strong>TS-GOV-03:</strong> RTM traceability chain verification.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: Detailed Test Cases -->
+    <section>
+        <h2>4. Detailed Test Cases Matrix</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>TC ID</th>
+                        <th>Req ID</th>
+                        <th>Module</th>
+                        <th>Feature</th>
+                        <th>Priority</th>
+                        <th>Test Type</th>
+                        <th>Objective</th>
+                        <th>Preconditions</th>
+                        <th>Test Data</th>
+                        <th>Steps</th>
+                        <th>Expected Result</th>
+                        <th>Actual Result</th>
+                        <th>Status</th>
+                        <th>Executed By</th>
+                        <th>Execution Date</th>
+                        <th>Automation</th>
+                        <th>Defect ID</th>
+                        <th>Comments</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- TC-001 -->
+                    <tr>
+                        <td><strong>TC-001</strong></td>
+                        <td>REQ-001</td>
+                        <td>Ingestion</td>
+                        <td>Multipart Upload</td>
+                        <td><span class="tag tag-p1">P1 - High</span></td>
+                        <td><span class="tag tag-type">Functional</span></td>
+                        <td>Verify valid shelf image upload returns 202 Accepted and QUEUED token.</td>
+                        <td>Active JWT token, valid zone ID in planogram.</td>
+                        <td>Image: shelf_bay_3.jpg (1.8MB, 1920x1080), Zone: "Aisle-3-Bay-2", Associate: "EMP-1092".</td>
+                        <td>1. POST to `/api/v1/shelf/analyze`<br>2. Attach multipart payload & headers.<br>3. Inspect HTTP response status & body.</td>
+                        <td>HTTP 202 Accepted. JSON contains unique `image_id`, polling URI, and status `QUEUED`.</td>
+                        <td class="status-badge">TBD</td>
+                        <td class="status-badge">Not Run</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>Automated</td>
+                        <td>—</td>
+                        <td>Core ingestion path.</td>
+                    </tr>
+                    <!-- TC-002 -->
+                    <tr>
+                        <td><strong>TC-002</strong></td>
+                        <td>REQ-001</td>
+                        <td>Ingestion</td>
+                        <td>Payload Size Check</td>
+                        <td><span class="tag tag-p2">P2 - Med</span></td>
+                        <td><span class="tag tag-type">Negative</span></td>
+                        <td>Verify payload exceeding 10MB limit is rejected.</td>
+                        <td>Active JWT token.</td>
+                        <td>Image: oversized_shelf.png (12.4MB).</td>
+                        <td>1. POST to `/api/v1/shelf/analyze` with oversized image.<br>2. Check response code.</td>
+                        <td>HTTP 413 Payload Too Large.</td>
+                        <td class="status-badge">TBD</td>
+                        <td class="status-badge">Not Run</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>Automated</td>
+                        <td>—</td>
+                        <td>Resource protection.</td>
+                    </tr>
+                    <!-- TC-003 -->
+                    <tr>
+                        <td><strong>TC-003</strong></td>
+                        <td>REQ-001</td>
+                        <td>Ingestion</td>
+                        <td>Zone Validation</td>
+                        <td><span class="tag tag-p2">P2 - Med</span></td>
+                        <td><span class="tag tag-type">Negative</span></td>
+                        <td>Verify invalid zone ID returns 400 Bad Request.</td>
+                        <td>Active JWT token.</td>
+                        <td>Zone ID: "Invalid-Zone-999".</td>
+                        <td>1. POST to `/api/v1/shelf/analyze` with non-existent zone.<br>2. Check response code.</td>
+                        <td>HTTP 400 Bad Request.</td>
+                        <td class="status-badge">TBD</td>
+                        <td class="status-badge">Not Run</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>Automated</td>
+                        <td>—</td>
+                        <td>Integrity check.</td>
+                    </tr>
+                    <!-- TC-004 -->
+                    <tr>
+                        <td><strong>TC-004</strong></td>
+                        <td>REQ-002</td>
+                        <td>CV Engine</td>
+                        <td>Timeout & Degradation</td>
+                        <td><span class="tag tag-p1">P1 - High</span></td>
+                        <td><span class="tag tag-type">Resiliency</span></td>
+                        <td>Verify graceful degradation fallback loads synthetic records when CV inference times out.</td>
+                        <td>CV model mock configured to delay >2,500ms.</td>
+                        <td>Image ID: `img_timeout_test`.</td>
+                        <td>1. Trigger analysis.<br>2. Simulate CV timeout (>2500ms).<br>3. Inspect background worker logs and generated events.</td>
+                        <td>System triggers fallback mechanism, loading pre-seeded synthetic anomaly records from `shelf_events.csv`.</td>
+                        <td class="status-badge">TBD</td>
+                        <td class="status-badge">Not Run</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>Automated</td>
+                        <td>—</td>
+                        <td>SLA compliance.</td>
+                    </tr>
+                    <!-- TC-005 -->
+                    <tr>
+                        <td><strong>TC-005</strong></td>
+                        <td>REQ-002</td>
+                        <td>CV Engine</td>
+                        <td>Confidence Threshold</td>
+                        <td><span class="tag tag-p2">P2 - Med</span></td>
+                        <td><span class="tag tag-type">Functional</span></td>
+                        <td>Verify low confidence score triggers synthetic fallback.</td>
+                        <td>CV model returning confidence = 0.55.</td>
+                        <td>Image ID: `img_low_conf`.</td>
+                        <td>1. Process image ingestion.<br>2. Evaluate detected confidence score.</td>
+                        <td>Confidence < 0.70 triggers synthetic fallback records.</td>
+                        <td class="status-badge">TBD</td>
+                        <td class="status-badge">Not Run</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>Automated</td>
+                        <td>—</td>
+                        <td>Quality threshold.</td>
+                    </tr>
+                    <!-- TC-006 -->
+                    <tr>
+                        <td><strong>TC-006</strong></td>
+                        <td>REQ-003</td>
+                        <td>Inventory</td>
+                        <td>Cross-Reference</td>
+                        <td><span class="tag tag-p1">P1 - High</span></td>
+                        <td><span class="tag tag-type">Integration</span></td>
+                        <td>Verify detected SKUs correctly cross-reference planogram and inventory tables.</td>
+                        <td>Database seeded with test SKUs, planogram, and inventory.</td>
+                        <td>Detected SKU: `SKU-OAT-01`, Zone: `Aisle-3-Bay-2`.</td>
+                        <td>1. Execute cross-reference service.<br>2. Query enriched event object.</td>
+                        <td>Returns stock differential, expected vs actual facing count, and backroom availability boolean.</td>
+                        <td class="status-badge">TBD</td>
+                        <td class="status-badge">Not Run</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>Automated</td>
+                        <td>—</td>
+                        <td>Core business logic.</td>
+                    </tr>
+                    <!-- TC-007 -->
+                    <tr>
+                        <td><strong>TC-007</strong></td>
+                        <td>REQ-004</td>
+                        <td>Recommendation</td>
+                        <td>Priority Scoring</td>
+                        <td><span class="tag tag-p1">P1 - High</span></td>
+                        <td><span class="tag tag-type">Functional</span></td>
+                        <td>Verify high-priority recommendation is assigned when on-shelf qty is 0 and backroom qty > 0.</td>
+                        <td>Inventory record with `on_shelf_qty = 0`, `backroom_qty = 15`.</td>
+                        <td>SKU: `SKU-MILK-02`.</td>
+                        <td>1. Run recommendation synthesis engine.<br>2. Inspect generated priority and recommendation text.</td>
+                        <td>Assigns `Priority: HIGH`, Recommendation: `"Refill from backroom"`, capturing point-in-time financial snapshot.</td>
+                        <td class="status-badge">TBD</td>
+                        <td class="status-badge">Not Run</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>Automated</td>
+                        <td>—</td>
+                        <td>Algorithmic accuracy.</td>
+                    </tr>
+                    <!-- TC-008 -->
+                    <tr>
+                        <td><strong>TC-008</strong></td>
+                        <td>REQ-005</td>
+                        <td>Approval Gate</td>
+                        <td>Optimistic Locking</td>
+                        <td><span class="tag tag-p1">P1 - High</span></td>
+                        <td><span class="tag tag-type">Concurrency</span></td>
+                        <td>Verify optimistic locking prevents race conditions and returns 409 Conflict on version mismatch.</td>
+                        <td>Event ID `EVT-9001` with `version = 1`.</td>
+                        <td>Approver: `MGR-402`, Decision: `APPROVED`, Expected Version: `0` (stale).</td>
+                        <td>1. POST approval request with stale version `0`.<br>2. Inspect HTTP response status.</td>
+                        <td>HTTP 409 Conflict returned. Database version remains unchanged.</td>
+                        <td class="status-badge">TBD</td>
+                        <td class="status-badge">Not Run</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>Automated</td>
+                        <td>—</td>
+                        <td>Data consistency.</td>
+                    </tr>
+                    <!-- TC-009 -->
+                    <tr>
+                        <td><strong>TC-009</strong></td>
+                        <td>REQ-005</td>
+                        <td>Approval Gate</td>
+                        <td>Audit Logging</td>
+                        <td><span class="tag tag-p1">P1 - High</span></td>
+                        <td><span class="tag tag-type">Governance</span></td>
+                        <td>Verify successful approval writes immutable entry to `audit_logs` table.</td>
+                        <td>Event ID `EVT-9001` with `version = 1`, `STORE_MANAGER` JWT token.</td>
+                        <td>Approver: `MGR-402`, Decision: `APPROVED`, Expected Version: `1`.</td>
+                        <td>1. POST valid approval request.<br>2. Query `audit_logs` table for latest entry matching event ID.</td>
+                        <td>New immutable audit log row created with correct timestamp, actor ID, role, prior state hash, and payload snapshot.</td>
+                        <td class="status-badge">TBD</td>
+                        <td class="status-badge">Not Run</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>Automated</td>
+                        <td>—</td>
+                        <td>Compliance mandate.</td>
+                    </tr>
+                    <!-- TC-010 -->
+                    <tr>
+                        <td><strong>TC-010</strong></td>
+                        <td>REQ-007</td>
+                        <td>Traceability</td>
+                        <td>RTM Retrieval</td>
+                        <td><span class="tag tag-p2">P2 - Med</span></td>
+                        <td><span class="tag tag-type">API</span></td>
+                        <td>Verify traceability matrix endpoint correctly maps requirement ID to code modules, ADRs, and tests.</td>
+                        <td>Traceability table seeded.</td>
+                        <td>Requirement ID: `REQ-002`.</td>
+                        <td>1. GET `/api/v1/traceability/REQ-002`.<br>2. Inspect JSON response schema.</td>
+                        <td>Returns JSON containing requirement description, user story, ADR reference, code modules, test cases, and evidence artifacts.</td>
+                        <td class="status-badge">TBD</td>
+                        <td class="status-badge">Not Run</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>Automated</td>
+                        <td>—</td>
+                        <td>SDLC governance.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- SECTION 5: Negative Test Cases -->
+    <section>
+        <h2>5. Negative Test Cases</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>TC ID</th>
+                        <th>Module</th>
+                        <th>Scenario Description</th>
+                        <th>Test Input</th>
+                        <th>Expected Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>NEG-01</strong></td>
+                        <td>Ingestion</td>
+                        <td>Invalid file extension upload (.txt instead of .jpg/.png)</td>
+                        <td>File: `shelf_scan.txt`, Zone: `Aisle-1-Bay-1`</td>
+                        <td>HTTP 400 Bad Request (Unsupported file format).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>NEG-02</strong></td>
+                        <td>Approval</td>
+                        <td>Store Associate attempting Store Manager approval action</td>
+                        <td>Role: `STORE_ASSOCIATE`, Endpoint: `POST /api/v1/shelf/events/{id}/approve`</td>
+                        <td>HTTP 403 Forbidden (Insufficient permissions).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>NEG-03</strong></td>
+                        <td>Inventory</td>
+                        <td>Negative inventory update attempt violating database CHECK constraints</td>
+                        <td>SQL: `UPDATE inventory SET on_shelf_qty = -5 WHERE sku_id = 'SKU-01'`</td>
+                        <td>Database Integrity Exception (CHECK constraint violation `on_shelf_qty >= 0`).</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- SECTION 6: Boundary Test Cases -->
+    <section>
+        <h2>6. Boundary Test Cases</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>TC ID</th>
+                        <th>Module</th>
+                        <th>Boundary Parameter</th>
+                        <th>Test Value</th>
+                        <th>Expected Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>BND-01</strong></td>
+                        <td>Ingestion</td>
+                        <td>Image Resolution Lower Bound</td>
+                        <td>Resolution: $799 \times 599$ pixels</td>
+                        <td>Rejected with HTTP 422 Unprocessable Entity (Below minimum $800 \times 600$ requirement).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>BND-02</strong></td>
+                        <td>Ingestion</td>
+                        <td>Image Resolution Exact Lower Bound</td>
+                        <td>Resolution: $800 \times 600$ pixels</td>
+                        <td>Accepted successfully (HTTP 202 Queued).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>BND-03</strong></td>
+                        <td>CV Engine</td>
+                        <td>Confidence Score Boundary</td>
+                        <td>Confidence: `0.699` vs `0.700`</td>
+                        <td>`0.699` triggers synthetic fallback; `0.700` proceeds with live inference parsing.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- SECTION 7: Security Test Cases -->
+    <section>
+        <h2>7. Security Test Cases</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>TC ID</th>
+                        <th>Security Domain</th>
+                        <th>Test Objective</th>
+                        <th>Attack Vector / Method</th>
+                        <th>Expected Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>SEC-01</strong></td>
+                        <td>Transport Security</td>
+                        <td>Verify TLS 1.3 enforcement and plaintext rejection</td>
+                        <td>Attempt HTTP connection to API gateway (`http://api.shelfguard.ai/`)</td>
+                        <td>Connection refused or redirected to HTTPS; plaintext HTTP strictly disabled.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SEC-02</strong></td>
+                        <td>Data Privacy</td>
+                        <td>Verify facial anonymization pre-processing filter</td>
+                        <td>Upload test shelf image containing human facial features</td>
+                        <td>Image pre-processing strips/masks faces prior to permanent storage; raw unmasked images not retained.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SEC-03</strong></td>
+                        <td>Synthetic Isolation</td>
+                        <td>Verify isolation of hackathon mock data pipelines</td>
+                        <td>Inspect database connection strings and environment configurations</td>
+                        <td>Strict adherence to `products.csv`, `inventory.csv`, and `planogram.csv`; zero production CCTV or PII ingestion.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- SECTION 8: Performance Test Cases -->
+    <section>
+        <h2>8. Performance Test Cases</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>TC ID</th>
+                        <th>Performance Metric</th>
+                        <th>Load Profile</th>
+                        <th>SLA Threshold</th>
+                        <th>Expected Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>PERF-01</strong></td>
+                        <td>CV Processing Latency</td>
+                        <td>Concurrent ingestion of 50 simultaneous shelf bay images</td>
+                        <td>Strict &le; 2,500ms timeout per inference job</td>
+                        <td>All inference jobs complete within 2,500ms window or trigger graceful degradation fallback without thread blocking.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PERF-02</strong></td>
+                        <td>API Gateway Throughput</td>
+                        <td>100 requests/sec multipart upload load test over 10 minutes</td>
+                        <td>Response time p95 &lt; 200ms for initial `202 Accepted` queue response</td>
+                        <td>Gateway scales asynchronously, returning `202 Accepted` tokens instantly without dropping connections.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- SECTION 9: Test Suites (Regression, Smoke, Sanity) -->
+    <section>
+        <h2>9. Test Execution Suites</h2>
+        <div class="grid-2">
+            <div class="card">
+                <h3>Smoke Test Suite</h3>
+                <p><strong>Purpose:</strong> Rapid sanity check post-deployment.</p>
+                <ul>
+                    <li>TC-001 (Multipart Upload & 202 Accepted)</li>
+                    <li>TC-006 (Inventory Cross-Reference)</li>
+                    <li>SEC-01 (TLS 1.3 Verification)</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>Sanity Test Suite</h3>
+                <p><strong>Purpose:</strong> Targeted validation of recent bug fixes.</p>
+                <ul>
+                    <li>TC-004 (CV Timeout & Degradation)</li>
+                    <li>TC-008 (Optimistic Locking & HTTP 409)</li>
+                    <li>TC-010 (RTM Traceability Endpoint)</li>
+                </ul>
+            </div>
+        </div>
+        <div class="card">
+            <h3>Full Regression Suite</h3>
+            <p><strong>Purpose:</strong> Comprehensive end-to-end verification prior to release sign-off.</p>
+            <ul>
+                <li>Encompasses all Test Cases (TC-001 through TC-010), Negative Tests (NEG-01 to NEG-03), Boundary Tests (BND-01 to BND-03), Security Tests (SEC-01 to SEC-03), and Performance Tests (PERF-01 to PERF-02).</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- SECTION 10: UAT Test Cases -->
+    <section>
+        <h2>10. User Acceptance Testing (UAT) Scenarios</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>UAT ID</th>
+                        <th>Persona</th>
+                        <th>Business Workflow</th>
+                        <th>Acceptance Criteria</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>UAT-01</strong></td>
+                        <td>Store Associate</td>
+                        <td>Capture and submit daily shelf bay audit</td>
+                        <td>Associate successfully uploads aisle photograph via mobile/web interface, receives queue confirmation, and views generated task on floor dashboard.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>UAT-02</strong></td>
+                        <td>Store Manager</td>
+                        <td>Review and approve high-priority restocking work order</td>
+                        <td>Manager reviews out-of-stock alert with point-in-time financial snapshot, verifies backroom stock, and successfully approves task, dispatching replenishment work order.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>UAT-03</strong></td>
+                        <td>Retail IT / AI Governance</td>
+                        <td>Audit trail and traceability inspection</td>
+                        <td>Auditor verifies append-only audit log entries and inspects live RTM mapping requirements to ADRs, source code, and test artifacts.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer>
+        <p>ShelfGuard AI — QA Architecture & Test Strategy Document &bull; Generated per specification `spec_v2.md` &bull; Enterprise Grade Compliance</p>
+    </footer>
+
+</body>
+</html>

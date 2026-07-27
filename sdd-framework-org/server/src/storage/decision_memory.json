@@ -176,5 +176,680 @@
       "Unauthorized data access"
     ],
     "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Transition to Direct-to-Storage Uploads and Asynchronous Processing",
+    "alternatives_rejected": [
+      "Direct binary streaming uploads (POST /api/v1/shelf/upload)",
+      "Synchronous processing on primary worker threads"
+    ],
+    "reason": "Eliminates direct binary streaming uploads (POST /api/v1/shelf/upload) and synchronous processing on primary worker threads, which caused Out-Of-Memory crashes and network timeouts. Replaces this with a direct-to-storage presigned URL pattern (POST /api/v1/shelf/upload-url) and an asynchronous job model (POST /api/v1/shelf/analyze returning 202 Accepted with polling status states: QUEUED, PROCESSING, COMPLETED, FAILED).",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Tech Stack Standardization on Next.js 14, TypeScript, Prisma, and LangGraph.js",
+    "alternatives_rejected": [
+      "React/Express architecture",
+      "FastAPI sidecar"
+    ],
+    "reason": "Eliminates cross-artifact architectural contradictions between CONSTITUTION.md (React/Express), plan.md (Next.js 14), and RESEARCH_NOTES.md (FastAPI sidecar) to prevent AI agent build confusion and ensure execution consistency.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Lightweight Docker Compose Infrastructure Footprint for MVP",
+    "alternatives_rejected": [
+      "Full Kubernetes deployment",
+      "KEDA autoscaling",
+      "Celery/RabbitMQ"
+    ],
+    "reason": "Deploying full Kubernetes, KEDA autoscaling, and Celery/RabbitMQ during a tight 48-hour sprint introduces excessive operational toil. Standardizing on a stateless Docker Compose footprint (Next.js 14 + MinIO S3 emulator + PostgreSQL) maintains SRE readiness via asynchronous API contracts while ensuring on-time deliverability.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Server-Side Facial Blurring and 24-Hour Image Retention TTL",
+    "alternatives_rejected": [
+      "Client-side face masking",
+      "Long-term storage of raw store footage"
+    ],
+    "reason": "Client-side face masking is easily bypassed via direct API requests, and long-term storage of raw store footage creates severe BIPA/GDPR/CCPA compliance liability. Mandating server-side/edge facial blurring prior to storage and a strict 24-hour TTL auto-purge policy on raw binary files in object storage protects privacy while preserving visual evidence for evaluation and retaining long-term scalar metadata in PostgreSQL.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Data Concurrency Control and Atomic Database Transactions",
+    "alternatives_rejected": [],
+    "reason": "Prevents silent data drift and race conditions during simultaneous restocking approvals and POS updates by enforcing Optimistic Concurrency Control (OCC) via a version INT column on shelf_events and inventory schemas, and wrapping multi-table state updates in atomic prisma.$transaction blocks.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "BOLA Remediation and Identity Extraction via Cryptographic Claims",
+    "alternatives_rejected": [
+      "Accepting approver_id in API payload"
+    ],
+    "reason": "Fixes Broken Object Level Authorization (OWASP A01:2021) vulnerabilities in /api/v1/shelf/tasks/{event_id}/approve. The API payload strips approver_id, and user identity is extracted strictly from cryptographically validated JWT claims (jwt.sub, jwt.store_id), enforcing store tenant validation (jwt.store_id == resource.store_id) on every query.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Append-Only Audit Log Immutability Rules",
+    "alternatives_rejected": [],
+    "reason": "Guarantees financial and operational audit trail integrity by executing a database policy that revokes UPDATE and DELETE privileges on the audit_logs table for application database roles.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Relational Schema Extensions, Database Indexing, and OCR Verification",
+    "alternatives_rejected": [],
+    "reason": "Expands database schema to support visual metadata (image_url, bounding_box, ocr_detected_text), multi-tenant store isolation (store_id), and OCC versioning. Mandates targeted composite indexes (idx_shelf_events_status, idx_shelf_events_sku, idx_planogram_zone, idx_audit_logs_event). Formally expands job payloads to include OCR price matching (expected_price, actual_price, price_mismatch_flag).",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "SDLC Cockpit API Surface and VLM Cost/Latency Guardrails",
+    "alternatives_rejected": [],
+    "reason": "Exposes GET /api/v1/sdlc/agent-graph to surface the 6-agent LangGraph.js execution state and artifact links in real time. Controls token costs and latency by establishing heuristic CV tiering (standard CV/mock bounding boxes first; calling VLM only when confidence < 0.80, capped at 500 tokens/step).",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "System Health and Observability Probes",
+    "alternatives_rejected": [],
+    "reason": "Guarantees system resilience and operational readiness under peak retail upload loads by establishing /healthz/liveness (200 OK) and /healthz/readiness (200 OK upon verifying database and object storage connectivity) endpoints.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Final CEO Specification Approval and Project Execution Authorization",
+    "alternatives_rejected": [],
+    "reason": "The revised specification (spec_v2.md) satisfies all technical, security, cost, performance, and compliance requirements mandated by the Review Board without delaying delivery timelines. Directs revenue preservation, operational efficiency, human-in-the-loop governance, and multi-agent SDLC innovation. Authorizes engineering teams to begin sprint execution immediately.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Tech Stack & Architecture Unification (ADR-002)",
+    "alternatives_rejected": [
+      "Python FastAPI sidecars"
+    ],
+    "reason": "Standardize on Next.js 14, TypeScript, and Prisma to prevent documentation drift and reduce developer friction.",
+    "risks": [
+      "Documentation drift",
+      "Developer friction"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Secure Asynchronous Image Ingestion & Ephemeral Buffering",
+    "alternatives_rejected": [
+      "Synchronous multipart uploads to API worker threads"
+    ],
+    "reason": "Prevent Out-Of-Memory errors and HTTP 504 timeouts by moving to an asynchronous ingestion model with size and file type validation.",
+    "risks": [
+      "OOM errors",
+      "HTTP 504 timeouts"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "BOLA / IDOR Neutralization & JWT Identity Enforcement",
+    "alternatives_rejected": [
+      "Client-supplied identity fields in request bodies"
+    ],
+    "reason": "Eliminate BOLA/IDOR vulnerabilities by enforcing server-side identity validation via JWT headers.",
+    "risks": [
+      "BOLA vulnerabilities",
+      "IDOR vulnerabilities"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Audit Trail Integrity & Compliance Enhancements",
+    "alternatives_rejected": [],
+    "reason": "Ensure governance compliance and data privacy by adding audit rationale fields, performance indexing, optimistic locking, and a 24-hour image purge policy.",
+    "risks": [
+      "Privacy mandate violations (GDPR/CCPA/BIPA)"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "LangGraph Execution Overhead Mitigation",
+    "alternatives_rejected": [],
+    "reason": "Reduce high LLM latency and prevent API token exhaustion during demos by using pre-calculated JSON state transitions.",
+    "risks": [
+      "High LLM latency",
+      "API token exhaustion"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "API Contract Harmonization",
+    "alternatives_rejected": [],
+    "reason": "Standardize task approval endpoints and introduce necessary dashboard and audit log retrieval APIs to ensure alignment.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "OCR Price-Validation Logic Formalization",
+    "alternatives_rejected": [],
+    "reason": "Formalize requirements for price comparison to trigger accurate mismatch flags based on defined tolerance thresholds.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Project Implementation Authorization (ShelfGuard AI v2)",
+    "alternatives_rejected": [],
+    "reason": "Validation of all architectural, security, and governance requirements integrated into the final implementation plan.",
+    "risks": [],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Transition to Asynchronous Image Ingestion",
+    "alternatives_rejected": [
+      "Binary handling via Next.js API threads"
+    ],
+    "reason": "Eliminate thread exhaustion and OOM crashes by moving to presigned URLs and a metadata POST pattern.",
+    "risks": [
+      "Implementation complexity of presigned URL flow"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Hybrid LangGraph Implementation",
+    "alternatives_rejected": [
+      "Abandoning the LangGraph architecture"
+    ],
+    "reason": "Maintain SDLC traceability while utilizing pre-compiled checkpoint stubs for demo stability.",
+    "risks": [
+      "Maintenance overhead of hybrid architecture"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Infrastructure Optimization (Sprint Scope)",
+    "alternatives_rejected": [
+      "Kubernetes/KEDA"
+    ],
+    "reason": "Prioritize development velocity for the 48-hour sprint while maintaining security and cost efficiency.",
+    "risks": [
+      "Scalability limitations without KEDA"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Cryptographically Chained Audit Logs",
+    "alternatives_rejected": [
+      "Standard timestamp-based logging"
+    ],
+    "reason": "Ensure tamper-evident logs for compliance requirements.",
+    "risks": [
+      "Real-time compute overhead"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Client-Side Sanitization & Privacy",
+    "alternatives_rejected": [
+      "Server-side sanitization"
+    ],
+    "reason": "Mitigate PII risks and optimize cloud costs by performing downscaling and blurring before transmission.",
+    "risks": [
+      "Potential data loss from aggressive compression"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Implementation of Optimistic Concurrency and State Constraints",
+    "alternatives_rejected": [
+      "Unconstrained database updates"
+    ],
+    "reason": "Prevent stock desynchronization and data corruption during concurrent human approval.",
+    "risks": [
+      "Performance degradation due to locking"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Mandatory Database Indexing",
+    "alternatives_rejected": [
+      "Full table scans for reconciliation"
+    ],
+    "reason": "Ensure sub-50ms analytical reconciliation.",
+    "risks": [
+      "Increased write latency"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Deterministic Demo Fallback",
+    "alternatives_rejected": [
+      "Live-only inference for demo"
+    ],
+    "reason": "Ensure demo resilience by serving cached, perfect coordinates when latency or recognition issues occur.",
+    "risks": [
+      "Misrepresentation of production accuracy in demos"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Project Approval & Development Commencement",
+    "alternatives_rejected": [
+      "Project cancellation"
+    ],
+    "reason": "Successfully addresses retail revenue leakage, aligns with SDLC, and maintains financial feasibility.",
+    "risks": [
+      "Execution risk during development"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Adopt Asynchronous Ingestion Pattern",
+    "alternatives_rejected": [
+      "Synchronous multipart flow (POST /api/v1/shelf/analyze)"
+    ],
+    "reason": "Safeguards against gateway timeouts, smooths out ingestion spikes, and prevents server over-provisioning.",
+    "risks": [
+      "Thread pool exhaustion",
+      "504 Gateway timeouts",
+      "OOM crashes"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Adopt docker-compose for Infrastructure Scope",
+    "alternatives_rejected": [
+      "Kubernetes (K8s)"
+    ],
+    "reason": "Provides production-ready parity while eliminating deployment friction and operational complexity during the development phase.",
+    "risks": [
+      "Deployment friction and operational complexity in a tight 48-hour sprint ('demo suicide')"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Implement Hash-Chaining for Audit Log Integrity",
+    "alternatives_rejected": [],
+    "reason": "Compliance and legal mandates require non-repudiation for audit trails, satisfying immutability requirements without expensive WORM hardware.",
+    "risks": [
+      "Compliance and legal liability regarding audit trail integrity"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Mandate Edge/Synthetic Data for Privacy and Compliance",
+    "alternatives_rejected": [
+      "Runtime masking"
+    ],
+    "reason": "Biometric liability under regulations like BIPA and GDPR outweighs the complexity cost of implementing runtime masking.",
+    "risks": [
+      "Biometric liability under BIPA and GDPR regulations"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Implement Client-Side Payload Constraints",
+    "alternatives_rejected": [],
+    "reason": "Protects network bandwidth, prevents OOM/Gateway bottlenecks, and ensures predictable cloud storage and egress cost scaling.",
+    "risks": [
+      "Network bandwidth consumption",
+      "OOM/Gateway bottlenecks",
+      "Unpredictable cloud storage and egress costs"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Enforce Database Concurrency Controls and Schema Indexing",
+    "alternatives_rejected": [],
+    "reason": "Enforces optimistic locking to prevent race conditions during concurrent approval updates, and ensures query performance and system reliability.",
+    "risks": [
+      "Race conditions during concurrent approval updates",
+      "Poor query performance"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Implement Health Observability and Auth/RBAC Integration",
+    "alternatives_rejected": [],
+    "reason": "Ensures robust demo monitoring, rapid failure detection, and mitigates BOLA/IDOR security risks via tenant validation.",
+    "risks": [
+      "Failure detection delays",
+      "BOLA/IDOR security vulnerabilities"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Final Project Authorization (spec_v2.md)",
+    "alternatives_rejected": [],
+    "reason": "The updated specification successfully mitigates all technical, security, and architectural risks while delivering strong operational efficiency and revenue protection.",
+    "risks": [
+      "Technical, security, and architectural risks from prior specifications"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Ingestion Decoupling",
+    "alternatives_rejected": [
+      "Direct multipart binary uploads"
+    ],
+    "reason": "Implement an asynchronous ingestion pattern to return 202 Accepted immediately, preventing thread-pool exhaustion/Gateway 504s and ensuring high-throughput reliability.",
+    "risks": [
+      "Thread-pool exhaustion",
+      "Gateway 504 timeouts"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Append-only Hash-Chained Audit Logs",
+    "alternatives_rejected": [
+      "Mutable status-update pattern"
+    ],
+    "reason": "Ensure absolute non-repudiation, legal compliance (SOC 2/GDPR), and executive-ready auditability for all inventory interventions and manager overrides.",
+    "risks": [
+      "Regulatory non-compliance",
+      "Lack of auditability for state changes"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Optimistic Concurrency Control",
+    "alternatives_rejected": [
+      "Unversioned concurrent updates"
+    ],
+    "reason": "Add a version_id integer column to prevent race conditions during manager overrides and ensure data consistency.",
+    "risks": [
+      "Race conditions during manager overrides",
+      "Data inconsistency"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Mandatory Pre-ingestion Masking and Purge",
+    "alternatives_rejected": [
+      "Storing unmasked raw consumer imagery indefinitely"
+    ],
+    "reason": "Mitigate BIPA/GDPR class-action liability and regulatory exposure regarding consumer capture by blurring/pixelating faces and enforcing a 24-hour TTL.",
+    "risks": [
+      "BIPA/GDPR class-action liability",
+      "Regulatory exposure"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Deterministic 3-Agent Chain Orchestration",
+    "alternatives_rejected": [
+      "Complex 6-agent model"
+    ],
+    "reason": "Limit cognitive and computational overhead for the 48h sprint, control cloud compute expenditures, and prioritize delivery speed while retaining traceability.",
+    "risks": [
+      "High computational overhead",
+      "Sprint delivery delays"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Data Lifecycle Management (24-Hour TTL)",
+    "alternatives_rejected": [
+      "Indefinite storage retention"
+    ],
+    "reason": "Explicitly codify a 24-hour Time-To-Live (TTL) deletion policy for all raw imagery to ensure ephemeral compliance and optimized storage resource utilization.",
+    "risks": [
+      "Storage bloat",
+      "Compliance failure regarding raw data retention"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Database Performance Indexing",
+    "alternatives_rejected": [
+      "Unindexed foreign keys"
+    ],
+    "reason": "Mandate indexes on all foreign key columns to prevent join-latency as the audit log grows.",
+    "risks": [
+      "Join-latency",
+      "Query performance degradation as audit logs grow"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Graceful CV Fallback & Circuit Breaker",
+    "alternatives_rejected": [
+      "Failing outright on high inference latency or edge connectivity loss"
+    ],
+    "reason": "Implement a hard-coded demo simulation mode to guarantee judge-facing reliability and prevent operational failures during edge connectivity fluctuations.",
+    "risks": [
+      "Operational failures during live demos",
+      "Edge connectivity fluctuations"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Project Specification Approval",
+    "alternatives_rejected": [
+      "Unrevised specification vulnerable to demo-driven development"
+    ],
+    "reason": "The revised specification successfully resolves demo-driven development vulnerabilities by integrating robust asynchronous processing, immutable audit governance, privacy safeguards, and optimized resource utilization.",
+    "risks": [
+      "Demo-driven development vulnerabilities",
+      "Implementation failure"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Transition to Asynchronous Ingestion Architecture",
+    "alternatives_rejected": [
+      "Synchronous image processing"
+    ],
+    "reason": "Synchronous image processing caused API Gateway timeouts and memory crashes. Refactoring the endpoint improves system stability and scalability.",
+    "risks": [
+      "API Gateway timeouts",
+      "Memory crashes"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Stack Retention (Python/FastAPI + LangGraph)",
+    "alternatives_rejected": [
+      "Scrapping the current stack mid-sprint"
+    ],
+    "reason": "Scrapping the stack would introduce unsustainable technical debt; existing modular design is essential for product performance.",
+    "risks": [
+      "Technical debt from mid-sprint stack replacement"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Implementation of Cryptographic Audit Trails",
+    "alternatives_rejected": [
+      "Standard logs"
+    ],
+    "reason": "Standard logs are legally insufficient for non-repudiation. Merkle-chaining provides necessary rigor for regulatory and internal compliance.",
+    "risks": [
+      "Legal insufficiency of standard logs for non-repudiation"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "BOLA Risk Mitigation via Header Validation",
+    "alternatives_rejected": [],
+    "reason": "To prevent horizontal privilege escalation, middleware must enforce store-level context by validating header and user store associations.",
+    "risks": [
+      "Horizontal privilege escalation (BOLA)"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Enforcement of Payload Governance and Edge Compliance",
+    "alternatives_rejected": [],
+    "reason": "To protect server memory and manage costs, limits and compression were instated, alongside edge-side masking and TTL for PII management.",
+    "risks": [
+      "Server memory exhaustion",
+      "Uncontrolled costs",
+      "PII exposure"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Optimistic Concurrency Control",
+    "alternatives_rejected": [],
+    "reason": "To maintain data integrity in the `shelf_events` table during high-concurrency lookups, a `version` integer column must be implemented.",
+    "risks": [
+      "Data integrity issues during high-concurrency lookups"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Optimized Database and Infrastructure Configuration",
+    "alternatives_rejected": [],
+    "reason": "Performance will be stabilized through composite indexes to prevent table scans and liveness/readiness probes for container orchestration.",
+    "risks": [
+      "Table scans affecting performance",
+      "Container orchestration instability"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Deployment Strategy (Multi-stage Docker + Compose)",
+    "alternatives_rejected": [
+      "Production-grade cluster orchestration"
+    ],
+    "reason": "Provides enterprise reproducibility and local demo reliability while avoiding unnecessary over-engineering.",
+    "risks": [
+      "Over-engineering",
+      "Lack of local demo reliability"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Asynchronous Image Ingestion Architecture",
+    "alternatives_rejected": [
+      "Synchronous binary file ingestion",
+      "Heavy S3/KEDA infrastructure for the baseline"
+    ],
+    "reason": "To prevent synchronous binary file ingestion bottlenecks, OOM errors, and 504 timeouts during peak store hours or hackathon conditions by streaming payloads locally and returning a 202 Accepted response.",
+    "risks": [
+      "Potential data loss if local storage fails before persistence",
+      "Management of background task queues"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Optimistic Locking for Human Approval Gates",
+    "alternatives_rejected": [
+      "Pessimistic locking",
+      "Last-write-wins without versioning"
+    ],
+    "reason": "To eliminate concurrency race conditions and split-brain states when multiple store managers simultaneously attempt to approve or modify shelf events.",
+    "risks": [
+      "Transaction retry overhead on concurrent edit collisions"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Retention of Full 6-Agent LangGraph Cockpit with Deterministic CV Fallback",
+    "alternatives_rejected": [
+      "Stripped-down agent architecture",
+      "Fully live dependency without fallback"
+    ],
+    "reason": "Retains the 6-agent LangGraph SDLC cockpit and RTM traceability framework as core judging differentiators and compliance requirements, while guaranteeing 100% demo reliability.",
+    "risks": [
+      "Timeout management during live agent execution",
+      "Dependence on pre-seeded synthetic records during fallback"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Database Schema Performance Indexing",
+    "alternatives_rejected": [
+      "Unindexed queries relying on full table scans"
+    ],
+    "reason": "To ensure optimal query performance and eliminate database bottlenecks across high-frequency operational paths.",
+    "risks": [
+      "Increased write overhead due to index maintenance"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Point-in-Time Financial Snapshots",
+    "alternatives_rejected": [
+      "Dynamic lookups to master product catalogs during reporting"
+    ],
+    "reason": "To prevent financial reporting drift on the dashboard if master product catalogs are modified post-capture.",
+    "risks": [
+      "Increased storage requirements for duplicated product attributes in event records"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "001-shelfguard-ai",
+    "decision": "Formalized Append-Only Audit Logging",
+    "alternatives_rejected": [
+      "Complex Merkle tree implementation",
+      "Mutable audit logs"
+    ],
+    "reason": "To satisfy regulatory non-repudiation and enterprise auditability standards without building a complex Merkle tree overnight.",
+    "risks": [
+      "Growth of audit log table size over time requiring future archival strategies"
+    ],
+    "outcome": "Approved"
   }
 ]

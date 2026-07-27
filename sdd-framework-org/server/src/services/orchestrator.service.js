@@ -326,15 +326,22 @@ async function generatorNode(state) {
 
   function parseGeminiJson(responseText) {
     let cleanText = responseText.trim();
-    if (cleanText.startsWith('```json')) {
-      cleanText = cleanText.substring(7);
-    } else if (cleanText.startsWith('```')) {
-      cleanText = cleanText.substring(3);
+    
+    // Find the first '{' and the last '}'
+    const startIdx = cleanText.indexOf('{');
+    const endIdx = cleanText.lastIndexOf('}');
+    
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+      cleanText = cleanText.substring(startIdx, endIdx + 1);
+    } else {
+      // Try to find the first '[' and last ']' if it is a JSON array
+      const startArrayIdx = cleanText.indexOf('[');
+      const endArrayIdx = cleanText.lastIndexOf(']');
+      if (startArrayIdx !== -1 && endArrayIdx !== -1 && endArrayIdx > startArrayIdx) {
+        cleanText = cleanText.substring(startArrayIdx, endArrayIdx + 1);
+      }
     }
-    if (cleanText.endsWith('```')) {
-      cleanText = cleanText.substring(0, cleanText.length - 3);
-    }
-    cleanText = cleanText.trim();
+    
     return JSON.parse(cleanText);
   }
 
@@ -465,7 +472,10 @@ ${fsdExpectations}`;
 Analyze the specification:
 ${specText}
 
-Build a highly-interactive, responsive single-page HTML application mockup prototype.
+Build a highly-interactive, responsive single-page HTML application mockup prototype representing the actual user interface of the product described in the specification (e.g., the Store Associate's dashboard with task list, shelf image upload, restock queue tables, action buttons, and task details drawer). 
+
+CRITICAL RULE: Do NOT build a technical document viewer, spec summary page, or specification reader. You must build the actual application interface itself that the store associates or managers would use daily to audit shelves and complete tasks.
+
 Rules:
 1. Use modern Tailwind CSS (via CDN: https://cdn.tailwindcss.com) for layout and styling. Create a premium dark-mode aesthetic (slate-950 background, glassmorphism cards, glowing active accents, smooth typography).
 2. The prototype MUST be highly interactive: build actual mock data tables, interactive filter tabs, a fully functional input form (e.g. submit returns, create order, edit items), and a dynamic status drawer/details pane using pure vanilla JavaScript in a <script> tag.
@@ -490,6 +500,7 @@ Rules:
       }
       resultOutput = wireframeHtml.trim();
 
+    } else if (currentStage === 'tech-architecture') {
       const defaultTechExpectations = `Generate ALL applicable sections. Skip non-applicable ones:
 
 DOCUMENT INFORMATION (always): Title, Project Name, Version, Status, Author, Reviewers, Approvers, Revision Log, Distribution List

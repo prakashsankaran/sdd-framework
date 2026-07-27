@@ -7,6 +7,7 @@ export default function TokenTrackerWidget({ isOpen, onClose }) {
     grandTotalTokens: 0,
     grandTotalPromptTokens: 0,
     grandTotalCompletionTokens: 0,
+    grandTotalCost: 0,
     totalCalls: 0,
     byModel: []
   });
@@ -92,6 +93,10 @@ export default function TokenTrackerWidget({ isOpen, onClose }) {
   });
 
   const formatNumber = (num) => (num || 0).toLocaleString();
+  const formatCost = (cost) => {
+    if (cost === undefined || cost === null) return '$0.00';
+    return `$${cost.toFixed(2)}`;
+  };
 
   const getModelBadgeColor = (modelName) => {
     const lower = (modelName || '').toLowerCase();
@@ -140,22 +145,26 @@ export default function TokenTrackerWidget({ isOpen, onClose }) {
         </div>
 
         {/* Global Summary KPI Bar */}
-        <div class="grid grid-cols-4 gap-3 p-4 border-b border-slate-800/80 bg-slate-900/30">
-          <div class="bg-indigo-950/30 border border-indigo-900/50 rounded-xl p-3">
+        <div class="grid grid-cols-5 gap-2.5 p-4 border-b border-slate-800/80 bg-slate-900/30">
+          <div class="bg-indigo-950/30 border border-indigo-900/50 rounded-xl p-2.5">
             <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Tokens</div>
-            <div class="text-base font-black text-indigo-400 mt-1 font-mono">{formatNumber(summary.grandTotalTokens)}</div>
+            <div class="text-xs font-black text-indigo-400 mt-1 font-mono">{formatNumber(summary.grandTotalTokens)}</div>
           </div>
-          <div class="bg-blue-950/30 border border-blue-900/50 rounded-xl p-3">
+          <div class="bg-amber-950/30 border border-amber-900/50 rounded-xl p-2.5">
+            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Incurred Cost</div>
+            <div class="text-xs font-black text-amber-400 mt-1 font-mono">{formatCost(summary.grandTotalCost)}</div>
+          </div>
+          <div class="bg-blue-950/30 border border-blue-900/50 rounded-xl p-2.5">
             <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Prompt (In)</div>
-            <div class="text-base font-black text-blue-400 mt-1 font-mono">{formatNumber(summary.grandTotalPromptTokens)}</div>
+            <div class="text-xs font-black text-blue-400 mt-1 font-mono">{formatNumber(summary.grandTotalPromptTokens)}</div>
           </div>
-          <div class="bg-purple-950/30 border border-purple-900/50 rounded-xl p-3">
+          <div class="bg-purple-950/30 border border-purple-900/50 rounded-xl p-2.5">
             <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Completion (Out)</div>
-            <div class="text-base font-black text-purple-400 mt-1 font-mono">{formatNumber(summary.grandTotalCompletionTokens)}</div>
+            <div class="text-xs font-black text-purple-400 mt-1 font-mono">{formatNumber(summary.grandTotalCompletionTokens)}</div>
           </div>
-          <div class="bg-emerald-950/30 border border-emerald-900/50 rounded-xl p-3">
+          <div class="bg-emerald-950/30 border border-emerald-900/50 rounded-xl p-2.5">
             <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">LLM Calls</div>
-            <div class="text-base font-black text-emerald-400 mt-1 font-mono">{formatNumber(summary.totalCalls)}</div>
+            <div class="text-xs font-black text-emerald-400 mt-1 font-mono">{formatNumber(summary.totalCalls)}</div>
           </div>
         </div>
 
@@ -250,9 +259,14 @@ export default function TokenTrackerWidget({ isOpen, onClose }) {
                           </span>
                         </div>
 
-                        <div class="text-right">
-                          <span class="text-sm font-black text-white font-mono">{formatNumber(m.totalTokens)}</span>
-                          <span class="text-[10px] text-slate-500 ml-1">tokens ({pct}%)</span>
+                        <div class="text-right flex flex-col items-end">
+                          <div>
+                            <span class="text-sm font-black text-white font-mono">{formatNumber(m.totalTokens)}</span>
+                            <span class="text-[10px] text-slate-500 ml-1">tokens ({pct}%)</span>
+                          </div>
+                          <div class="text-[10px] font-bold text-amber-400 font-mono mt-0.5">
+                            Cost: {formatCost(m.cost)}
+                          </div>
                         </div>
                       </div>
 
@@ -335,7 +349,7 @@ export default function TokenTrackerWidget({ isOpen, onClose }) {
 
                         <div class="text-right shrink-0">
                           <div class="text-xs font-black text-indigo-400 font-mono">
-                            ⚡ {formatNumber(item.totalTokens)}
+                            ⚡ {formatNumber(item.totalTokens)} <span class="text-amber-400 text-[10px] ml-1">({formatCost(item.cost)})</span>
                           </div>
                           <div class="text-[9px] text-slate-500 font-mono space-x-1.5">
                             <span>In: {formatNumber(item.promptTokens)}</span>

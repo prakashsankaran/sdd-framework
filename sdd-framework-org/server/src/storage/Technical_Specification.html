@@ -1,1 +1,450 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>VMS Technical Architecture</title><style>body { background: #0f172a; color: #e2e8f0; font-family: 'Inter', sans-serif; margin: 0; line-height: 1.6; } nav { position: sticky; top: 0; background: #1e293b; padding: 1rem; border-bottom: 1px solid #334155; } section { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; margin: 24px; } h1, h2, h3 { color: #6366f1; } .badge { color: #22d3ee; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; } code { background: #0d1117; padding: 2px 4px; border-radius: 4px; font-family: monospace; } table { width: 100%; border-collapse: collapse; margin-top: 1rem; } th { background: #1e293b; color: #6366f1; text-align: left; padding: 12px; border: 1px solid #334155; } td { padding: 12px; border: 1px solid #334155; }</style></head><body><nav><strong>VMS Architecture</strong> | <a href="#overview" style="color:#fff">Overview</a> | <a href="#security" style="color:#fff">Security</a> | <a href="#db" style="color:#fff">Database</a></nav><section id="overview"><h1>Visitor Management System Architecture</h1><p class="badge">Version 1.0 | Status: Draft</p><h2>1. Introduction</h2><p>The VMS is a lightweight, secure web application designed to replace manual reception logs. It ensures 100% accountability via audit trails and protects PII through automated lifecycle policies.</p></section><section id="db"><h2>11. Database Design</h2><table><tr><th>Table</th><th>Key Constraints</th></tr><tr><td>VisitHistory</td><td>CHECK (check_out > check_in), Unique Index on (visitor_id) WHERE status='Checked-In'</td></tr><tr><td>Employees</td><td>FK to Users, is_active trigger validation</td></tr></table></section><section id="security"><h2>17. Security Design</h2><ul><li><strong>Hybrid Auth:</strong> RLS enforced via Postgres context <code>app.current_user_id</code>.</li><li><strong>Double-Token:</strong> 15m Access Token + HttpOnly Refresh Token.</li><li><strong>PII Privacy:</strong> Nightly anonymization for data > 30 days.</li><li><strong>Media:</strong> Direct-to-S3 with 14-day lifecycle.</li></ul></section></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShelfGuard AI — Technical Architecture & Specification Document</title>
+<style>
+  :root {
+    --bg-primary: #0f172a;
+    --bg-card: #1e293b;
+    --bg-code: #0d1117;
+    --border-color: #334155;
+    --text-main: #e2e8f0;
+    --text-muted: #94a3b8;
+    --accent-indigo: #6366f1;
+    --accent-cyan: #22d3ee;
+    --accent-green: #10b981;
+    --accent-yellow: #f59e0b;
+    --accent-red: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-main);
+    line-height: 1.6;
+    display: flex;
+    min-height: 100vh;
+  }
+  /* Sidebar Navigation */
+  nav.sidebar {
+    width: 280px;
+    background-color: var(--bg-card);
+    border-right: 1px solid var(--border-color);
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 24px 16px;
+  }
+  nav.sidebar h2 {
+    font-size: 1.1rem;
+    color: var(--accent-cyan);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  nav.sidebar ul { list-style: none; }
+  nav.sidebar li { margin-bottom: 10px; }
+  nav.sidebar a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  nav.sidebar a:hover {
+    color: var(--text-main);
+    background-color: rgba(99, 102, 241, 0.15);
+  }
+  /* Main Content Area */
+  main {
+    margin-left: 280px;
+    padding: 40px;
+    max-width: 1200px;
+    width: calc(100% - 280px);
+  }
+  header.doc-header {
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 24px;
+  }
+  header.doc-header h1 {
+    font-size: 2.5rem;
+    color: var(--accent-indigo);
+    margin-bottom: 12px;
+  }
+  header.doc-header p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+  }
+  section.card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 32px;
+  }
+  section.card h2 {
+    font-size: 1.75rem;
+    color: var(--accent-cyan);
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+  }
+  section.card h3 {
+    font-size: 1.25rem;
+    color: var(--accent-indigo);
+    margin-top: 24px;
+    margin-bottom: 12px;
+  }
+  p, li {
+    margin-bottom: 12px;
+    color: var(--text-main);
+  }
+  ul { padding-left: 20px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background-color: var(--bg-primary);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+  }
+  th {
+    background-color: var(--bg-card);
+    color: var(--accent-indigo);
+    font-weight: 600;
+  }
+  tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.02); }
+  pre {
+    background-color: var(--bg-code);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.9rem;
+    margin: 16px 0;
+    color: var(--text-main);
+  }
+  code {
+    font-family: "Courier New", Courier, monospace;
+    background-color: var(--bg-code);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: var(--accent-cyan);
+  }
+  .badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  .badge-get { background-color: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+  .badge-post { background-color: rgba(99, 102, 241, 0.2); color: var(--accent-indigo); }
+  .badge-patch { background-color: rgba(245, 158, 11, 0.2); color: var(--accent-yellow); }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <h2>Navigation</h2>
+  <ul>
+    <li><a href="#executive-summary">1. Executive Summary</a></li>
+    <li><a href="#personas-flows">2. Personas & Flows</a></li>
+    <li><a href="#functional-requirements">3. Functional Requirements</a></li>
+    <li><a href="#api-contracts">4. API Contracts</a></li>
+    <li><a href="#data-models">5. Data Models</a></li>
+    <li><a href="#compliance-security">6. Compliance & Security</a></li>
+    <li><a href="#implementation-plan">7. Implementation Plan</a></li>
+    <li><a href="#research-gotchas">8. Architecture & Gotchas</a></li>
+  </ul>
+</nav>
+
+<main>
+  <header class="doc-header">
+    <h1>ShelfGuard AI</h1>
+    <p>Enterprise Retail Computer Vision Copilot & SDLC Traceability Engine — Technical Specification & Architecture Design</p>
+  </header>
+
+  <section id="executive-summary" class="card">
+    <h2>1. Executive Summary & Goals</h2>
+    <h3>1.1 Executive Summary</h3>
+    <p><strong>ShelfGuard AI</strong> addresses a critical operational friction point in grocery and supermarket retail: the disconnect between backroom inventory and front-of-store shelf availability. By analyzing store-level shelf captures via asynchronous multimodal computer vision and optical character recognition (OCR), ShelfGuard AI automatically identifies out-of-stock gaps, low-stock conditions, planogram misalignments, and price-label mismatches.</p>
+    <p>Beyond its business capabilities, ShelfGuard AI serves as a demonstration vehicle for modern AI-augmented engineering patterns—showcasing automated specification-driven development via Spec Kit, multi-agent orchestration via LangGraph, autonomous coding actions via Claude Code, and visual governance auditing via Google Antigravity.</p>
+
+    <h3>1.2 Core Objectives</h3>
+    <ul>
+      <li><strong>Business Operational Efficiency:</strong> Reduce manual store-walk times by 70% and eliminate out-of-stock revenue leakage by instantly converting shelf images into validated replenishment work orders via non-blocking asynchronous ingestion.</li>
+      <li><strong>Visual Intelligence Precision:</strong> Deliver accurate bounding-box identification of empty facings, low-stock zones, and OCR text extraction for price-tag auditing against master ERP catalogs, backed by graceful degradation fallback mechanisms.</li>
+      <li><strong>Governance & Human-in-the-Loop Integrity:</strong> Ensure that all AI-generated inventory interventions require explicit store manager/associate approval before writing to core execution databases, protected by optimistic locking concurrency controls and immutable audit logging.</li>
+      <li><strong>Traceability Guarantee:</strong> Implement an unbroken end-to-end Requirements Traceability Matrix (RTM) linking business requirements directly to underlying ADRs, source code files, unit tests, and runtime evidence.</li>
+    </ul>
+  </section>
+
+  <section id="personas-flows" class="card">
+    <h2>2. User Persona, Actors, and User Flows</h2>
+    <h3>2.1 Actors & Personas</h3>
+    <ul>
+      <li><strong>Store Associate (Primary User):</strong> Captures/uploads shelf images via asynchronous submission, reviews automated shelf-gap insights, and submits replenishment tasks for approval.</li>
+      <li><strong>Store Manager (Secondary User):</strong> Reviews high-priority inventory alerts protected by optimistic concurrency controls, audits price-label mismatches, and grants final sign-off on automated restocking operations.</li>
+      <li><strong>Retail Operations / Merchandising Head:</strong> Monitors regional category performance, stockout frequency trends, and financial recovery metrics via the executive impact dashboard utilizing point-in-time pricing snapshots.</li>
+      <li><strong>Retail IT / AI Governance Team:</strong> Monitors model confidence scores, false-positive feedback loops, privacy masking execution, and system-wide traceability logs through dedicated append-only audit trails.</li>
+    </ul>
+
+    <h3>2.2 End-to-End User Flow</h3>
+    <pre><code>[Store Associate] 
+       │
+       ▼
+(1. Capture/Upload Shelf Image) ──► [API Gateway / Asynchronous Ingestion]
+                                            │
+                                            ├─────► (Returns 202 Accepted & QUEUED Token)
+                                            │
+                                            ▼
+                               [Async Worker / CV & OCR Engine]
+                                            │
+                                    (Detects Gaps & Text / Fallback)
+                                            │
+                                            ▼
+                               [Inventory & Planogram Matcher]
+                                            │
+                                    (Evaluates Backroom Qty)
+                                            │
+                                            ▼
+                               [Task & Recommendation Engine]
+                                            │
+                                            ▼
+[Store Manager / Associate] ◄─── (Presents Prioritized Actionable Item)
+       │
+       ├── (Rejects / Flags False Positive) ──► [Feedback Loop & Audit Log]
+       │
+       └── (Approves w/ Optimistic Lock) ──► [Create Replenishment Work Order]
+                                                 │
+                                                 ▼
+                                     [Impact & Traceability Dashboard]</code></pre>
+  </section>
+
+  <section id="functional-requirements" class="card">
+    <h2>3. Functional Requirements List</h2>
+    <table>
+      <tr>
+        <th>Requirement ID</th>
+        <th>Description & Core Logic</th>
+        <th>Outputs / Gates</th>
+      </tr>
+      <tr>
+        <td><code>REQ-001</code></td>
+        <td>Asynchronous Shelf Image Upload & Ingestion. Multipart form-data validation (JPEG/PNG &lt; 10MB, dimensions &ge; 800x600, valid <code>zone_id</code>).</td>
+        <td>Returns <code>202 Accepted</code> with unique <code>image_id</code> and <code>QUEUED</code> status.</td>
+      </tr>
+      <tr>
+        <td><code>REQ-002</code></td>
+        <td>Shelf Gap & Anomaly Detection with Graceful Degradation within strict 2,500ms timeout window. Triggers synthetic fallback if confidence &lt; 0.70.</td>
+        <td>Array of detected anomalies: <code>EMPTY_FACING</code>, <code>LOW_STOCK</code>, <code>PRICE_LABEL_MISMATCH</code>.</td>
+      </tr>
+      <tr>
+        <td><code>REQ-003</code></td>
+        <td>Planogram & Inventory Cross-Reference via B-tree indexes mapping expected facings and backroom quantities.</td>
+        <td>Enriched event object with stock differentials and backroom availability status.</td>
+      </tr>
+      <tr>
+        <td><code>REQ-004</code></td>
+        <td>Prioritized Recommendation Generation with Point-in-Time financial snapshots (unit price, velocity).</td>
+        <td>Structured recommendation record with priority level and financial valuation.</td>
+      </tr>
+      <tr>
+        <td><code>REQ-005</code></td>
+        <td>Optimistic-Locked Human-in-the-Loop Approval Gate enforcing conditional version checks to eliminate race conditions.</td>
+        <td>Updated event record with incremented version and immutable audit log entry.</td>
+      </tr>
+      <tr>
+        <td><code>REQ-006</code></td>
+        <td>Issue & Impact Dashboard with Snapshot Valuation computing estimated sales recovery without historical drift.</td>
+        <td>Dashboard JSON payload containing summary metrics, category distribution, and task queues.</td>
+      </tr>
+      <tr>
+        <td><code>REQ-007</code></td>
+        <td>Requirements Traceability Matrix (RTM) mapping 1-to-N relationships between requirements, stories, ADRs, and tests.</td>
+        <td>Unified traceability graph and tabular mapping view.</td>
+      </tr>
+      <tr>
+        <td><code>REQ-008</code></td>
+        <td>Automated Artifact Generation compiling Spec Kit markdown, ADRs, and test execution reports.</td>
+        <td>Generated build artifact bundle.</td>
+      </tr>
+    </table>
+  </section>
+
+  <section id="api-contracts" class="card">
+    <h2>4. Proposed API Schema Contract Designs</h2>
+    
+    <h3>4.1 Asynchronous Shelf Image Upload</h3>
+    <p><span class="badge badge-post">POST</span> <code>/api/v1/shelf/analyze</code></p>
+    <pre><code>// Response JSON (202 Accepted)
+{
+  "status": "success",
+  "message": "Image successfully ingested and queued for asynchronous CV processing.",
+  "data": {
+    "image_id": "img_oat_empty_88194",
+    "zone_id": "Aisle-3-Bay-2",
+    "timestamp": "2026-03-30T08:14:22Z",
+    "processing_status": "QUEUED",
+    "polling_url": "/api/v1/shelf/analysis/img_oat_empty_88194/status"
+  }
+}</code></pre>
+
+    <h3>4.2 Submit Optimistic-Locked Human Approval Decision</h3>
+    <p><span class="badge badge-post">POST</span> <code>/api/v1/shelf/events/{event_id}/approve</code></p>
+    <pre><code>// Request JSON
+{
+  "approver_id": "MGR-402",
+  "decision": "APPROVED",
+  "expected_version": 1,
+  "notes": "Backroom stock confirmed. Restocking task dispatched to floor associate."
+}
+
+// Response JSON (200 OK)
+{
+  "status": "success",
+  "message": "Event approval successfully recorded.",
+  "data": {
+    "event_id": "EVT-9001",
+    "human_status": "APPROVED",
+    "version": 2,
+    "approved_by": "MGR-402",
+    "approved_at": "2026-03-30T08:16:05Z",
+    "task_created": "TASK-55102"
+  }
+}</code></pre>
+
+    <h3>4.3 Retrieve Traceability Matrix Mapping</h3>
+    <p><span class="badge badge-get">GET</span> <code>/api/v1/traceability/{requirement_id}</code></p>
+    <pre><code>// Response JSON (200 OK)
+{
+  "requirement_id": "REQ-002",
+  "description": "The system shall detect shelf gaps or low-stock conditions from the image with graceful degradation fallback.",
+  "traceability_chain": {
+    "user_story": "US-02: Automated Shelf Vision Scanning",
+    "adr_reference": "ADR-001: CV Approach (Hybrid Bounding Box + Mock VLM & Fallback)",
+    "code_modules": [
+      "src/services/cv_service.py",
+      "src/models/detector.py"
+    ],
+    "test_cases": [
+      "tests/unit/test_detect_empty_facing.py"
+    ],
+    "evidence_artifacts": [
+      "artifacts/screenshots/annotated_shelf.jpg"
+    ]
+  }
+}</code></pre>
+  </section>
+
+  <section id="data-models" class="card">
+    <h2>5. Data Model Constraints</h2>
+    <p>Database DDL schema compatible with SQLite and PostgreSQL, featuring performance indexes and snapshot preservation columns:</p>
+    <pre><code>-- Products Master Table
+CREATE TABLE products (
+    sku_id VARCHAR(32) PRIMARY KEY,
+    product_name VARCHAR(128) NOT NULL,
+    category VARCHAR(64) NOT NULL,
+    expected_shelf_zone VARCHAR(64) NOT NULL,
+    unit_price DECIMAL(10, 2) NOT NULL,
+    priority VARCHAR(16) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Inventory Real-Time Table
+CREATE TABLE inventory (
+    sku_id VARCHAR(32) PRIMARY KEY,
+    on_shelf_qty INTEGER NOT NULL CHECK (on_shelf_qty >= 0),
+    backroom_qty INTEGER NOT NULL CHECK (backroom_qty >= 0),
+    pos_last_hour_sales INTEGER NOT NULL CHECK (pos_last_hour_sales >= 0),
+    reorder_threshold INTEGER NOT NULL CHECK (reorder_threshold >= 0),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sku_id) REFERENCES products(sku_id)
+);
+
+-- Shelf Events & Audit Log Table with Optimistic Locking & Snapshots
+CREATE TABLE shelf_events (
+    event_id VARCHAR(64) PRIMARY KEY,
+    image_id VARCHAR(64) NOT NULL,
+    detected_issue VARCHAR(32) NOT NULL,
+    sku_id VARCHAR(32),
+    confidence DECIMAL(4, 3) CHECK (confidence BETWEEN 0.0 AND 1.0),
+    recommended_action TEXT NOT NULL,
+    human_status VARCHAR(16) NOT NULL DEFAULT 'PENDING',
+    version INTEGER NOT NULL DEFAULT 1,
+    captured_unit_price DECIMAL(10, 2) NOT NULL,
+    captured_product_name VARCHAR(128) NOT NULL,
+    approved_by VARCHAR(64),
+    approved_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sku_id) REFERENCES products(sku_id)
+);
+
+-- Dedicated Append-Only Audit Logs Table
+CREATE TABLE audit_logs (
+    audit_id SERIAL PRIMARY KEY,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    actor_id VARCHAR(64) NOT NULL,
+    actor_role VARCHAR(32) NOT NULL,
+    action_category VARCHAR(64) NOT NULL,
+    target_resource VARCHAR(64) NOT NULL,
+    prior_state_hash VARCHAR(64) NOT NULL,
+    new_state_hash VARCHAR(64) NOT NULL,
+    payload_snapshot TEXT NOT NULL
+);
+
+-- High-Frequency Query Performance Indexes
+CREATE INDEX idx_shelf_events_status_created ON shelf_events(human_status, created_at DESC);
+CREATE INDEX idx_shelf_events_sku ON shelf_events(sku_id);
+CREATE INDEX idx_audit_logs_timestamp ON audit_logs(timestamp DESC);</code></pre>
+  </section>
+
+  <section id="compliance-security" class="card">
+    <h2>6. Compliance & Security Mandates</h2>
+    <ul>
+      <li><strong>Role-Based Access Control (RBAC):</strong> Strict separation between <code>STORE_ASSOCIATE</code> (upload & preliminary review), <code>STORE_MANAGER</code> (optimistic approval & overrides), and <code>ADMIN</code> (governance & traceability auditing).</li>
+      <li><strong>Data Privacy & Masking:</strong> Automated facial anonymization preprocessing on captured shelf images; raw unmasked images are prohibited from persistent retention. Synthetic data isolation for hackathon environments.</li>
+      <li><strong>Transport & Storage Encryption:</strong> TLS 1.3 enforced for all transport channels; AES-256 storage encryption for database files. Secrets isolated in environment variables.</li>
+      <li><strong>Audit Logging:</strong> Immutable logging of all administrative overrides, approvals, and anomaly flags containing UTC timestamps, actor IDs, roles, and state hash verification.</li>
+    </ul>
+  </section>
+
+  <section id="implementation-plan" class="card">
+    <h2>7. Implementation Plan & Phased Roadmap</h2>
+    <ul>
+      <li><strong>Phase 1: Foundation & Specs (Hours 0–6) —</strong> Repositories initialized, Spec Kit markdown generated, dataset schemas confirmed.</li>
+      <li><strong>Phase 2: Core Data & CV Mock Services (Hours 6–18) —</strong> SQLAlchemy seeding, FastAPI multipart upload handlers, CV/OCR processing engine.</li>
+      <li><strong>Phase 3: Business Logic & Dashboard (Hours 18–30) —</strong> Inventory cross-referencing, planogram rule evaluation, associate upload UI, and audit logging.</li>
+      <li><strong>Phase 4: LangGraph Cockpit & Traceability (Hours 30–36) —</strong> Multi-agent graph visualization and interactive Requirements Traceability Matrix UI.</li>
+      <li><strong>Phase 5: Testing & Hardening (Hours 36–44) —</strong> Pytest unit test suites, privacy mask enforcement, Antigravity evidence packaging.</li>
+      <li><strong>Phase 6: Rehearsal & Deployment (Hours 44–48) —</strong> Booth pitch rehearsal, deployment verification, fallback assets check.</li>
+    </ul>
+  </section>
+
+  <section id="research-gotchas" class="card">
+    <h2>8. Architecture & Edge Case Handling</h2>
+    <ul>
+      <li><strong>CV Latency & Timeouts:</strong> Handled via asynchronous worker queues and graceful degradation falling back to pre-seeded synthetic anomaly records ($	ext{confidence} < 0.70$).</li>
+      <li><strong>OCR Price Parsing Anomalies:</strong> Strict regex boundary matching wrapped in try/catch blocks defaulting to <code>PRICE_PARSE_ERROR</code>.</li>
+      <li><strong>Concurrency Race Conditions:</strong> Optimistic locking mechanisms enforce conditional state matches (<code>WHERE version = :v AND human_status = 'PENDING'</code>), throwing <code>409 Conflict</code> on version mismatch.</li>
+      <li><strong>Traceability Drift:</strong> Immutable Requirement IDs embedded as code annotations and test decorators verified automatically during pipeline runs.</li>
+    </ul>
+  </section>
+</main>
+
+</body>
+</html>

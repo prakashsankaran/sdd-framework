@@ -272,13 +272,25 @@ function updateActiveRun(folder, msg) {
   };
 
   const findMemberKey = (text) => {
-    const lower = text.toLowerCase();
+    const clean = text.toLowerCase().replace(/[^a-z]/g, '');
     for (const key of Object.keys(memberNameMap)) {
-      const sanitizedKey = key.replace('_', '');
-      if (lower.includes(sanitizedKey) || lower.includes(key)) {
+      const cleanKey = key.replace(/[^a-z]/g, '');
+      if (clean.includes(cleanKey) || cleanKey.includes(clean)) {
         return memberNameMap[key];
       }
     }
+    
+    // Explicit keywords matching fallback
+    const lower = text.toLowerCase();
+    if (lower.includes('devil')) return 'devil_advocate';
+    if (lower.includes('product')) return 'product_owner';
+    if (lower.includes('data')) return 'data_architect';
+    if (lower.includes('finops') || lower.includes('cost')) return 'cost';
+    if (lower.includes('security')) return 'security';
+    if (lower.includes('architect')) return 'architect';
+    if (lower.includes('performance')) return 'performance';
+    if (lower.includes('devops')) return 'devops';
+    if (lower.includes('compliance')) return 'compliance';
     return null;
   };
 
@@ -1662,7 +1674,9 @@ TABLE OF CONTENTS (always include)
         const model = ai.getGenerativeModel({ model: modelsConfig.active_slm });
 
         const prompt = `You are an expert UI/UX designer and web developer.
-Your goal is to build a complete, highly-interactive single-page HTML application mockup prototype based on the provided functional specification spec.md.
+Your goal is to build a complete, highly-interactive single-page HTML application mockup prototype representing the actual user interface of the product described in the specification (e.g., the Store Associate's dashboard with task list, shelf image upload, restock queue tables, action buttons, and task details drawer).
+
+CRITICAL RULE: Do NOT build a technical document viewer, spec summary page, or specification reader. You must build the actual application interface itself that the store associates or managers would use daily to audit shelves and complete tasks.
 
 Design & Layout Rules:
 1. Use modern Tailwind CSS (via CDN: https://cdn.tailwindcss.com) for layout and styling. Create a premium dark-mode aesthetic (slate-950 background, glassmorphism cards, glowing active accents, smooth typography).

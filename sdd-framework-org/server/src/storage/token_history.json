@@ -1,5 +1,2390 @@
 [
   {
+    "id": "tok_1785181191762_s5vh7",
+    "timestamp": "2026-07-27T19:39:51.762Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 8871,
+    "completionTokens": 752,
+    "totalTokens": 9623,
+    "cost": 0.0008909249999999999
+  },
+  {
+    "id": "tok_1785181189313_x6jy5",
+    "timestamp": "2026-07-27T19:39:49.313Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5135,
+    "completionTokens": 86,
+    "totalTokens": 5221,
+    "cost": 0.000410925
+  },
+  {
+    "id": "tok_1785181134565_4jnnu",
+    "timestamp": "2026-07-27T19:38:54.565Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5252,
+    "completionTokens": 8242,
+    "totalTokens": 13494,
+    "cost": 0.0028664999999999997
+  },
+  {
+    "id": "tok_1785181113330_yrfsk",
+    "timestamp": "2026-07-27T19:38:33.330Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5134,
+    "completionTokens": 87,
+    "totalTokens": 5221,
+    "cost": 0.00041115
+  },
+  {
+    "id": "tok_1785181079233_r8sf5",
+    "timestamp": "2026-07-27T19:37:59.233Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 8065,
+    "completionTokens": 5930,
+    "totalTokens": 13995,
+    "cost": 0.0023838749999999997
+  },
+  {
+    "id": "tok_1785181065868_al8rm",
+    "timestamp": "2026-07-27T19:37:45.868Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5134,
+    "completionTokens": 98,
+    "totalTokens": 5232,
+    "cost": 0.00041445
+  },
+  {
+    "id": "tok_1785181034380_3ujgh",
+    "timestamp": "2026-07-27T19:37:14.380Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 9319,
+    "completionTokens": 6211,
+    "totalTokens": 15530,
+    "cost": 0.0025622249999999996
+  },
+  {
+    "id": "tok_1785181018505_w05l8",
+    "timestamp": "2026-07-27T19:36:58.505Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5134,
+    "completionTokens": 106,
+    "totalTokens": 5240,
+    "cost": 0.00041685
+  },
+  {
+    "id": "tok_1785180991269_6127n",
+    "timestamp": "2026-07-27T19:36:31.269Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 7785,
+    "completionTokens": 9739,
+    "totalTokens": 17524,
+    "cost": 0.0035055749999999995
+  },
+  {
+    "id": "tok_1785180970431_9fiwl",
+    "timestamp": "2026-07-27T19:36:10.431Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5134,
+    "completionTokens": 65,
+    "totalTokens": 5199,
+    "cost": 0.00040455
+  },
+  {
+    "id": "tok_1785180956546_mylbb",
+    "timestamp": "2026-07-27T19:35:56.546Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5900,
+    "completionTokens": 15647,
+    "totalTokens": 21547,
+    "cost": 0.0051366
+  },
+  {
+    "id": "tok_1785180920506_mamys",
+    "timestamp": "2026-07-27T19:35:20.506Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5135,
+    "completionTokens": 66,
+    "totalTokens": 5201,
+    "cost": 0.000404925
+  },
+  {
+    "id": "tok_1785180903075_hfm0d",
+    "timestamp": "2026-07-27T19:35:03.075Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 8858,
+    "completionTokens": 2214,
+    "totalTokens": 11072,
+    "cost": 0.00132855
+  },
+  {
+    "id": "tok_1785180897160_70hih",
+    "timestamp": "2026-07-27T19:34:57.160Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5134,
+    "completionTokens": 76,
+    "totalTokens": 5210,
+    "cost": 0.00040785
+  },
+  {
+    "id": "tok_1785180864292_lftet",
+    "timestamp": "2026-07-27T19:34:24.292Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5743,
+    "completionTokens": 2553,
+    "totalTokens": 8296,
+    "cost": 0.0011966249999999998
+  },
+  {
+    "id": "tok_1785180857005_p6pvi",
+    "timestamp": "2026-07-27T19:34:17.005Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5136,
+    "completionTokens": 97,
+    "totalTokens": 5233,
+    "cost": 0.0004143
+  },
+  {
+    "id": "tok_1785180748496_3hbti",
+    "timestamp": "2026-07-27T19:32:28.496Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5732,
+    "completionTokens": 2530,
+    "totalTokens": 8262,
+    "cost": 0.0011889000000000001
+  },
+  {
+    "id": "tok_1785180740999_1t6xx",
+    "timestamp": "2026-07-27T19:32:20.999Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5136,
+    "completionTokens": 107,
+    "totalTokens": 5243,
+    "cost": 0.0004173
+  },
+  {
+    "id": "tok_1785180733215_pu6jk",
+    "timestamp": "2026-07-27T19:32:13.215Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Decision Storage Extractor",
+    "promptTokens": 762,
+    "completionTokens": 794,
+    "totalTokens": 1556,
+    "cost": 0.00029535
+  },
+  {
+    "id": "tok_1785180730350_luay7",
+    "timestamp": "2026-07-27T19:32:10.350Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Decision Log Compiler",
+    "promptTokens": 2049,
+    "completionTokens": 634,
+    "totalTokens": 2683,
+    "cost": 0.000343875
+  },
+  {
+    "id": "tok_1785180727381_c2s53",
+    "timestamp": "2026-07-27T19:32:07.381Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Conflict Matrix Compiler",
+    "promptTokens": 1424,
+    "completionTokens": 515,
+    "totalTokens": 1939,
+    "cost": 0.0002613
+  },
+  {
+    "id": "tok_1785180725433_zknyz",
+    "timestamp": "2026-07-27T19:32:05.433Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: CEO",
+    "promptTokens": 1042,
+    "completionTokens": 572,
+    "totalTokens": 1614,
+    "cost": 0.00024974999999999997
+  },
+  {
+    "id": "tok_1785180721950_fjn14",
+    "timestamp": "2026-07-27T19:32:01.950Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Validation Agent",
+    "promptTokens": 11523,
+    "completionTokens": 524,
+    "totalTokens": 12047,
+    "cost": 0.0010214249999999999
+  },
+  {
+    "id": "tok_1785180719190_l2i7w",
+    "timestamp": "2026-07-27T19:31:59.190Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Editor",
+    "promptTokens": 16134,
+    "completionTokens": 4825,
+    "totalTokens": 20959,
+    "cost": 0.00265755
+  },
+  {
+    "id": "tok_1785180693485_wdaa8",
+    "timestamp": "2026-07-27T19:31:33.485Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Moderator",
+    "promptTokens": 24764,
+    "completionTokens": 1379,
+    "totalTokens": 26143,
+    "cost": 0.002271
+  },
+  {
+    "id": "tok_1785180687375_f7k7a",
+    "timestamp": "2026-07-27T19:31:27.375Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Compliance",
+    "promptTokens": 6758,
+    "completionTokens": 330,
+    "totalTokens": 7088,
+    "cost": 0.00060585
+  },
+  {
+    "id": "tok_1785180684699_1jzyr",
+    "timestamp": "2026-07-27T19:31:24.699Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: DevOps",
+    "promptTokens": 6756,
+    "completionTokens": 362,
+    "totalTokens": 7118,
+    "cost": 0.0006153
+  },
+  {
+    "id": "tok_1785180684693_y3jtj",
+    "timestamp": "2026-07-27T19:31:24.693Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Data Architect",
+    "promptTokens": 6756,
+    "completionTokens": 381,
+    "totalTokens": 7137,
+    "cost": 0.000621
+  },
+  {
+    "id": "tok_1785180684583_fkfoo",
+    "timestamp": "2026-07-27T19:31:24.583Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Performance",
+    "promptTokens": 6756,
+    "completionTokens": 369,
+    "totalTokens": 7125,
+    "cost": 0.0006174
+  },
+  {
+    "id": "tok_1785180684388_m2pus",
+    "timestamp": "2026-07-27T19:31:24.388Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Cost",
+    "promptTokens": 6759,
+    "completionTokens": 338,
+    "totalTokens": 7097,
+    "cost": 0.000608325
+  },
+  {
+    "id": "tok_1785180681727_o0bhf",
+    "timestamp": "2026-07-27T19:31:21.727Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Product Owner",
+    "promptTokens": 6756,
+    "completionTokens": 372,
+    "totalTokens": 7128,
+    "cost": 0.0006183
+  },
+  {
+    "id": "tok_1785180681523_nwy5g",
+    "timestamp": "2026-07-27T19:31:21.523Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Security",
+    "promptTokens": 6756,
+    "completionTokens": 351,
+    "totalTokens": 7107,
+    "cost": 0.000612
+  },
+  {
+    "id": "tok_1785180681309_75d4m",
+    "timestamp": "2026-07-27T19:31:21.309Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Architect",
+    "promptTokens": 6757,
+    "completionTokens": 389,
+    "totalTokens": 7146,
+    "cost": 0.000623475
+  },
+  {
+    "id": "tok_1785180681301_ebkeh",
+    "timestamp": "2026-07-27T19:31:21.301Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Devil's Advocate",
+    "promptTokens": 6757,
+    "completionTokens": 334,
+    "totalTokens": 7091,
+    "cost": 0.000606975
+  },
+  {
+    "id": "tok_1785180678534_e55fm",
+    "timestamp": "2026-07-27T19:31:18.534Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Compliance",
+    "promptTokens": 14785,
+    "completionTokens": 966,
+    "totalTokens": 15751,
+    "cost": 0.001398675
+  },
+  {
+    "id": "tok_1785180673006_d1t67",
+    "timestamp": "2026-07-27T19:31:13.006Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Performance",
+    "promptTokens": 14768,
+    "completionTokens": 986,
+    "totalTokens": 18058,
+    "cost": 0.0014034
+  },
+  {
+    "id": "tok_1785180659693_t1c1j",
+    "timestamp": "2026-07-27T19:30:59.693Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Data Architect",
+    "promptTokens": 14777,
+    "completionTokens": 736,
+    "totalTokens": 15513,
+    "cost": 0.0013290749999999999
+  },
+  {
+    "id": "tok_1785180659080_y33t2",
+    "timestamp": "2026-07-27T19:30:59.080Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Cost",
+    "promptTokens": 14767,
+    "completionTokens": 498,
+    "totalTokens": 15265,
+    "cost": 0.001256925
+  },
+  {
+    "id": "tok_1785180658772_jz6lk",
+    "timestamp": "2026-07-27T19:30:58.772Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: DevOps",
+    "promptTokens": 14780,
+    "completionTokens": 472,
+    "totalTokens": 15252,
+    "cost": 0.0012500999999999999
+  },
+  {
+    "id": "tok_1785180655495_lpbd6",
+    "timestamp": "2026-07-27T19:30:55.495Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Security",
+    "promptTokens": 14774,
+    "completionTokens": 913,
+    "totalTokens": 15687,
+    "cost": 0.0013819499999999998
+  },
+  {
+    "id": "tok_1785180655341_ibvjo",
+    "timestamp": "2026-07-27T19:30:55.341Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Devil's Advocate",
+    "promptTokens": 14782,
+    "completionTokens": 826,
+    "totalTokens": 15608,
+    "cost": 0.00135645
+  },
+  {
+    "id": "tok_1785180654331_jmf3r",
+    "timestamp": "2026-07-27T19:30:54.331Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Product Owner",
+    "promptTokens": 14766,
+    "completionTokens": 607,
+    "totalTokens": 15373,
+    "cost": 0.00128955
+  },
+  {
+    "id": "tok_1785180654063_iyyb2",
+    "timestamp": "2026-07-27T19:30:54.063Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Architect",
+    "promptTokens": 14769,
+    "completionTokens": 492,
+    "totalTokens": 15261,
+    "cost": 0.001255275
+  },
+  {
+    "id": "tok_1785180450455_4vtc3",
+    "timestamp": "2026-07-27T19:27:30.455Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 2784,
+    "completionTokens": 4076,
+    "totalTokens": 6860,
+    "cost": 0.0014315999999999999
+  },
+  {
+    "id": "tok_1785180439840_in865",
+    "timestamp": "2026-07-27T19:27:19.840Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 2729,
+    "completionTokens": 9598,
+    "totalTokens": 12327,
+    "cost": 0.003084075
+  },
+  {
+    "id": "tok_1785180416078_5kzi2",
+    "timestamp": "2026-07-27T19:26:56.078Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 1964,
+    "completionTokens": 66,
+    "totalTokens": 2030,
+    "cost": 0.0001671
+  },
+  {
+    "id": "tok_1785180400001_n4qtv",
+    "timestamp": "2026-07-27T19:26:40.001Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5687,
+    "completionTokens": 1898,
+    "totalTokens": 7585,
+    "cost": 0.000995925
+  },
+  {
+    "id": "tok_1785180394685_wsvu6",
+    "timestamp": "2026-07-27T19:26:34.685Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 1963,
+    "completionTokens": 92,
+    "totalTokens": 2055,
+    "cost": 0.00017482499999999998
+  },
+  {
+    "id": "tok_1785180357198_hmj5b",
+    "timestamp": "2026-07-27T19:25:57.198Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 2561,
+    "completionTokens": 1835,
+    "totalTokens": 4396,
+    "cost": 0.000742575
+  },
+  {
+    "id": "tok_1785180351158_mo214",
+    "timestamp": "2026-07-27T19:25:51.158Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 1965,
+    "completionTokens": 76,
+    "totalTokens": 2041,
+    "cost": 0.000170175
+  },
+  {
+    "id": "tok_1785180319928_5hns6",
+    "timestamp": "2026-07-27T19:25:19.928Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Decision Storage Extractor",
+    "promptTokens": 698,
+    "completionTokens": 895,
+    "totalTokens": 1593,
+    "cost": 0.00032084999999999997
+  },
+  {
+    "id": "tok_1785180317035_uaet1",
+    "timestamp": "2026-07-27T19:25:17.035Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Decision Log Compiler",
+    "promptTokens": 1350,
+    "completionTokens": 570,
+    "totalTokens": 1920,
+    "cost": 0.000136125
+  },
+  {
+    "id": "tok_1785180313986_ps3jf",
+    "timestamp": "2026-07-27T19:25:13.986Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Conflict Matrix Compiler",
+    "promptTokens": 867,
+    "completionTokens": 240,
+    "totalTokens": 1107,
+    "cost": 0.00006851249999999999
+  },
+  {
+    "id": "tok_1785180312347_mya0x",
+    "timestamp": "2026-07-27T19:25:12.347Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: CEO",
+    "promptTokens": 888,
+    "completionTokens": 430,
+    "totalTokens": 1318,
+    "cost": 0.00009779999999999999
+  },
+  {
+    "id": "tok_1785180309479_2z06m",
+    "timestamp": "2026-07-27T19:25:09.479Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Validation Agent",
+    "promptTokens": 7795,
+    "completionTokens": 359,
+    "totalTokens": 8154,
+    "cost": 0.00034616249999999996
+  },
+  {
+    "id": "tok_1785180306952_2t80f",
+    "timestamp": "2026-07-27T19:25:06.952Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Editor",
+    "promptTokens": 15577,
+    "completionTokens": 1654,
+    "totalTokens": 17231,
+    "cost": 0.0008322375
+  },
+  {
+    "id": "tok_1785180300338_3vepc",
+    "timestamp": "2026-07-27T19:25:00.338Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Moderator",
+    "promptTokens": 24349,
+    "completionTokens": 822,
+    "totalTokens": 25171,
+    "cost": 0.0010363875
+  },
+  {
+    "id": "tok_1785180295619_cmq59",
+    "timestamp": "2026-07-27T19:24:55.619Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Compliance",
+    "promptTokens": 6481,
+    "completionTokens": 321,
+    "totalTokens": 6802,
+    "cost": 0.000582375
+  },
+  {
+    "id": "tok_1785180293093_mkkrj",
+    "timestamp": "2026-07-27T19:24:53.093Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "Debate: Cost",
+    "promptTokens": 6482,
+    "completionTokens": 470,
+    "totalTokens": 6952,
+    "cost": 0.00031357499999999996
+  },
+  {
+    "id": "tok_1785180292345_45tr5",
+    "timestamp": "2026-07-27T19:24:52.345Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Performance",
+    "promptTokens": 6479,
+    "completionTokens": 368,
+    "totalTokens": 6847,
+    "cost": 0.000596325
+  },
+  {
+    "id": "tok_1785180292169_fet10",
+    "timestamp": "2026-07-27T19:24:52.169Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: DevOps",
+    "promptTokens": 6479,
+    "completionTokens": 328,
+    "totalTokens": 6807,
+    "cost": 0.0005843249999999999
+  },
+  {
+    "id": "tok_1785180291967_shk8c",
+    "timestamp": "2026-07-27T19:24:51.967Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Data Architect",
+    "promptTokens": 6479,
+    "completionTokens": 312,
+    "totalTokens": 6791,
+    "cost": 0.000579525
+  },
+  {
+    "id": "tok_1785180289374_k9ck7",
+    "timestamp": "2026-07-27T19:24:49.374Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Security",
+    "promptTokens": 6479,
+    "completionTokens": 281,
+    "totalTokens": 6760,
+    "cost": 0.0005702249999999999
+  },
+  {
+    "id": "tok_1785180289371_ejqso",
+    "timestamp": "2026-07-27T19:24:49.371Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Architect",
+    "promptTokens": 6480,
+    "completionTokens": 312,
+    "totalTokens": 6792,
+    "cost": 0.0005796
+  },
+  {
+    "id": "tok_1785180289323_k5yr6",
+    "timestamp": "2026-07-27T19:24:49.323Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Devil's Advocate",
+    "promptTokens": 6480,
+    "completionTokens": 320,
+    "totalTokens": 6800,
+    "cost": 0.000582
+  },
+  {
+    "id": "tok_1785180289314_h08gr",
+    "timestamp": "2026-07-27T19:24:49.314Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Product Owner",
+    "promptTokens": 6479,
+    "completionTokens": 376,
+    "totalTokens": 6855,
+    "cost": 0.0005987249999999999
+  },
+  {
+    "id": "tok_1785180286697_zkcuq",
+    "timestamp": "2026-07-27T19:24:46.697Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Compliance",
+    "promptTokens": 14785,
+    "completionTokens": 869,
+    "totalTokens": 15654,
+    "cost": 0.001369575
+  },
+  {
+    "id": "tok_1785180281598_qqg4y",
+    "timestamp": "2026-07-27T19:24:41.598Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: DevOps",
+    "promptTokens": 14780,
+    "completionTokens": 600,
+    "totalTokens": 15380,
+    "cost": 0.0012885
+  },
+  {
+    "id": "tok_1785180281381_b8at3",
+    "timestamp": "2026-07-27T19:24:41.381Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Performance",
+    "promptTokens": 14768,
+    "completionTokens": 677,
+    "totalTokens": 15445,
+    "cost": 0.0013107000000000001
+  },
+  {
+    "id": "tok_1785180281130_gx6c6",
+    "timestamp": "2026-07-27T19:24:41.130Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Data Architect",
+    "promptTokens": 14777,
+    "completionTokens": 621,
+    "totalTokens": 15398,
+    "cost": 0.0012945749999999998
+  },
+  {
+    "id": "tok_1785180281117_nxix1",
+    "timestamp": "2026-07-27T19:24:41.117Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Cost",
+    "promptTokens": 14767,
+    "completionTokens": 472,
+    "totalTokens": 15239,
+    "cost": 0.001249125
+  },
+  {
+    "id": "tok_1785180277456_9p9jk",
+    "timestamp": "2026-07-27T19:24:37.456Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Devil's Advocate",
+    "promptTokens": 14782,
+    "completionTokens": 993,
+    "totalTokens": 15775,
+    "cost": 0.00140655
+  },
+  {
+    "id": "tok_1785180277330_b4s74",
+    "timestamp": "2026-07-27T19:24:37.330Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Security",
+    "promptTokens": 14774,
+    "completionTokens": 895,
+    "totalTokens": 15669,
+    "cost": 0.0013765499999999998
+  },
+  {
+    "id": "tok_1785180275789_6in79",
+    "timestamp": "2026-07-27T19:24:35.789Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Product Owner",
+    "promptTokens": 14766,
+    "completionTokens": 600,
+    "totalTokens": 15366,
+    "cost": 0.00128745
+  },
+  {
+    "id": "tok_1785180275380_1wfeh",
+    "timestamp": "2026-07-27T19:24:35.380Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Architect",
+    "promptTokens": 14769,
+    "completionTokens": 492,
+    "totalTokens": 15261,
+    "cost": 0.001255275
+  },
+  {
+    "id": "tok_1785180173407_zaw89",
+    "timestamp": "2026-07-27T19:22:53.407Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 4843,
+    "completionTokens": 3113,
+    "totalTokens": 7956,
+    "cost": 0.001297125
+  },
+  {
+    "id": "tok_1785180165500_bgsjw",
+    "timestamp": "2026-07-27T19:22:45.501Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 1912,
+    "completionTokens": 95,
+    "totalTokens": 2007,
+    "cost": 0.00017189999999999998
+  },
+  {
+    "id": "tok_1785180159447_flsma",
+    "timestamp": "2026-07-27T19:22:39.447Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5738,
+    "completionTokens": 2524,
+    "totalTokens": 8262,
+    "cost": 0.0011875499999999999
+  },
+  {
+    "id": "tok_1785180150701_pcjre",
+    "timestamp": "2026-07-27T19:22:30.701Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 1912,
+    "completionTokens": 94,
+    "totalTokens": 2006,
+    "cost": 0.0001716
+  },
+  {
+    "id": "tok_1785180096328_cioz4",
+    "timestamp": "2026-07-27T19:21:36.328Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 4563,
+    "completionTokens": 6902,
+    "totalTokens": 11465,
+    "cost": 0.0024128249999999995
+  },
+  {
+    "id": "tok_1785180081459_l2nha",
+    "timestamp": "2026-07-27T19:21:21.459Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 1912,
+    "completionTokens": 93,
+    "totalTokens": 2005,
+    "cost": 0.0001713
+  },
+  {
+    "id": "tok_1785180054778_f3eoj",
+    "timestamp": "2026-07-27T19:20:54.778Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 2733,
+    "completionTokens": 3710,
+    "totalTokens": 6443,
+    "cost": 0.001317975
+  },
+  {
+    "id": "tok_1785180045311_agxi6",
+    "timestamp": "2026-07-27T19:20:45.311Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 2678,
+    "completionTokens": 14356,
+    "totalTokens": 17034,
+    "cost": 0.004507649999999999
+  },
+  {
+    "id": "tok_1785180012771_6ul5m",
+    "timestamp": "2026-07-27T19:20:12.772Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 1913,
+    "completionTokens": 116,
+    "totalTokens": 2029,
+    "cost": 0.000178275
+  },
+  {
+    "id": "tok_1785180001648_iu0ku",
+    "timestamp": "2026-07-27T19:20:01.648Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5636,
+    "completionTokens": 1677,
+    "totalTokens": 7313,
+    "cost": 0.0009257999999999998
+  },
+  {
+    "id": "tok_1785179996625_bmc32",
+    "timestamp": "2026-07-27T19:19:56.625Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 1912,
+    "completionTokens": 88,
+    "totalTokens": 2000,
+    "cost": 0.00016979999999999998
+  },
+  {
+    "id": "tok_1785179975358_08saq",
+    "timestamp": "2026-07-27T19:19:35.358Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 2510,
+    "completionTokens": 1636,
+    "totalTokens": 4146,
+    "cost": 0.00067905
+  },
+  {
+    "id": "tok_1785179970221_jinul",
+    "timestamp": "2026-07-27T19:19:30.221Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 1914,
+    "completionTokens": 69,
+    "totalTokens": 1983,
+    "cost": 0.00016424999999999998
+  },
+  {
+    "id": "tok_1785179966985_1cp33",
+    "timestamp": "2026-07-27T19:19:26.985Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Decision Storage Extractor",
+    "promptTokens": 1029,
+    "completionTokens": 1133,
+    "totalTokens": 2162,
+    "cost": 0.00041707499999999993
+  },
+  {
+    "id": "tok_1785179963383_x9qql",
+    "timestamp": "2026-07-27T19:19:23.383Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Decision Log Compiler",
+    "promptTokens": 1437,
+    "completionTokens": 901,
+    "totalTokens": 2338,
+    "cost": 0.000378075
+  },
+  {
+    "id": "tok_1785179960159_ekkn5",
+    "timestamp": "2026-07-27T19:19:20.159Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Conflict Matrix Compiler",
+    "promptTokens": 962,
+    "completionTokens": 229,
+    "totalTokens": 1191,
+    "cost": 0.00014084999999999998
+  },
+  {
+    "id": "tok_1785179958662_kmin7",
+    "timestamp": "2026-07-27T19:19:18.662Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: CEO",
+    "promptTokens": 959,
+    "completionTokens": 422,
+    "totalTokens": 1381,
+    "cost": 0.000198525
+  },
+  {
+    "id": "tok_1785179956112_4uiku",
+    "timestamp": "2026-07-27T19:19:16.112Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Validation Agent",
+    "promptTokens": 7839,
+    "completionTokens": 401,
+    "totalTokens": 8240,
+    "cost": 0.0003541125
+  },
+  {
+    "id": "tok_1785179953620_zzdda",
+    "timestamp": "2026-07-27T19:19:13.620Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Editor",
+    "promptTokens": 15672,
+    "completionTokens": 1603,
+    "totalTokens": 17275,
+    "cost": 0.0008281499999999999
+  },
+  {
+    "id": "tok_1785179946682_2xwdi",
+    "timestamp": "2026-07-27T19:19:06.682Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Moderator",
+    "promptTokens": 24867,
+    "completionTokens": 917,
+    "totalTokens": 25784,
+    "cost": 0.0010700625
+  },
+  {
+    "id": "tok_1785179941356_ype7x",
+    "timestamp": "2026-07-27T19:19:01.356Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "Debate: Compliance",
+    "promptTokens": 6330,
+    "completionTokens": 487,
+    "totalTokens": 6817,
+    "cost": 0.00031042499999999997
+  },
+  {
+    "id": "tok_1785179937927_hcliv",
+    "timestamp": "2026-07-27T19:18:57.927Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "Debate: Performance",
+    "promptTokens": 6328,
+    "completionTokens": 420,
+    "totalTokens": 6748,
+    "cost": 0.0003003
+  },
+  {
+    "id": "tok_1785179937916_s2c43",
+    "timestamp": "2026-07-27T19:18:57.916Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "Debate: Data Architect",
+    "promptTokens": 6328,
+    "completionTokens": 443,
+    "totalTokens": 6771,
+    "cost": 0.00030375
+  },
+  {
+    "id": "tok_1785179937912_rw3b7",
+    "timestamp": "2026-07-27T19:18:57.912Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "Debate: DevOps",
+    "promptTokens": 6328,
+    "completionTokens": 453,
+    "totalTokens": 6781,
+    "cost": 0.00030524999999999997
+  },
+  {
+    "id": "tok_1785179937802_bptk1",
+    "timestamp": "2026-07-27T19:18:57.802Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "Debate: Cost",
+    "promptTokens": 6331,
+    "completionTokens": 436,
+    "totalTokens": 6767,
+    "cost": 0.00030281249999999997
+  },
+  {
+    "id": "tok_1785179934367_z51zj",
+    "timestamp": "2026-07-27T19:18:54.367Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Devil's Advocate",
+    "promptTokens": 6329,
+    "completionTokens": 371,
+    "totalTokens": 6700,
+    "cost": 0.000585975
+  },
+  {
+    "id": "tok_1785179934364_xatst",
+    "timestamp": "2026-07-27T19:18:54.364Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Security",
+    "promptTokens": 6328,
+    "completionTokens": 364,
+    "totalTokens": 6692,
+    "cost": 0.0005838
+  },
+  {
+    "id": "tok_1785179934361_zcaeo",
+    "timestamp": "2026-07-27T19:18:54.361Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Product Owner",
+    "promptTokens": 6328,
+    "completionTokens": 358,
+    "totalTokens": 6686,
+    "cost": 0.0005819999999999999
+  },
+  {
+    "id": "tok_1785179934260_bj2zq",
+    "timestamp": "2026-07-27T19:18:54.260Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Architect",
+    "promptTokens": 6329,
+    "completionTokens": 425,
+    "totalTokens": 6754,
+    "cost": 0.0006021749999999999
+  },
+  {
+    "id": "tok_1785179931465_1sdr0",
+    "timestamp": "2026-07-27T19:18:51.465Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Compliance",
+    "promptTokens": 14785,
+    "completionTokens": 896,
+    "totalTokens": 15681,
+    "cost": 0.001377675
+  },
+  {
+    "id": "tok_1785179926239_mytj2",
+    "timestamp": "2026-07-27T19:18:46.239Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Performance",
+    "promptTokens": 14768,
+    "completionTokens": 685,
+    "totalTokens": 15453,
+    "cost": 0.0013131
+  },
+  {
+    "id": "tok_1785179926015_6fyrh",
+    "timestamp": "2026-07-27T19:18:46.015Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: DevOps",
+    "promptTokens": 14780,
+    "completionTokens": 643,
+    "totalTokens": 15423,
+    "cost": 0.0013013999999999999
+  },
+  {
+    "id": "tok_1785179925804_o9qbu",
+    "timestamp": "2026-07-27T19:18:45.804Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Data Architect",
+    "promptTokens": 14777,
+    "completionTokens": 600,
+    "totalTokens": 15377,
+    "cost": 0.001288275
+  },
+  {
+    "id": "tok_1785179925587_82l57",
+    "timestamp": "2026-07-27T19:18:45.587Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Cost",
+    "promptTokens": 14767,
+    "completionTokens": 497,
+    "totalTokens": 15264,
+    "cost": 0.001256625
+  },
+  {
+    "id": "tok_1785179922068_zxhcg",
+    "timestamp": "2026-07-27T19:18:42.068Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Security",
+    "promptTokens": 14774,
+    "completionTokens": 836,
+    "totalTokens": 15610,
+    "cost": 0.00135885
+  },
+  {
+    "id": "tok_1785179922065_yx82q",
+    "timestamp": "2026-07-27T19:18:42.065Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Devil's Advocate",
+    "promptTokens": 14782,
+    "completionTokens": 832,
+    "totalTokens": 15614,
+    "cost": 0.0013582499999999999
+  },
+  {
+    "id": "tok_1785179921175_myymf",
+    "timestamp": "2026-07-27T19:18:41.175Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Product Owner",
+    "promptTokens": 14766,
+    "completionTokens": 601,
+    "totalTokens": 15367,
+    "cost": 0.00128775
+  },
+  {
+    "id": "tok_1785179920724_cmwhl",
+    "timestamp": "2026-07-27T19:18:40.724Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Architect",
+    "promptTokens": 14769,
+    "completionTokens": 478,
+    "totalTokens": 15247,
+    "cost": 0.001251075
+  },
+  {
+    "id": "tok_1785179908083_u1v3w",
+    "timestamp": "2026-07-27T19:18:28.083Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Decision Storage Extractor",
+    "promptTokens": 888,
+    "completionTokens": 921,
+    "totalTokens": 1809,
+    "cost": 0.0003429
+  },
+  {
+    "id": "tok_1785179905281_piuuf",
+    "timestamp": "2026-07-27T19:18:25.281Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Decision Log Compiler",
+    "promptTokens": 1532,
+    "completionTokens": 760,
+    "totalTokens": 2292,
+    "cost": 0.0003429
+  },
+  {
+    "id": "tok_1785179902304_vygv6",
+    "timestamp": "2026-07-27T19:18:22.304Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Conflict Matrix Compiler",
+    "promptTokens": 905,
+    "completionTokens": 215,
+    "totalTokens": 1120,
+    "cost": 0.000132375
+  },
+  {
+    "id": "tok_1785179901008_uyaib",
+    "timestamp": "2026-07-27T19:18:21.008Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: CEO",
+    "promptTokens": 958,
+    "completionTokens": 574,
+    "totalTokens": 1532,
+    "cost": 0.00024405
+  },
+  {
+    "id": "tok_1785179898081_prtng",
+    "timestamp": "2026-07-27T19:18:18.081Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Validation Agent",
+    "promptTokens": 7756,
+    "completionTokens": 394,
+    "totalTokens": 8150,
+    "cost": 0.00034995
+  },
+  {
+    "id": "tok_1785179895397_rubia",
+    "timestamp": "2026-07-27T19:18:15.397Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Editor",
+    "promptTokens": 15615,
+    "completionTokens": 1577,
+    "totalTokens": 17192,
+    "cost": 0.0008221124999999999
+  },
+  {
+    "id": "tok_1785179888874_bgvei",
+    "timestamp": "2026-07-27T19:18:08.874Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Moderator",
+    "promptTokens": 24518,
+    "completionTokens": 860,
+    "totalTokens": 25378,
+    "cost": 0.001048425
+  },
+  {
+    "id": "tok_1785179883500_g0vzl",
+    "timestamp": "2026-07-27T19:18:03.500Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "Debate: Compliance",
+    "promptTokens": 6258,
+    "completionTokens": 433,
+    "totalTokens": 6691,
+    "cost": 0.000299625
+  },
+  {
+    "id": "tok_1785179880298_vdtq2",
+    "timestamp": "2026-07-27T19:18:00.298Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "Debate: Cost",
+    "promptTokens": 6259,
+    "completionTokens": 459,
+    "totalTokens": 6718,
+    "cost": 0.0003035625
+  },
+  {
+    "id": "tok_1785179880010_fllfc",
+    "timestamp": "2026-07-27T19:18:00.010Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "Debate: DevOps",
+    "promptTokens": 6256,
+    "completionTokens": 428,
+    "totalTokens": 6684,
+    "cost": 0.0002988
+  },
+  {
+    "id": "tok_1785179879298_bwa6z",
+    "timestamp": "2026-07-27T19:17:59.298Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Performance",
+    "promptTokens": 6256,
+    "completionTokens": 414,
+    "totalTokens": 6670,
+    "cost": 0.0005934
+  },
+  {
+    "id": "tok_1785179878968_g7wqo",
+    "timestamp": "2026-07-27T19:17:58.968Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Data Architect",
+    "promptTokens": 6256,
+    "completionTokens": 362,
+    "totalTokens": 6618,
+    "cost": 0.0005778
+  },
+  {
+    "id": "tok_1785179876388_ljb0c",
+    "timestamp": "2026-07-27T19:17:56.388Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Devil's Advocate",
+    "promptTokens": 6257,
+    "completionTokens": 350,
+    "totalTokens": 6607,
+    "cost": 0.000574275
+  },
+  {
+    "id": "tok_1785179876357_85w96",
+    "timestamp": "2026-07-27T19:17:56.357Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Product Owner",
+    "promptTokens": 6256,
+    "completionTokens": 367,
+    "totalTokens": 6623,
+    "cost": 0.0005792999999999999
+  },
+  {
+    "id": "tok_1785179876053_y6yf0",
+    "timestamp": "2026-07-27T19:17:56.053Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Security",
+    "promptTokens": 6256,
+    "completionTokens": 315,
+    "totalTokens": 6571,
+    "cost": 0.0005637
+  },
+  {
+    "id": "tok_1785179876034_2mhcc",
+    "timestamp": "2026-07-27T19:17:56.034Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Architect",
+    "promptTokens": 6257,
+    "completionTokens": 352,
+    "totalTokens": 6609,
+    "cost": 0.000574875
+  },
+  {
+    "id": "tok_1785179873359_lrovf",
+    "timestamp": "2026-07-27T19:17:53.359Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Compliance",
+    "promptTokens": 14785,
+    "completionTokens": 789,
+    "totalTokens": 15574,
+    "cost": 0.0013455750000000001
+  },
+  {
+    "id": "tok_1785179868589_oggu9",
+    "timestamp": "2026-07-27T19:17:48.589Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Performance",
+    "promptTokens": 14768,
+    "completionTokens": 872,
+    "totalTokens": 15640,
+    "cost": 0.0013692
+  },
+  {
+    "id": "tok_1785179868412_d0zkc",
+    "timestamp": "2026-07-27T19:17:48.413Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: DevOps",
+    "promptTokens": 14780,
+    "completionTokens": 719,
+    "totalTokens": 15499,
+    "cost": 0.0013241999999999998
+  },
+  {
+    "id": "tok_1785179867589_nixp9",
+    "timestamp": "2026-07-27T19:17:47.589Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Cost",
+    "promptTokens": 14767,
+    "completionTokens": 540,
+    "totalTokens": 15307,
+    "cost": 0.001269525
+  },
+  {
+    "id": "tok_1785179866883_ufwly",
+    "timestamp": "2026-07-27T19:17:46.883Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Data Architect",
+    "promptTokens": 14777,
+    "completionTokens": 461,
+    "totalTokens": 15238,
+    "cost": 0.001246575
+  },
+  {
+    "id": "tok_1785179863572_2uox8",
+    "timestamp": "2026-07-27T19:17:43.572Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Security",
+    "promptTokens": 14774,
+    "completionTokens": 765,
+    "totalTokens": 15539,
+    "cost": 0.0013375499999999999
+  },
+  {
+    "id": "tok_1785179863569_vqcyq",
+    "timestamp": "2026-07-27T19:17:43.569Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Devil's Advocate",
+    "promptTokens": 14782,
+    "completionTokens": 695,
+    "totalTokens": 15477,
+    "cost": 0.0013171499999999998
+  },
+  {
+    "id": "tok_1785179863004_fbux7",
+    "timestamp": "2026-07-27T19:17:43.004Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Product Owner",
+    "promptTokens": 14766,
+    "completionTokens": 548,
+    "totalTokens": 15314,
+    "cost": 0.0012718500000000002
+  },
+  {
+    "id": "tok_1785179862767_42tt1",
+    "timestamp": "2026-07-27T19:17:42.767Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Architect",
+    "promptTokens": 14769,
+    "completionTokens": 607,
+    "totalTokens": 15376,
+    "cost": 0.001289775
+  },
+  {
+    "id": "tok_1785179849217_tkssx",
+    "timestamp": "2026-07-27T19:17:29.217Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "SpecKit: Research",
+    "promptTokens": 5258,
+    "completionTokens": 1346,
+    "totalTokens": 6604,
+    "cost": 0.00079815
+  },
+  {
+    "id": "tok_1785179842702_tvgqw",
+    "timestamp": "2026-07-27T19:17:22.702Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "SpecKit: Tasks Checklist",
+    "promptTokens": 5267,
+    "completionTokens": 1138,
+    "totalTokens": 6405,
+    "cost": 0.000736425
+  },
+  {
+    "id": "tok_1785179838047_hhizd",
+    "timestamp": "2026-07-27T19:17:18.047Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "SpecKit: Implementation Plan",
+    "promptTokens": 5268,
+    "completionTokens": 2667,
+    "totalTokens": 7935,
+    "cost": 0.0011952
+  },
+  {
+    "id": "tok_1785179829419_vipi6",
+    "timestamp": "2026-07-27T19:17:09.419Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "SpecKit: Specification",
+    "promptTokens": 5306,
+    "completionTokens": 4383,
+    "totalTokens": 9689,
+    "cost": 0.00171285
+  },
+  {
+    "id": "tok_1785179815151_fgq2y",
+    "timestamp": "2026-07-27T19:16:55.151Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "SpecKit: Constitution",
+    "promptTokens": 5281,
+    "completionTokens": 651,
+    "totalTokens": 5932,
+    "cost": 0.000591375
+  },
+  {
+    "id": "tok_1785179765527_a1fkq",
+    "timestamp": "2026-07-27T19:16:05.527Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5104,
+    "completionTokens": 2655,
+    "totalTokens": 7759,
+    "cost": 0.0011792999999999999
+  },
+  {
+    "id": "tok_1785179759476_unpb8",
+    "timestamp": "2026-07-27T19:15:59.476Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 1954,
+    "completionTokens": 69,
+    "totalTokens": 2023,
+    "cost": 0.00016724999999999997
+  },
+  {
+    "id": "tok_1785179705974_q1ea3",
+    "timestamp": "2026-07-27T19:15:05.974Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Decision Storage Extractor",
+    "promptTokens": 736,
+    "completionTokens": 825,
+    "totalTokens": 1561,
+    "cost": 0.00015135
+  },
+  {
+    "id": "tok_1785179702606_zhdau",
+    "timestamp": "2026-07-27T19:15:02.606Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Decision Log Compiler",
+    "promptTokens": 1399,
+    "completionTokens": 608,
+    "totalTokens": 2007,
+    "cost": 0.00014366249999999998
+  },
+  {
+    "id": "tok_1785179699218_6dpum",
+    "timestamp": "2026-07-27T19:14:59.218Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Conflict Matrix Compiler",
+    "promptTokens": 962,
+    "completionTokens": 217,
+    "totalTokens": 1179,
+    "cost": 0.000068625
+  },
+  {
+    "id": "tok_1785179697581_otikc",
+    "timestamp": "2026-07-27T19:14:57.581Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: CEO",
+    "promptTokens": 898,
+    "completionTokens": 384,
+    "totalTokens": 1282,
+    "cost": 0.000091275
+  },
+  {
+    "id": "tok_1785179694737_qy2p6",
+    "timestamp": "2026-07-27T19:14:54.737Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Validation Agent",
+    "promptTokens": 7881,
+    "completionTokens": 337,
+    "totalTokens": 8218,
+    "cost": 0.0003460875
+  },
+  {
+    "id": "tok_1785179692243_ecign",
+    "timestamp": "2026-07-27T19:14:52.243Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Editor",
+    "promptTokens": 14545,
+    "completionTokens": 1645,
+    "totalTokens": 16190,
+    "cost": 0.0007921875
+  },
+  {
+    "id": "tok_1785179684679_69pdc",
+    "timestamp": "2026-07-27T19:14:44.679Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Moderator",
+    "promptTokens": 23149,
+    "completionTokens": 917,
+    "totalTokens": 24066,
+    "cost": 0.0010056375
+  },
+  {
+    "id": "tok_1785179679325_3usb3",
+    "timestamp": "2026-07-27T19:14:39.325Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "Debate: Compliance",
+    "promptTokens": 6263,
+    "completionTokens": 437,
+    "totalTokens": 6700,
+    "cost": 0.00030041249999999996
+  },
+  {
+    "id": "tok_1785179676155_3s5wh",
+    "timestamp": "2026-07-27T19:14:36.155Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Performance",
+    "promptTokens": 6261,
+    "completionTokens": 361,
+    "totalTokens": 6622,
+    "cost": 0.0005778749999999999
+  },
+  {
+    "id": "tok_1785179676070_5dr09",
+    "timestamp": "2026-07-27T19:14:36.070Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: DevOps",
+    "promptTokens": 6261,
+    "completionTokens": 324,
+    "totalTokens": 6585,
+    "cost": 0.0005667749999999999
+  },
+  {
+    "id": "tok_1785179675900_fqrcj",
+    "timestamp": "2026-07-27T19:14:35.900Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Data Architect",
+    "promptTokens": 6261,
+    "completionTokens": 347,
+    "totalTokens": 6608,
+    "cost": 0.0005736749999999999
+  },
+  {
+    "id": "tok_1785179675802_1zbdm",
+    "timestamp": "2026-07-27T19:14:35.802Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Cost",
+    "promptTokens": 6264,
+    "completionTokens": 320,
+    "totalTokens": 6584,
+    "cost": 0.0005658
+  },
+  {
+    "id": "tok_1785179673178_4bnjw",
+    "timestamp": "2026-07-27T19:14:33.178Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Architect",
+    "promptTokens": 6262,
+    "completionTokens": 438,
+    "totalTokens": 6700,
+    "cost": 0.00060105
+  },
+  {
+    "id": "tok_1785179673136_ryh28",
+    "timestamp": "2026-07-27T19:14:33.136Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Security",
+    "promptTokens": 6261,
+    "completionTokens": 334,
+    "totalTokens": 6595,
+    "cost": 0.000569775
+  },
+  {
+    "id": "tok_1785179673016_064s2",
+    "timestamp": "2026-07-27T19:14:33.016Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Devil's Advocate",
+    "promptTokens": 6262,
+    "completionTokens": 362,
+    "totalTokens": 6624,
+    "cost": 0.00057825
+  },
+  {
+    "id": "tok_1785179672938_yb1zn",
+    "timestamp": "2026-07-27T19:14:32.938Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Product Owner",
+    "promptTokens": 6261,
+    "completionTokens": 310,
+    "totalTokens": 6571,
+    "cost": 0.0005625749999999999
+  },
+  {
+    "id": "tok_1785179670127_fyr5n",
+    "timestamp": "2026-07-27T19:14:30.127Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Compliance",
+    "promptTokens": 13658,
+    "completionTokens": 671,
+    "totalTokens": 14329,
+    "cost": 0.00122565
+  },
+  {
+    "id": "tok_1785179666019_7q0s9",
+    "timestamp": "2026-07-27T19:14:26.019Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Cost",
+    "promptTokens": 13640,
+    "completionTokens": 671,
+    "totalTokens": 14311,
+    "cost": 0.0012243
+  },
+  {
+    "id": "tok_1785179665725_ugqrj",
+    "timestamp": "2026-07-27T19:14:25.725Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: DevOps",
+    "promptTokens": 13653,
+    "completionTokens": 679,
+    "totalTokens": 14332,
+    "cost": 0.001227675
+  },
+  {
+    "id": "tok_1785179665638_ihb90",
+    "timestamp": "2026-07-27T19:14:25.638Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Data Architect",
+    "promptTokens": 13650,
+    "completionTokens": 686,
+    "totalTokens": 14336,
+    "cost": 0.0012295499999999998
+  },
+  {
+    "id": "tok_1785179665555_df9ma",
+    "timestamp": "2026-07-27T19:14:25.555Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Performance",
+    "promptTokens": 13641,
+    "completionTokens": 669,
+    "totalTokens": 14310,
+    "cost": 0.001223775
+  },
+  {
+    "id": "tok_1785179661622_9rwup",
+    "timestamp": "2026-07-27T19:14:21.622Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Security",
+    "promptTokens": 13647,
+    "completionTokens": 787,
+    "totalTokens": 14434,
+    "cost": 0.001259625
+  },
+  {
+    "id": "tok_1785179660725_hrrfx",
+    "timestamp": "2026-07-27T19:14:20.725Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Devil's Advocate",
+    "promptTokens": 13655,
+    "completionTokens": 752,
+    "totalTokens": 14407,
+    "cost": 0.001249725
+  },
+  {
+    "id": "tok_1785179659868_qxi8u",
+    "timestamp": "2026-07-27T19:14:19.868Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Product Owner",
+    "promptTokens": 13639,
+    "completionTokens": 535,
+    "totalTokens": 14174,
+    "cost": 0.001183425
+  },
+  {
+    "id": "tok_1785179659861_3ckbm",
+    "timestamp": "2026-07-27T19:14:19.861Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Architect",
+    "promptTokens": 13642,
+    "completionTokens": 551,
+    "totalTokens": 14193,
+    "cost": 0.00118845
+  },
+  {
+    "id": "tok_1785179399802_0rtqh",
+    "timestamp": "2026-07-27T19:09:59.802Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5706,
+    "completionTokens": 12845,
+    "totalTokens": 18551,
+    "cost": 0.00428145
+  },
+  {
+    "id": "tok_1785179371297_nz2ho",
+    "timestamp": "2026-07-27T19:09:31.297Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5562,
+    "completionTokens": 15566,
+    "totalTokens": 21128,
+    "cost": 0.00508695
+  },
+  {
+    "id": "tok_1785179334244_nss2g",
+    "timestamp": "2026-07-27T19:08:54.244Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 4882,
+    "completionTokens": 62,
+    "totalTokens": 4944,
+    "cost": 0.00038475
+  },
+  {
+    "id": "tok_1785179317062_jvuja",
+    "timestamp": "2026-07-27T19:08:37.062Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 8031,
+    "completionTokens": 2747,
+    "totalTokens": 10778,
+    "cost": 0.0014264249999999998
+  },
+  {
+    "id": "tok_1785179310487_cayjf",
+    "timestamp": "2026-07-27T19:08:30.487Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 4881,
+    "completionTokens": 84,
+    "totalTokens": 4965,
+    "cost": 0.000391275
+  },
+  {
+    "id": "tok_1785179291122_bf4re",
+    "timestamp": "2026-07-27T19:08:11.122Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 5483,
+    "completionTokens": 2065,
+    "totalTokens": 7548,
+    "cost": 0.001030725
+  },
+  {
+    "id": "tok_1785179284328_r968g",
+    "timestamp": "2026-07-27T19:08:04.328Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Orchestrator (SLM)",
+    "promptTokens": 4883,
+    "completionTokens": 94,
+    "totalTokens": 4977,
+    "cost": 0.00039442499999999995
+  },
+  {
+    "id": "tok_1785179262570_o139x",
+    "timestamp": "2026-07-27T19:07:42.570Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Decision Storage Extractor",
+    "promptTokens": 1031,
+    "completionTokens": 836,
+    "totalTokens": 1867,
+    "cost": 0.00016406249999999998
+  },
+  {
+    "id": "tok_1785179259136_57une",
+    "timestamp": "2026-07-27T19:07:39.136Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Decision Log Compiler",
+    "promptTokens": 2162,
+    "completionTokens": 903,
+    "totalTokens": 3065,
+    "cost": 0.00043304999999999993
+  },
+  {
+    "id": "tok_1785179255703_hkrk3",
+    "timestamp": "2026-07-27T19:07:35.703Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: Conflict Matrix Compiler",
+    "promptTokens": 1632,
+    "completionTokens": 480,
+    "totalTokens": 2112,
+    "cost": 0.00013319999999999999
+  },
+  {
+    "id": "tok_1785179253261_95oda",
+    "timestamp": "2026-07-27T19:07:33.261Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "AI-SRB: CEO",
+    "promptTokens": 1067,
+    "completionTokens": 477,
+    "totalTokens": 1544,
+    "cost": 0.00011156249999999998
+  },
+  {
+    "id": "tok_1785179249891_z2j5y",
+    "timestamp": "2026-07-27T19:07:29.891Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Validation Agent",
+    "promptTokens": 11478,
+    "completionTokens": 521,
+    "totalTokens": 11999,
+    "cost": 0.0010171499999999999
+  },
+  {
+    "id": "tok_1785179247361_bw31w",
+    "timestamp": "2026-07-27T19:07:27.361Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Editor",
+    "promptTokens": 15215,
+    "completionTokens": 4572,
+    "totalTokens": 19787,
+    "cost": 0.002512725
+  },
+  {
+    "id": "tok_1785179235579_v5npg",
+    "timestamp": "2026-07-27T19:07:15.579Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Moderator",
+    "promptTokens": 25137,
+    "completionTokens": 1587,
+    "totalTokens": 26724,
+    "cost": 0.0023613749999999998
+  },
+  {
+    "id": "tok_1785179228838_bstd5",
+    "timestamp": "2026-07-27T19:07:08.838Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Compliance",
+    "promptTokens": 8223,
+    "completionTokens": 347,
+    "totalTokens": 8570,
+    "cost": 0.0007208249999999999
+  },
+  {
+    "id": "tok_1785179226223_zxc85",
+    "timestamp": "2026-07-27T19:07:06.223Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: DevOps",
+    "promptTokens": 8221,
+    "completionTokens": 378,
+    "totalTokens": 8599,
+    "cost": 0.0007299749999999999
+  },
+  {
+    "id": "tok_1785179226221_ch72n",
+    "timestamp": "2026-07-27T19:07:06.221Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Performance",
+    "promptTokens": 8221,
+    "completionTokens": 342,
+    "totalTokens": 8563,
+    "cost": 0.000719175
+  },
+  {
+    "id": "tok_1785179226119_jx7cu",
+    "timestamp": "2026-07-27T19:07:06.119Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Data Architect",
+    "promptTokens": 8221,
+    "completionTokens": 393,
+    "totalTokens": 8614,
+    "cost": 0.000734475
+  },
+  {
+    "id": "tok_1785179226007_xgstl",
+    "timestamp": "2026-07-27T19:07:06.007Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Cost",
+    "promptTokens": 8224,
+    "completionTokens": 338,
+    "totalTokens": 8562,
+    "cost": 0.0007181999999999999
+  },
+  {
+    "id": "tok_1785179223239_33uyk",
+    "timestamp": "2026-07-27T19:07:03.239Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Security",
+    "promptTokens": 8221,
+    "completionTokens": 370,
+    "totalTokens": 8591,
+    "cost": 0.0007275749999999999
+  },
+  {
+    "id": "tok_1785179223017_ftjkw",
+    "timestamp": "2026-07-27T19:07:03.017Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Product Owner",
+    "promptTokens": 8221,
+    "completionTokens": 344,
+    "totalTokens": 8565,
+    "cost": 0.000719775
+  },
+  {
+    "id": "tok_1785179223017_6nktd",
+    "timestamp": "2026-07-27T19:07:03.017Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Architect",
+    "promptTokens": 8222,
+    "completionTokens": 417,
+    "totalTokens": 8639,
+    "cost": 0.00074175
+  },
+  {
+    "id": "tok_1785179223015_q3hvc",
+    "timestamp": "2026-07-27T19:07:03.015Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Devil's Advocate",
+    "promptTokens": 8222,
+    "completionTokens": 332,
+    "totalTokens": 8554,
+    "cost": 0.00071625
+  },
+  {
+    "id": "tok_1785179220233_aix1w",
+    "timestamp": "2026-07-27T19:07:00.233Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Compliance",
+    "promptTokens": 13658,
+    "completionTokens": 559,
+    "totalTokens": 14217,
+    "cost": 0.00119205
+  },
+  {
+    "id": "tok_1785179216542_t7veo",
+    "timestamp": "2026-07-27T19:06:56.542Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Performance",
+    "promptTokens": 13641,
+    "completionTokens": 1087,
+    "totalTokens": 16085,
+    "cost": 0.001349175
+  },
+  {
+    "id": "tok_1785179207246_kqn1l",
+    "timestamp": "2026-07-27T19:06:47.246Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Cost",
+    "promptTokens": 13640,
+    "completionTokens": 738,
+    "totalTokens": 14378,
+    "cost": 0.0012444
+  },
+  {
+    "id": "tok_1785179206248_y61ic",
+    "timestamp": "2026-07-27T19:06:46.248Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Data Architect",
+    "promptTokens": 13650,
+    "completionTokens": 515,
+    "totalTokens": 14165,
+    "cost": 0.0011782499999999998
+  },
+  {
+    "id": "tok_1785179206012_geacq",
+    "timestamp": "2026-07-27T19:06:46.012Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: DevOps",
+    "promptTokens": 13653,
+    "completionTokens": 516,
+    "totalTokens": 14169,
+    "cost": 0.001178775
+  },
+  {
+    "id": "tok_1785179202461_7xoei",
+    "timestamp": "2026-07-27T19:06:42.461Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Security",
+    "promptTokens": 13647,
+    "completionTokens": 1252,
+    "totalTokens": 18303,
+    "cost": 0.001399125
+  },
+  {
+    "id": "tok_1785179198325_8idje",
+    "timestamp": "2026-07-27T19:06:38.325Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Devil's Advocate",
+    "promptTokens": 13655,
+    "completionTokens": 1586,
+    "totalTokens": 17517,
+    "cost": 0.0014999249999999998
+  },
+  {
+    "id": "tok_1785179192729_ncpjd",
+    "timestamp": "2026-07-27T19:06:32.729Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Product Owner",
+    "promptTokens": 13639,
+    "completionTokens": 793,
+    "totalTokens": 16450,
+    "cost": 0.0012608250000000001
+  },
+  {
+    "id": "tok_1785179190097_dflj9",
+    "timestamp": "2026-07-27T19:06:30.097Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Architect",
+    "promptTokens": 13642,
+    "completionTokens": 915,
+    "totalTokens": 15968,
+    "cost": 0.00129765
+  },
+  {
+    "id": "tok_1785177361913_lfwuv",
+    "timestamp": "2026-07-27T18:36:01.913Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Decision Storage Extractor",
+    "promptTokens": 1636,
+    "completionTokens": 1672,
+    "totalTokens": 5385,
+    "cost": 0.0006242999999999999
+  },
+  {
+    "id": "tok_1785177347538_4ezjc",
+    "timestamp": "2026-07-27T18:35:47.538Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Decision Log Compiler",
+    "promptTokens": 3256,
+    "completionTokens": 1508,
+    "totalTokens": 7227,
+    "cost": 0.0006965999999999999
+  },
+  {
+    "id": "tok_1785177330051_9yrju",
+    "timestamp": "2026-07-27T18:35:30.051Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Conflict Matrix Compiler",
+    "promptTokens": 2492,
+    "completionTokens": 692,
+    "totalTokens": 4142,
+    "cost": 0.0003945
+  },
+  {
+    "id": "tok_1785177323288_kzwxc",
+    "timestamp": "2026-07-27T18:35:23.288Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: CEO",
+    "promptTokens": 1771,
+    "completionTokens": 711,
+    "totalTokens": 2947,
+    "cost": 0.00034612499999999997
+  },
+  {
+    "id": "tok_1785177315624_vnepo",
+    "timestamp": "2026-07-27T18:35:15.624Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Validation Agent",
+    "promptTokens": 13338,
+    "completionTokens": 1207,
+    "totalTokens": 16649,
+    "cost": 0.0013624499999999999
+  },
+  {
+    "id": "tok_1785177297469_hnihd",
+    "timestamp": "2026-07-27T18:34:57.469Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Editor",
+    "promptTokens": 16075,
+    "completionTokens": 5572,
+    "totalTokens": 23477,
+    "cost": 0.0028772249999999997
+  },
+  {
+    "id": "tok_1785177267651_aq0u2",
+    "timestamp": "2026-07-27T18:34:27.651Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Moderator",
+    "promptTokens": 25735,
+    "completionTokens": 2447,
+    "totalTokens": 30971,
+    "cost": 0.002664225
+  },
+  {
+    "id": "tok_1785177242562_2y5q4",
+    "timestamp": "2026-07-27T18:34:02.562Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "Debate: Compliance",
+    "promptTokens": 8823,
+    "completionTokens": 412,
+    "totalTokens": 10016,
+    "cost": 0.0007853249999999999
+  },
+  {
+    "id": "tok_1785177235018_cv9ir",
+    "timestamp": "2026-07-27T18:33:55.018Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Data Architect",
+    "promptTokens": 8821,
+    "completionTokens": 346,
+    "totalTokens": 9167,
+    "cost": 0.000765375
+  },
+  {
+    "id": "tok_1785177234883_zt4xt",
+    "timestamp": "2026-07-27T18:33:54.883Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Cost",
+    "promptTokens": 8824,
+    "completionTokens": 338,
+    "totalTokens": 9162,
+    "cost": 0.0007631999999999999
+  },
+  {
+    "id": "tok_1785177234881_bve2r",
+    "timestamp": "2026-07-27T18:33:54.881Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: DevOps",
+    "promptTokens": 8821,
+    "completionTokens": 330,
+    "totalTokens": 9151,
+    "cost": 0.000760575
+  },
+  {
+    "id": "tok_1785177234496_zb8yk",
+    "timestamp": "2026-07-27T18:33:54.496Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Performance",
+    "promptTokens": 8821,
+    "completionTokens": 359,
+    "totalTokens": 9180,
+    "cost": 0.0007692749999999999
+  },
+  {
+    "id": "tok_1785177231919_mg03u",
+    "timestamp": "2026-07-27T18:33:51.919Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Devil's Advocate",
+    "promptTokens": 8822,
+    "completionTokens": 377,
+    "totalTokens": 9199,
+    "cost": 0.0007747499999999999
+  },
+  {
+    "id": "tok_1785177231917_u4h5t",
+    "timestamp": "2026-07-27T18:33:51.917Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Security",
+    "promptTokens": 8821,
+    "completionTokens": 365,
+    "totalTokens": 9186,
+    "cost": 0.000771075
+  },
+  {
+    "id": "tok_1785177231914_kpkti",
+    "timestamp": "2026-07-27T18:33:51.914Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Product Owner",
+    "promptTokens": 8821,
+    "completionTokens": 383,
+    "totalTokens": 9204,
+    "cost": 0.000776475
+  },
+  {
+    "id": "tok_1785177231373_9c6x5",
+    "timestamp": "2026-07-27T18:33:51.373Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "Debate: Architect",
+    "promptTokens": 8822,
+    "completionTokens": 349,
+    "totalTokens": 9171,
+    "cost": 0.00076635
+  },
+  {
+    "id": "tok_1785177228692_pq03g",
+    "timestamp": "2026-07-27T18:33:48.692Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Compliance",
+    "promptTokens": 13658,
+    "completionTokens": 831,
+    "totalTokens": 14489,
+    "cost": 0.00127365
+  },
+  {
+    "id": "tok_1785177223619_bxyv0",
+    "timestamp": "2026-07-27T18:33:43.619Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: DevOps",
+    "promptTokens": 13653,
+    "completionTokens": 1299,
+    "totalTokens": 16149,
+    "cost": 0.0014136749999999999
+  },
+  {
+    "id": "tok_1785177221808_km72t",
+    "timestamp": "2026-07-27T18:33:41.808Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Performance",
+    "promptTokens": 13641,
+    "completionTokens": 903,
+    "totalTokens": 16026,
+    "cost": 0.001293975
+  },
+  {
+    "id": "tok_1785177220379_bbfzy",
+    "timestamp": "2026-07-27T18:33:40.379Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Cost",
+    "promptTokens": 13640,
+    "completionTokens": 765,
+    "totalTokens": 15550,
+    "cost": 0.0012525000000000001
+  },
+  {
+    "id": "tok_1785177211819_ewl3o",
+    "timestamp": "2026-07-27T18:33:31.819Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "AI-SRB: Data Architect",
+    "promptTokens": 13650,
+    "completionTokens": 586,
+    "totalTokens": 14236,
+    "cost": 0.00119955
+  },
+  {
+    "id": "tok_1785177208054_u3hrj",
+    "timestamp": "2026-07-27T18:33:28.054Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Product Owner",
+    "promptTokens": 13639,
+    "completionTokens": 724,
+    "totalTokens": 16352,
+    "cost": 0.0012401250000000001
+  },
+  {
+    "id": "tok_1785177206722_3l5y3",
+    "timestamp": "2026-07-27T18:33:26.722Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Architect",
+    "promptTokens": 13642,
+    "completionTokens": 1198,
+    "totalTokens": 17336,
+    "cost": 0.00138255
+  },
+  {
+    "id": "tok_1785177204838_16877",
+    "timestamp": "2026-07-27T18:33:24.838Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Devil's Advocate",
+    "promptTokens": 13655,
+    "completionTokens": 1318,
+    "totalTokens": 16942,
+    "cost": 0.0014195249999999998
+  },
+  {
+    "id": "tok_1785177203619_ek8ju",
+    "timestamp": "2026-07-27T18:33:23.619Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Security",
+    "promptTokens": 13647,
+    "completionTokens": 937,
+    "totalTokens": 16573,
+    "cost": 0.001304625
+  },
+  {
+    "id": "tok_1785176866358_v5wob",
+    "timestamp": "2026-07-27T18:27:46.358Z",
+    "model": "gemini-3.5-flash",
+    "agentName": "AI-SRB: Performance",
+    "promptTokens": 13641,
+    "completionTokens": 1559,
+    "totalTokens": 16873,
+    "cost": 0.001490775
+  },
+  {
+    "id": "tok_1785176861190_ky0fc",
+    "timestamp": "2026-07-27T18:27:41.190Z",
+    "model": "gemini-3.5-flash",
+    "agentName": "AI-SRB: Cost",
+    "promptTokens": 13640,
+    "completionTokens": 1069,
+    "totalTokens": 16379,
+    "cost": 0.0013437
+  },
+  {
+    "id": "tok_1785176804351_ryuby",
+    "timestamp": "2026-07-27T18:26:44.351Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: DevOps",
+    "promptTokens": 13653,
+    "completionTokens": 729,
+    "totalTokens": 15847,
+    "cost": 0.001242675
+  },
+  {
+    "id": "tok_1785176775917_3fuac",
+    "timestamp": "2026-07-27T18:26:15.917Z",
+    "model": "gemini-3.6-flash",
+    "agentName": "AI-SRB: Devil's Advocate",
+    "promptTokens": 13655,
+    "completionTokens": 1395,
+    "totalTokens": 17350,
+    "cost": 0.001442625
+  },
+  {
+    "id": "tok_1785176575417_wj2h9",
+    "timestamp": "2026-07-27T18:22:55.417Z",
+    "model": "gemini-3.5-flash",
+    "agentName": "AI-SRB: Product Owner",
+    "promptTokens": 13639,
+    "completionTokens": 742,
+    "totalTokens": 16342,
+    "cost": 0.001245525
+  },
+  {
+    "id": "tok_1785176568250_bfmpx",
+    "timestamp": "2026-07-27T18:22:48.250Z",
+    "model": "gemini-3.5-flash",
+    "agentName": "AI-SRB: Architect",
+    "promptTokens": 13642,
+    "completionTokens": 1207,
+    "totalTokens": 16709,
+    "cost": 0.00138525
+  },
+  {
+    "id": "tok_1785176529664_twehv",
+    "timestamp": "2026-07-27T18:22:09.664Z",
+    "model": "gemini-3.5-flash",
+    "agentName": "AI-SRB: Security",
+    "promptTokens": 13647,
+    "completionTokens": 1382,
+    "totalTokens": 17316,
+    "cost": 0.001438125
+  },
+  {
+    "id": "tok_1785176197555_axoh0",
+    "timestamp": "2026-07-27T18:16:37.555Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "SpecKit: Research",
+    "promptTokens": 5258,
+    "completionTokens": 1054,
+    "totalTokens": 6312
+  },
+  {
+    "id": "tok_1785176192230_8m07i",
+    "timestamp": "2026-07-27T18:16:32.230Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "SpecKit: Tasks Checklist",
+    "promptTokens": 5267,
+    "completionTokens": 819,
+    "totalTokens": 6086
+  },
+  {
+    "id": "tok_1785176188239_n8nwb",
+    "timestamp": "2026-07-27T18:16:28.239Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "SpecKit: Implementation Plan",
+    "promptTokens": 5268,
+    "completionTokens": 2412,
+    "totalTokens": 7680
+  },
+  {
+    "id": "tok_1785176180352_h92n8",
+    "timestamp": "2026-07-27T18:16:20.352Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "SpecKit: Specification",
+    "promptTokens": 5306,
+    "completionTokens": 3799,
+    "totalTokens": 9105
+  },
+  {
+    "id": "tok_1785176168474_gf7a9",
+    "timestamp": "2026-07-27T18:16:08.474Z",
+    "model": "gemini-3.5-flash-lite",
+    "agentName": "SpecKit: Constitution",
+    "promptTokens": 5281,
+    "completionTokens": 655,
+    "totalTokens": 5936
+  },
+  {
     "id": "tok_1785055355012_yp6q7",
     "timestamp": "2026-07-26T08:42:35.012Z",
     "model": "gemini-3.1-flash-lite",
