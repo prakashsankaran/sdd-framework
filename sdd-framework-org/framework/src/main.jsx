@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { PageProvider } from './context/PageContext';
+import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { PageProvider, usePageContext } from './context/PageContext';
 
 // Import Pages
 import SpecToStory from './pages/SpecToStory';
@@ -17,14 +17,21 @@ import Repository from './pages/Repository';
 import RequirementAgent from './pages/RequirementAgent';
 import ValidatorAgent from './pages/ValidatorAgent';
 import AgentOrchestrator from './pages/AgentOrchestrator';
+import BrownfieldContextView from './pages/BrownfieldContextView';
+import CodeToSpecView from './pages/CodeToSpecView';
+import ImpactAnalysisView from './pages/ImpactAnalysisView';
+import WipPlaceholder from './components/WipPlaceholder';
 import ChatbotWidget from './components/ChatbotWidget';
+
+
 import HeaderTokenBadge from './components/HeaderTokenBadge';
 import TokenTrackerWidget from './components/TokenTrackerWidget';
 import TokenThresholdAlert from './components/TokenThresholdAlert';
 
 import './index.css';
 
-const navigationItems = [
+
+const greenfieldNavigationItems = [
   { path: '/spec-to-story', label: 'Spec to Story', icon: 'fas fa-exchange-alt', desc: 'Agile story generator' },
   { path: '/user-stories', label: 'User Stories', icon: 'fas fa-clipboard-list', desc: 'Backlog decomposition' },
   { path: '/ux-wireframe', label: 'UX Wireframe', icon: 'fas fa-desktop', desc: 'Tailwind prototypes' },
@@ -36,8 +43,29 @@ const navigationItems = [
   { path: '/review-agent', label: 'Review Agent', icon: 'fas fa-shield-alt', desc: 'Compliance & code scans' }
 ];
 
+const brownfieldNavigationItems = [
+  { path: '/brownfield-context', label: '1. Project Context', icon: 'fas fa-folder-plus', desc: 'Code, DDL & legacy docs', badge: 'Context' },
+  { path: '/code-to-spec', label: '2. Code to Spec', icon: 'fas fa-microchip', desc: 'Reverse-engineer v1 baseline', badge: 'Baseline' },
+  { path: '/impact-analysis', label: 'Impact & Gap Specs', icon: 'fas fa-search-minus', desc: 'System impact analysis', badge: 'Impact' },
+  { path: '/user-stories', label: 'Delta Stories', icon: 'fas fa-tasks', desc: 'Refactoring & new backlog', badge: 'WIP', wip: true },
+  { path: '/ux-wireframe', label: 'UX Wireframe (Delta)', icon: 'fas fa-desktop', desc: 'Integrated UI prototypes', badge: 'WIP', wip: true },
+  { path: '/functional-spec', label: 'Functional Spec (Delta)', icon: 'fas fa-file-invoice', desc: 'Modified FSD & API specs', badge: 'WIP', wip: true },
+  { path: '/tech-architecture', label: 'Tech Arch & Migration', icon: 'fas fa-sitemap', desc: 'Blueprints & legacy rules', badge: 'WIP', wip: true },
+  { path: '/database-design', label: 'DB Migration & DDL', icon: 'fas fa-database', desc: 'ALTER TABLE & backfills', badge: 'WIP', wip: true },
+  { path: '/test-cases', label: 'Regression Suite', icon: 'fas fa-vial', desc: 'Integration & QA matrix', badge: 'WIP', wip: true },
+  { path: '/traceability-matrix', label: 'Traceability Matrix', icon: 'fas fa-link', desc: 'Req to legacy code map', badge: 'WIP', wip: true },
+  { path: '/review-agent', label: 'Review & Security', icon: 'fas fa-shield-alt', desc: 'Breaking change scans', badge: 'WIP', wip: true }
+];
+
+
+
 function Layout({ children }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { projectMode, setProjectMode } = usePageContext();
+
+  const activeNavigationItems = projectMode === 'brownfield' ? brownfieldNavigationItems : greenfieldNavigationItems;
+
   const [specs, setSpecs] = useState([]);
   const [activeSpec, setActiveSpec] = useState('');
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
@@ -49,6 +77,20 @@ function Layout({ children }) {
     setTheme(nextTheme);
     localStorage.setItem('theme', nextTheme);
   };
+
+  const handleModeToggle = (mode) => {
+    setProjectMode(mode);
+    if (mode === 'brownfield') {
+      if (location.pathname !== '/brownfield-context') {
+        navigate('/brownfield-context');
+      }
+    } else if (mode === 'greenfield') {
+      if (location.pathname === '/brownfield-context') {
+        navigate('/spec-to-story');
+      }
+    }
+  };
+
 
   useEffect(() => {
     // Fetch active spec
@@ -117,10 +159,100 @@ function Layout({ children }) {
             )}
           </Link>
 
-          {/* Navigation Links list */}
+          {/* Project Mode Toggle Switch (Above Navigation) */}
+          {!isSidebarCollapsed ? (
+            <div class="px-3 py-2.5 border-b border-slate-800/80 bg-slate-950/40">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                  <i class={`fas ${projectMode === 'brownfield' ? 'fa-cubes text-amber-400' : 'fa-seedling text-emerald-400'} text-xs`}></i>
+                  <span class="text-[10px] font-black uppercase tracking-wider text-slate-300">
+                    {projectMode === 'brownfield' ? 'Brown Field' : 'Green Field'}
+                  </span>
+                </div>
+
+                {/* Single Toggle Switch */}
+                <button
+                  type="button"
+                  onClick={() => handleModeToggle(projectMode === 'greenfield' ? 'brownfield' : 'greenfield')}
+                  class={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    projectMode === 'brownfield' ? 'bg-amber-500 shadow-md shadow-amber-500/30' : 'bg-emerald-600 shadow-md shadow-emerald-500/30'
+                  }`}
+                  title={`Mode: ${projectMode.toUpperCase()}. Click to switch to ${projectMode === 'greenfield' ? 'Brown Field' : 'Green Field'}`}
+                >
+                  <span
+                    class={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                      projectMode === 'brownfield' ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {projectMode === 'brownfield' && (
+                <Link
+                  to="/brownfield-context"
+                  class={`mt-2 flex items-center justify-between px-3 py-1.5 rounded-xl border text-[10px] font-bold transition ${
+                    location.pathname === '/brownfield-context'
+                      ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                      : 'bg-amber-950/20 border-amber-500/30 text-amber-400 hover:bg-amber-950/40'
+                  }`}
+                >
+                  <div class="flex items-center space-x-2">
+                    <i class="fas fa-folder-plus text-xs"></i>
+                    <span>Attach Project Context</span>
+                  </div>
+                  <i class="fas fa-chevron-right text-[9px]"></i>
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div class="p-2 border-b border-slate-800 flex justify-center">
+              <button
+                type="button"
+                onClick={() => handleModeToggle(projectMode === 'greenfield' ? 'brownfield' : 'greenfield')}
+                class={`w-10 h-10 rounded-xl border flex items-center justify-center transition cursor-pointer ${
+                  projectMode === 'brownfield' ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                }`}
+                title={`Current: ${projectMode.toUpperCase()} Mode. Click to toggle.`}
+              >
+                <i class={`fas ${projectMode === 'brownfield' ? 'fa-cubes' : 'fa-seedling'} text-sm`}></i>
+              </button>
+            </div>
+          )}
+
+
+          {/* Dynamic Navigation Links List */}
           <nav class="p-2 space-y-1 overflow-y-auto custom-scroll">
-            {navigationItems.map((item) => {
+            {activeNavigationItems.map((item) => {
               const isActive = location.pathname === item.path;
+              const isWip = projectMode === 'brownfield' && item.wip;
+
+              if (isWip) {
+                return (
+                  <div
+                    key={item.path}
+                    title={isSidebarCollapsed ? `${item.label} (Work In Progress)` : 'Work In Progress'}
+                    class={`flex items-center rounded-xl border border-transparent opacity-40 cursor-not-allowed select-none ${
+                      isSidebarCollapsed ? 'justify-center p-2.5' : 'space-x-3 px-3 py-2.5'
+                    }`}
+                  >
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-slate-950/60 text-slate-600 border border-slate-900">
+                      <i class={`${item.icon} text-xs`}></i>
+                    </div>
+                    {!isSidebarCollapsed && (
+                      <div class="truncate flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                          <p class="text-xs truncate text-slate-500">{item.label}</p>
+                          <span class="text-[8px] font-bold px-1.5 py-0.2 rounded border border-slate-800/80 bg-slate-950 text-slate-500 font-mono">
+                            WIP
+                          </span>
+                        </div>
+                        <p class="text-[9px] text-slate-600 truncate">{item.desc}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
               return (
                 <Link
                   key={item.path}
@@ -130,20 +262,33 @@ function Layout({ children }) {
                     isSidebarCollapsed ? 'justify-center p-2.5' : 'space-x-3 px-3 py-2.5'
                   } ${
                     isActive
-                      ? 'bg-gradient-to-r from-indigo-950/40 to-slate-900 border border-indigo-500/30 text-white font-semibold'
+                      ? projectMode === 'brownfield'
+                        ? 'bg-gradient-to-r from-amber-950/40 to-slate-900 border border-amber-500/30 text-white font-semibold'
+                        : 'bg-gradient-to-r from-indigo-950/40 to-slate-900 border border-indigo-500/30 text-white font-semibold'
                       : 'border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
                   }`}
                 >
                   <div class={`w-7 h-7 rounded-lg flex items-center justify-center transition duration-200 shrink-0 ${
                     isActive 
-                      ? 'bg-indigo-500/10 text-indigo-400' 
+                      ? projectMode === 'brownfield' ? 'bg-amber-500/10 text-amber-400' : 'bg-indigo-500/10 text-indigo-400' 
                       : 'bg-slate-900/50 text-slate-500 group-hover:bg-slate-900 group-hover:text-slate-300'
                   }`}>
                     <i class={`${item.icon} text-xs`}></i>
                   </div>
                   {!isSidebarCollapsed && (
-                    <div class="truncate">
-                      <p class="text-xs">{item.label}</p>
+                    <div class="truncate flex-1 min-w-0">
+                      <div class="flex items-center justify-between">
+                        <p class="text-xs truncate">{item.label}</p>
+                        {item.badge && (
+                          <span class={`text-[8px] font-bold px-1.5 py-0.2 rounded border ml-1 shrink-0 ${
+                            isActive 
+                              ? projectMode === 'brownfield' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                              : 'bg-slate-900 text-slate-400 border-slate-800'
+                          }`}>
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
                       <p class="text-[9px] text-slate-500 group-hover:text-slate-400 transition truncate">{item.desc}</p>
                     </div>
                   )}
@@ -151,7 +296,9 @@ function Layout({ children }) {
               );
             })}
           </nav>
+
         </div>
+
 
         {/* Footer System Status & Collapse Toggle */}
         <div class="p-3 border-t border-slate-800 bg-slate-950/20 space-y-2">
@@ -204,61 +351,13 @@ function Layout({ children }) {
               <i class={`fas ${isSidebarCollapsed ? 'fa-bars text-indigo-400' : 'fa-outdent'} text-xs`}></i>
             </button>
 
-            <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest hidden lg:block shrink-0">Workspace Spec Board</h2>
-            <div class="h-5 w-px bg-slate-850 hidden lg:block shrink-0"></div>
-            
-            {/* Step 1: Requirement Agent */}
-            <Link
-              to="/requirements"
-              class={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wider transition duration-300 whitespace-nowrap shrink-0 ${
-                location.pathname === '/requirements'
-                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-500/20'
-                  : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-              }`}
-            >
-              <span class={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-black font-mono transition duration-300 ${
-                location.pathname === '/requirements'
-                  ? 'bg-white text-indigo-600'
-                  : 'bg-slate-800 text-slate-400'
-              }`}>1</span>
-              <span>Requirement Agent</span>
-            </Link>
-
-            {/* Step 2: Validator */}
-            <Link
-              to="/validator"
-              class={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wider transition duration-300 whitespace-nowrap shrink-0 ${
-                location.pathname === '/validator'
-                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-500/20'
-                  : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-              }`}
-            >
-              <span class={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-black font-mono transition duration-300 ${
-                location.pathname === '/validator'
-                  ? 'bg-white text-indigo-600'
-                  : 'bg-slate-800 text-slate-400'
-              }`}>2</span>
-              <span>Validator Agent</span>
-            </Link>
-
-            {/* Step 3: Agent Orchestrator */}
-            <Link
-              to="/orchestrator"
-              class={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wider transition duration-300 whitespace-nowrap shrink-0 ${
-                location.pathname === '/orchestrator'
-                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-500/20'
-                  : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-              }`}
-            >
-              <span class={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-black font-mono transition duration-300 ${
-                location.pathname === '/orchestrator'
-                  ? 'bg-white text-indigo-600'
-                  : 'bg-slate-800 text-slate-400'
-              }`}>3</span>
-              <span>Orchestrator Agent</span>
-            </Link>
+            <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest hidden lg:block shrink-0">
+              {projectMode === 'brownfield' ? 'Brownfield Spec Board' : 'Workspace Spec Board'}
+            </h2>
           </div>
+
           <div class="flex items-center space-x-2 text-[10px] shrink-0 ml-4">
+
             <span class="text-slate-500 font-bold uppercase tracking-wider hidden sm:inline">Selected Spec:</span>
             <select
               value={activeSpec}
@@ -288,8 +387,23 @@ function Layout({ children }) {
 
         {/* Dynamic page contents wrapper */}
         <div class="flex-1 p-6 overflow-y-auto custom-scroll">
-          {children}
+          {projectMode === 'brownfield' && brownfieldNavigationItems.find(item => item.path === location.pathname && item.wip) ? (
+            (() => {
+              const item = brownfieldNavigationItems.find(i => i.path === location.pathname);
+              return (
+                <WipPlaceholder
+                  title={item.label}
+                  description={`The Brownfield capability for "${item.label}" (${item.desc}) is currently under active development.`}
+                  icon={item.icon}
+                  badge="WIP"
+                />
+              );
+            })()
+          ) : (
+            children
+          )}
         </div>
+
       </main>
       <ChatbotWidget />
       <TokenThresholdAlert onOpenWidget={() => setIsTokenModalOpen(true)} />
@@ -320,10 +434,16 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/test-cases" element={<TestCases />} />
             <Route path="/traceability-matrix" element={<TraceabilityMatrix />} />
             <Route path="/review-agent" element={<ReviewAgent />} />
+            <Route path="/brownfield-context" element={<BrownfieldContextView />} />
+            <Route path="/code-to-spec" element={<CodeToSpecView />} />
+            <Route path="/impact-analysis" element={<ImpactAnalysisView />} />
             <Route path="/repo" element={<Repository />} />
+
+
           </Routes>
         </Layout>
       </BrowserRouter>
     </PageProvider>
   </React.StrictMode>
 );
+

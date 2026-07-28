@@ -4437,6 +4437,123 @@
     "totalTokens": 10858
   },
   {
+    "id": "tok_1785177374096_j2450",
+    "timestamp": "2026-07-27T18:36:14.097Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "CodeToSpec: Baseline Reverse Engineering",
+    "promptTokens": 65943,
+    "completionTokens": 1124,
+    "totalTokens": 67067
+  },
+  {
+    "id": "tok_1785177177195_1v3vu",
+    "timestamp": "2026-07-27T18:32:57.195Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "CodeToSpec: Merge Baseline",
+    "promptTokens": 2693,
+    "completionTokens": 1090,
+    "totalTokens": 3783
+  },
+  {
+    "id": "tok_1785177166411_0lp32",
+    "timestamp": "2026-07-27T18:32:46.411Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "CodeToSpec: Merge Baseline",
+    "promptTokens": 2693,
+    "completionTokens": 1085,
+    "totalTokens": 3778
+  },
+  {
+    "id": "tok_1785177159759_qjxp1",
+    "timestamp": "2026-07-27T18:32:39.759Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "CodeToSpec: Baseline Reverse Engineering",
+    "promptTokens": 65943,
+    "completionTokens": 1335,
+    "totalTokens": 67278
+  },
+  {
+    "id": "tok_1785177062667_fyzt8",
+    "timestamp": "2026-07-27T18:31:02.667Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "CodeToSpec: Baseline Reverse Engineering",
+    "promptTokens": 65943,
+    "completionTokens": 1104,
+    "totalTokens": 67047
+  },
+  {
+    "id": "tok_1785177054736_ed2o1",
+    "timestamp": "2026-07-27T18:30:54.737Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "CodeToSpec: Baseline Reverse Engineering",
+    "promptTokens": 65943,
+    "completionTokens": 1249,
+    "totalTokens": 67192
+  },
+  {
+    "id": "tok_1785176779314_b9h0k",
+    "timestamp": "2026-07-27T18:26:19.314Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "CodeToSpec: Merge Baseline",
+    "promptTokens": 2590,
+    "completionTokens": 1169,
+    "totalTokens": 3759
+  },
+  {
+    "id": "tok_1785176771728_zgiob",
+    "timestamp": "2026-07-27T18:26:11.728Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "CodeToSpec: Baseline Reverse Engineering",
+    "promptTokens": 65943,
+    "completionTokens": 1232,
+    "totalTokens": 67175
+  },
+  {
+    "id": "tok_1785176475581_sf9iz",
+    "timestamp": "2026-07-27T18:21:15.581Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "CodeToSpec: Merge Baseline",
+    "promptTokens": 2450,
+    "completionTokens": 1239,
+    "totalTokens": 3689
+  },
+  {
+    "id": "tok_1785176465937_rcgv2",
+    "timestamp": "2026-07-27T18:21:05.937Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "CodeToSpec: Baseline Reverse Engineering",
+    "promptTokens": 65943,
+    "completionTokens": 1092,
+    "totalTokens": 67035
+  },
+  {
+    "id": "tok_1785175854701_z4rlk",
+    "timestamp": "2026-07-27T18:10:54.701Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "CodeToSpec: Merge Baseline",
+    "promptTokens": 2577,
+    "completionTokens": 1210,
+    "totalTokens": 3787
+  },
+  {
+    "id": "tok_1785175790938_008dg",
+    "timestamp": "2026-07-27T18:09:50.938Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "CodeToSpec: Baseline Reverse Engineering",
+    "promptTokens": 65943,
+    "completionTokens": 1219,
+    "totalTokens": 67162
+  },
+  {
+    "id": "tok_1785175648156_u4wky",
+    "timestamp": "2026-07-27T18:07:28.156Z",
+    "model": "gemini-3.1-flash-lite",
+    "agentName": "CodeToSpec: Baseline Reverse Engineering",
+    "promptTokens": 65943,
+    "completionTokens": 1159,
+    "totalTokens": 67102
+  },
+  {
     "id": "tok_1784817639382_zikel",
     "timestamp": "2026-07-23T14:40:39.382Z",
     "model": "gemini-3.1-flash-lite",

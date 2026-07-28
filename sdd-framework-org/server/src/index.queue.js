@@ -6,8 +6,15 @@ const fs = require('fs');
 
 // Load environment variables and vector db services
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
-const { indexDocument } = require('./services/vectorDb.service');
+const { indexDocument, indexBrownfieldItem } = require('./services/vectorDb.service');
+
 const tokenTracker = require('./services/tokenTracker.service');
+const codeToSpecService = require('./services/codeToSpec.service');
+const impactAnalysisService = require('./services/impactAnalysis.service');
+const AdmZip = require('adm-zip');
+
+
+
 
 const app = express();
 const PORT = 7001;
@@ -18,10 +25,26 @@ const modelsConfig = new Proxy({}, {
   get: (target, prop) => getModelsConfig()[prop]
 });
 
-// Enable CORS & JSON parsers
+// Enable CORS & JSON parsers with 50mb payload limits
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Setup multer file uploads
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+const upload = multer({ storage });
+
 
 // Token Usage Tracker API endpoints
 app.get('/api/tokens/summary', (req, res) => {
@@ -52,20 +75,402 @@ app.delete('/api/tokens/clear', (req, res) => {
   }
 });
 
-// Setup multer file uploads
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+// Storage & Endpoints for Brownfield Mode and Context
+const brownfieldStorageFile = path.join(__dirname, 'storage/brownfield_context.json');
+let activeProjectMode = 'greenfield';
+
+app.post('/api/brownfield/mode', (req, res) => {
+  const { mode } = req.body;
+  if (mode === 'brownfield' || mode === 'greenfield') {
+    activeProjectMode = mode;
+    return res.json({ success: true, mode: activeProjectMode });
+  }
+  res.status(400).json({ success: false, error: 'Invalid mode' });
+});
+
+app.get('/api/brownfield/mode', (req, res) => {
+  res.json({ success: true, mode: activeProjectMode });
+});
+
+app.get('/api/brownfield/context', (req, res) => {
+  try {
+    if (fs.existsSync(brownfieldStorageFile)) {
+      const data = JSON.parse(fs.readFileSync(brownfieldStorageFile, 'utf8'));
+      return res.json({ success: true, context: data });
+    }
+    res.json({ success: true, context: null });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
-const upload = multer({ storage });
+
+app.post('/api/brownfield/ingest', async (req, res) => {
+  try {
+    const { context } = req.body;
+    if (!context) {
+      return res.status(400).json({ success: false, error: 'Context is required' });
+    }
+
+    const storageDir = path.dirname(brownfieldStorageFile);
+    if (!fs.existsSync(storageDir)) {
+      fs.mkdirSync(storageDir, { recursive: true });
+    }
+    fs.writeFileSync(brownfieldStorageFile, JSON.stringify(context, null, 2), 'utf8');
+
+    const totalSnippets = (context.codeSnippets || []).length;
+    const totalDocs = (context.documents || []).length;
+    const totalItems = totalSnippets + totalDocs + (context.dbSchema ? 1 : 0) + (context.legacyGuardrails ? 1 : 0);
+
+    // Return instant success response to client
+    res.json({
+      success: true,
+      message: `Successfully saved ${totalItems} brownfield context items to storage! Vector indexing running in background.`,
+      stats: { totalItems }
+    });
+
+    // Asynchronous background vector indexing
+    (async () => {
+      if (Array.isArray(context.codeSnippets)) {
+        for (const snippet of context.codeSnippets) {
+          if (snippet.content) {
+            await indexBrownfieldItem('code', snippet.fileName, snippet.content, activeSpecDirName);
+          }
+        }
+      }
+      if (context.dbSchema && context.dbSchema.trim()) {
+        await indexBrownfieldItem('db_schema', 'database_schema.sql', context.dbSchema, activeSpecDirName);
+      }
+      if (Array.isArray(context.documents)) {
+        for (const doc of context.documents) {
+          if (doc.content) {
+            await indexBrownfieldItem('document', doc.title || 'legacy-doc', doc.content, activeSpecDirName);
+          }
+        }
+      }
+      if (context.legacyGuardrails) {
+        const guardrailText = `Legacy Guardrails & Tech Stack:
+Framework/Versions: ${context.legacyGuardrails.frameworkVersion || 'Not specified'}
+API Prefix: ${context.legacyGuardrails.apiPrefix || '/api/v1'}
+Rules: ${context.legacyGuardrails.preservationRules || 'None'}`;
+        await indexBrownfieldItem('guardrails', 'legacy_guardrails.txt', guardrailText, activeSpecDirName);
+      }
+    })().catch(err => console.error('Background vector indexing error:', err));
+
+
+  } catch (err) {
+    console.error('Failed brownfield ingestion:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+// Helper for file extensions & directory ignores
+const IGNORE_DIRS = new Set([
+  'node_modules', '.git', '.idea', '.vscode', 'dist', 'build', 
+  'target', 'bin', 'obj', 'vendor', '__pycache__', '.next', 'coverage', '.antigravity'
+]);
+
+const ALLOWED_EXTS = new Set([
+  '.js', '.jsx', '.ts', '.tsx', '.py', '.java', '.cs', '.go', 
+  '.rb', '.php', '.sql', '.json', '.yaml', '.yml', '.md', '.html', 
+  '.css', '.c', '.cpp', '.h', '.hpp', '.kt', '.swift', '.sh', '.env.example'
+]);
+
+function shouldIncludeFile(filePath) {
+  const parts = filePath.split(/[/\\]/);
+  if (parts.some(p => IGNORE_DIRS.has(p))) return false;
+  const ext = path.extname(filePath).toLowerCase();
+  return ALLOWED_EXTS.has(ext);
+}
+
+function processZipBuffer(buffer) {
+  const zip = new AdmZip(buffer);
+  const zipEntries = zip.getEntries();
+  const snippets = [];
+
+  for (const entry of zipEntries) {
+    if (entry.isDirectory) continue;
+    const entryPath = entry.entryName;
+
+    if (!shouldIncludeFile(entryPath)) continue;
+
+    try {
+      const content = zip.readAsText(entry);
+      if (content && content.trim()) {
+        snippets.push({
+          id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+          fileName: entryPath,
+          content: content.length > 50000 ? content.substring(0, 50000) + '\n... [truncated]' : content
+        });
+      }
+    } catch (e) {
+      console.warn(`Failed reading zip entry ${entryPath}:`, e.message);
+    }
+  }
+  return snippets;
+}
+
+function scanLocalDirectory(dirPath, baseDir = dirPath) {
+  let snippets = [];
+  if (!fs.existsSync(dirPath)) return snippets;
+
+  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = path.join(dirPath, entry.name);
+    const relPath = path.relative(baseDir, fullPath).replace(/\\/g, '/');
+
+    if (entry.isDirectory()) {
+      if (IGNORE_DIRS.has(entry.name)) continue;
+      snippets = snippets.concat(scanLocalDirectory(fullPath, baseDir));
+    } else if (entry.isFile()) {
+      if (shouldIncludeFile(relPath)) {
+        try {
+          const stat = fs.statSync(fullPath);
+          if (stat.size < 500000) {
+            const content = fs.readFileSync(fullPath, 'utf8');
+            if (content && content.trim()) {
+              snippets.push({
+                id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+                fileName: relPath,
+                content: content.length > 50000 ? content.substring(0, 50000) + '\n... [truncated]' : content
+              });
+            }
+          }
+        } catch (e) {
+          console.warn(`Failed reading local file ${fullPath}:`, e.message);
+        }
+      }
+    }
+  }
+
+  return snippets;
+}
+
+// Endpoint: Upload Zipped Codebase Archive (.zip)
+app.post('/api/brownfield/upload-zip', upload.single('zipFile'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No zip file provided' });
+    }
+
+    const zipFilePath = req.file.path;
+    const snippets = processZipBuffer(fs.readFileSync(zipFilePath));
+
+    // Clean up uploaded zip file
+    fs.unlinkSync(zipFilePath);
+
+    res.json({
+      success: true,
+      message: `Extracted ${snippets.length} source code files from zip archive.`,
+      snippets
+    });
+  } catch (err) {
+    console.error('Failed processing zip file:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Endpoint: Scan Local Folder Path
+app.post('/api/brownfield/scan-folder', (req, res) => {
+  try {
+    const { folderPath } = req.body;
+    if (!folderPath || !folderPath.trim()) {
+      return res.status(400).json({ success: false, error: 'Folder path is required' });
+    }
+
+    const resolvedPath = path.resolve(folderPath.trim());
+    if (!fs.existsSync(resolvedPath)) {
+      return res.status(404).json({ success: false, error: `Directory not found at path: ${resolvedPath}` });
+    }
+
+    const snippets = scanLocalDirectory(resolvedPath);
+
+    res.json({
+      success: true,
+      message: `Scanned and discovered ${snippets.length} source files in ${resolvedPath}`,
+      snippets
+    });
+  } catch (err) {
+    console.error('Failed scanning folder path:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Endpoint: Upload Database Schema file (.sql, .prisma, .json, .zip)
+app.post('/api/brownfield/upload-schema-file', upload.single('schemaFile'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No schema file provided' });
+    }
+
+    const filePath = req.file.path;
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    let schemaText = '';
+
+    if (ext === '.zip') {
+      const zip = new AdmZip(filePath);
+      const entries = zip.getEntries();
+      const sqlEntries = entries.filter(e => !e.isDirectory && (e.entryName.endsWith('.sql') || e.entryName.endsWith('.prisma') || e.entryName.endsWith('.json') || e.entryName.endsWith('.yaml') || e.entryName.endsWith('.yml')));
+      schemaText = sqlEntries.map(e => `-- FILE: ${e.entryName}\n` + zip.readAsText(e)).join('\n\n');
+    } else {
+      schemaText = fs.readFileSync(filePath, 'utf8');
+    }
+
+    fs.unlinkSync(filePath);
+
+    res.json({
+      success: true,
+      message: `Database schema loaded successfully from ${req.file.originalname}`,
+      schema: schemaText
+    });
+  } catch (err) {
+    console.error('Failed processing schema file upload:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Endpoint: Upload Legacy Document file (.md, .txt, .json, .yaml, .zip)
+app.post('/api/brownfield/upload-doc-file', upload.single('docFile'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No document file provided' });
+    }
+
+    const filePath = req.file.path;
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    const documents = [];
+
+    if (ext === '.zip') {
+      const zip = new AdmZip(filePath);
+      const entries = zip.getEntries();
+      const docEntries = entries.filter(e => !e.isDirectory && (e.entryName.endsWith('.md') || e.entryName.endsWith('.txt') || e.entryName.endsWith('.json') || e.entryName.endsWith('.yaml') || e.entryName.endsWith('.yml')));
+      
+      for (const entry of docEntries) {
+        documents.push({
+          id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+          title: entry.entryName,
+          content: zip.readAsText(entry)
+        });
+      }
+    } else {
+      const content = fs.readFileSync(filePath, 'utf8');
+      documents.push({
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        title: req.file.originalname,
+        content: content
+      });
+    }
+
+    fs.unlinkSync(filePath);
+
+    res.json({
+      success: true,
+      message: `Extracted ${documents.length} document(s) from ${req.file.originalname}`,
+      documents
+    });
+  } catch (err) {
+    console.error('Failed processing document file upload:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+
+// Code-to-Spec Baseline Generator Endpoints
+app.post('/api/code-to-spec/generate', async (req, res) => {
+  try {
+    let context = req.body.context;
+    if (!context && fs.existsSync(brownfieldStorageFile)) {
+      context = JSON.parse(fs.readFileSync(brownfieldStorageFile, 'utf8'));
+    }
+    if (!context) {
+      return res.status(400).json({ success: false, error: 'No brownfield context found. Please attach code/schema context first.' });
+    }
+
+    const result = await codeToSpecService.generateBaselineSpec(context, activeSpecDirName);
+    res.json({ success: true, baselineSpec: result.baselineSpec });
+  } catch (err) {
+    console.error('Failed Code-to-Spec baseline generation:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/code-to-spec/merge', async (req, res) => {
+  try {
+    const { baselineSpec, manualSpec } = req.body;
+    let existingManualSpec = manualSpec;
+    
+    if (!existingManualSpec) {
+      const specPath = getSpecFilePath();
+      if (fs.existsSync(specPath)) {
+        existingManualSpec = fs.readFileSync(specPath, 'utf8');
+      }
+    }
+
+    const result = await codeToSpecService.mergeBaselineWithManualSpec(baselineSpec, existingManualSpec || '');
+    res.json({ success: true, mergedSpec: result.mergedSpec });
+  } catch (err) {
+    console.error('Failed Code-to-Spec merge:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/code-to-spec/export', (req, res) => {
+  try {
+    const { finalSpec } = req.body;
+    if (!finalSpec) {
+      return res.status(400).json({ success: false, error: 'finalSpec is required' });
+    }
+
+    const specPath = getSpecFilePath();
+    fs.writeFileSync(specPath, finalSpec, 'utf8');
+
+    // Store baseline version backup
+    const backupDir = path.join(specsDir, activeSpecDirName, 'versions');
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+    fs.writeFileSync(path.join(backupDir, `baseline-spec-${Date.now()}.md`), finalSpec, 'utf8');
+
+    res.json({
+      success: true,
+      message: `Successfully promoted & exported baseline spec to ${activeSpecDirName}/spec.md as new Source of Truth!`,
+      path: `specs/${activeSpecDirName}/spec.md`
+    });
+  } catch (err) {
+    console.error('Failed Code-to-Spec export:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Impact & Gap Analysis Endpoint
+app.post('/api/impact-analysis/analyze', async (req, res) => {
+
+  try {
+    const { newRequirement } = req.body;
+    if (!newRequirement || !newRequirement.trim()) {
+      return res.status(400).json({ success: false, error: 'New Requirement text is required.' });
+    }
+
+    let context = req.body.context;
+    if (!context && fs.existsSync(brownfieldStorageFile)) {
+      context = JSON.parse(fs.readFileSync(brownfieldStorageFile, 'utf8'));
+    }
+
+    const result = await impactAnalysisService.analyzeImpact(newRequirement.trim(), context);
+    res.json(result);
+  } catch (err) {
+    console.error('Failed Impact Analysis:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+
+
+// Workspace dynamic specs path configuration
+
 
 // Workspace dynamic specs path configuration
 const specsDir = path.join(__dirname, '../../specs');
