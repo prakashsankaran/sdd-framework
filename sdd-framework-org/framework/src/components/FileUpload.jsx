@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
 export const FileUpload = ({ 
   pageKey, 
@@ -12,6 +12,40 @@ export const FileUpload = ({
   onTriggerGenerate 
 }) => {
   const fileInputRef = useRef(null);
+
+  const [inheritedInputs, setInheritedInputs] = useState([]);
+
+  useEffect(() => {
+    try {
+      const activeProject = localStorage.getItem('activeProject');
+      const saved = localStorage.getItem('sdd_project_workflows');
+      if (saved && activeProject && pageKey) {
+        const mappings = JSON.parse(saved);
+        const workflowData = mappings[activeProject];
+        if (workflowData && workflowData.nodes) {
+          const { nodes, edges } = workflowData;
+          const targetNode = nodes.find(n => n.data.id === pageKey);
+          if (targetNode && edges) {
+            const incomingEdges = edges.filter(e => e.target === targetNode.id);
+            const inputs = [];
+            incomingEdges.forEach(edge => {
+              const sourceNode = nodes.find(n => n.id === edge.source);
+              if (sourceNode) {
+                inputs.push({
+                  sourceAgent: sourceNode.data.label,
+                  artifact: edge.sourceHandle ? edge.sourceHandle.replace('out-', '') : 'Data'
+                });
+              }
+            });
+            setInheritedInputs(inputs);
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [pageKey]);
+
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -58,6 +92,28 @@ export const FileUpload = ({
         <p class="text-xs font-semibold text-slate-300">{subtitle}</p>
         <p class="text-[10px] text-slate-500">Supports up to 50MB files</p>
       </div>
+
+      {/* Inherited Inputs list */}
+      {inheritedInputs.length > 0 && (
+        <div class="space-y-2 pb-2">
+          <p class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center">
+            <i class="fas fa-link mr-1.5"></i> Inherited Inputs
+          </p>
+          <div class="space-y-1.5">
+            {inheritedInputs.map((input, idx) => (
+              <div key={idx} class="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-2 flex justify-between items-center text-xs">
+                <div class="flex items-center space-x-2 truncate">
+                  <i class="fas fa-file-export text-emerald-400"></i>
+                  <span class="text-emerald-300 font-medium truncate">{input.artifact}</span>
+                </div>
+                <span class="text-[10px] text-emerald-500 font-semibold px-2 py-0.5 rounded border border-emerald-500/20 bg-emerald-500/10">
+                  {input.sourceAgent}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Uploaded Files list */}
       {files.length > 0 && (
@@ -115,9 +171,9 @@ export const FileUpload = ({
       {/* Action Trigger Button */}
       <button
         onClick={onTriggerGenerate}
-        disabled={isLoading || files.length === 0}
+        disabled={isLoading || (files.length === 0 && inheritedInputs.length === 0)}
         class={`w-full py-3 font-semibold rounded-xl text-xs flex items-center justify-center space-x-2 transition duration-300 ${
-          isLoading || files.length === 0
+          isLoading || (files.length === 0 && inheritedInputs.length === 0)
             ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
             : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-indigo-500/20 glow-indigo border border-indigo-500/40'
         }`}

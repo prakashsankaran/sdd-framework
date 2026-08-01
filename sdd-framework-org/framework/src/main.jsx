@@ -107,6 +107,7 @@ function Layout({ children }) {
     } else {
       setProjectMode('greenfield');
     }
+    localStorage.setItem('activeProject', activeProject);
   }, [activeProject, allProjects, setProjectMode]);
   
   const baseNavigationItems = projectMode === 'brownfield' ? brownfieldNavigationItems : greenfieldNavigationItems;
