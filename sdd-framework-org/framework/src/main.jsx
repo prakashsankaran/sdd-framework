@@ -29,6 +29,7 @@ import AdminPersonas from './pages/admin/AdminPersonas';
 import AdminAgents from './pages/admin/AdminAgents';
 import AdminWorkflows from './pages/admin/AdminWorkflows';
 import AdminProjects from './pages/admin/AdminProjects';
+import AdminUsers from './pages/admin/AdminUsers';
 import { Outlet } from 'react-router-dom';
 
 import HeaderTokenBadge from './components/HeaderTokenBadge';
@@ -464,6 +465,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/login" element={<Login />} />
           
           <Route path="/admin" element={<AdminLayout />}>
+            <Route path="users" element={<AdminUsers />} />
             <Route path="projects" element={<AdminProjects />} />
             <Route path="personas" element={<AdminPersonas />} />
             <Route path="agents" element={<AdminAgents />} />

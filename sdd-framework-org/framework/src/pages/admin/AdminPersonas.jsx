@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 
 export default function AdminPersonas() {
   const [personas, setPersonas] = useState([
-    { name: 'Admin', role: 'Global Config, Security, Orchestration', status: 'System' },
-    { name: 'Product Owner', role: 'Backlog, Epics, Stories, Stakeholder Signoff', status: 'System' },
-    { name: 'Business Analyst', role: 'Requirements, BRD, Use-case Generation', status: 'System' },
-    { name: 'Technical Lead', role: 'Code Reviews, Architecture, Technical Tasking', status: 'System' },
+    { name: 'Admin', role: 'Global Config, Security, Orchestration', type: 'System', status: 'Active' },
+    { name: 'Product Owner', role: 'Backlog, Epics, Stories, Stakeholder Signoff', type: 'System', status: 'Active' },
+    { name: 'Business Analyst', role: 'Requirements, BRD, Use-case Generation', type: 'System', status: 'Active' },
+    { name: 'Technical Lead', role: 'Code Reviews, Architecture, Technical Tasking', type: 'System', status: 'Active' },
   ]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newPersona, setNewPersona] = useState({ name: '', role: '', status: 'Custom' });
+  const [editingPersonaIndex, setEditingPersonaIndex] = useState(null);
+  const [newPersona, setNewPersona] = useState({ name: '', role: '', type: 'Custom', status: 'Active' });
 
   return (
     <div className="text-white fade-in">
@@ -20,7 +21,11 @@ export default function AdminPersonas() {
           <p className="text-slate-400 mt-1 text-[14px]">Establish organizational personas and parameter thresholds for target SDLC outcomes.</p>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setEditingPersonaIndex(null);
+            setNewPersona({ name: '', role: '', type: 'Custom', status: 'Active' });
+            setIsModalOpen(true);
+          }}
           className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white font-semibold py-2.5 px-5 rounded-xl shadow-[0_4px_15px_rgba(99,102,241,0.3)] transition-all flex items-center space-x-2 text-[14px]"
         >
           <i className="fas fa-plus text-xs"></i>
@@ -49,7 +54,7 @@ export default function AdminPersonas() {
           <div className="flex justify-between items-start mb-4">
             <div>
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">System Default Roles</span>
-              <h3 className="text-3xl font-bold text-white">6 Default</h3>
+              <h3 className="text-3xl font-bold text-white">{personas.filter(p => p.type === 'System').length} Default</h3>
             </div>
             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
               <i className="fas fa-lock-open"></i>
@@ -64,7 +69,7 @@ export default function AdminPersonas() {
           <div className="flex justify-between items-start mb-4">
             <div>
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Custom Roles</span>
-              <h3 className="text-3xl font-bold text-white">2 Active</h3>
+              <h3 className="text-3xl font-bold text-white">{personas.filter(p => p.type === 'Custom').length} Active</h3>
             </div>
             <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0">
               <i className="fas fa-layer-group"></i>
@@ -89,6 +94,7 @@ export default function AdminPersonas() {
               <tr className="bg-slate-900/40 border-b border-slate-800/80 text-[11px] uppercase tracking-wider text-slate-500 font-bold">
                 <th className="py-4 px-6 font-semibold">Persona Name</th>
                 <th className="py-4 px-6 font-semibold">Role & Responsibilities</th>
+                <th className="py-4 px-6 font-semibold">Type</th>
                 <th className="py-4 px-6 font-semibold">Status</th>
                 <th className="py-4 px-6 font-semibold text-right">Actions</th>
               </tr>
@@ -103,13 +109,31 @@ export default function AdminPersonas() {
                     {persona.role}
                   </td>
                   <td className="py-4 px-6">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-bold tracking-wide">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-800/50 border border-slate-700 text-slate-300 text-[11px] font-bold tracking-wide">
+                      {persona.type}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide border ${
+                      persona.status === 'Active' 
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                        : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                        persona.status === 'Active' ? 'bg-emerald-500' : 'bg-rose-500'
+                      }`}></span>
                       {persona.status}
                     </span>
                   </td>
                   <td className="py-4 px-6 text-right">
-                    <button className="bg-slate-800/60 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-300 px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-colors">
+                    <button 
+                      onClick={() => {
+                        setEditingPersonaIndex(index);
+                        setNewPersona(persona);
+                        setIsModalOpen(true);
+                      }}
+                      className="bg-slate-800/60 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-300 px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-colors"
+                    >
                       Modify
                     </button>
                   </td>
@@ -125,7 +149,9 @@ export default function AdminPersonas() {
           <div className="bg-[#0c1222] border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-indigo-500 to-purple-500"></div>
             
-            <h2 className="text-xl font-bold text-white mb-4">Create Custom Persona</h2>
+            <h2 className="text-xl font-bold text-white mb-4">
+              {editingPersonaIndex !== null ? 'Modify Persona' : 'Create Custom Persona'}
+            </h2>
             
             <div className="space-y-4 mb-6">
               <div>
@@ -148,11 +174,25 @@ export default function AdminPersonas() {
                   placeholder="e.g. UI mockups, user research"
                 />
               </div>
+              <div>
+                <label className="block text-[13px] font-medium text-slate-400 mb-2">Status</label>
+                <select
+                  value={newPersona.status}
+                  onChange={(e) => setNewPersona({...newPersona, status: e.target.value})}
+                  className="w-full bg-[#060913]/70 border border-slate-800 rounded-lg py-2.5 px-4 text-[14px] text-white focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
             </div>
 
             <div className="flex justify-end space-x-3">
               <button 
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setEditingPersonaIndex(null);
+                  setIsModalOpen(false);
+                }}
                 className="px-4 py-2 rounded-lg text-[13px] font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
               >
                 Cancel
@@ -160,14 +200,21 @@ export default function AdminPersonas() {
               <button 
                 onClick={() => {
                   if (newPersona.name) {
-                    setPersonas([...personas, newPersona]);
-                    setNewPersona({ name: '', role: '', status: 'Custom' });
+                    if (editingPersonaIndex !== null) {
+                      const updatedPersonas = [...personas];
+                      updatedPersonas[editingPersonaIndex] = newPersona;
+                      setPersonas(updatedPersonas);
+                    } else {
+                      setPersonas([...personas, newPersona]);
+                    }
+                    setNewPersona({ name: '', role: '', type: 'Custom', status: 'Active' });
+                    setEditingPersonaIndex(null);
                     setIsModalOpen(false);
                   }
                 }}
                 className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-[13px] font-semibold transition-colors"
               >
-                Create Persona
+                {editingPersonaIndex !== null ? 'Save Changes' : 'Create Persona'}
               </button>
             </div>
           </div>

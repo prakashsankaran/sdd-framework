@@ -7,8 +7,9 @@ export default function AdminLayout() {
   const navigate = useNavigate();
 
   const navigationItems = [
-    { path: '/admin/projects', label: 'Project Management', icon: 'fas fa-briefcase', desc: 'Manage Projects' },
     { path: '/admin/personas', label: 'Persona Management', icon: 'fas fa-users-cog', desc: 'Manage Roles' },
+    { path: '/admin/projects', label: 'Project Management', icon: 'fas fa-briefcase', desc: 'Manage Projects' },
+    { path: '/admin/users', label: 'User Management', icon: 'fas fa-user-shield', desc: 'Provision Users' },
     { path: '/admin/agents', label: 'Agent Pool', icon: 'fas fa-robot', desc: 'Configure Agents' },
     { path: '/admin/workflows', label: 'Workflows', icon: 'fas fa-project-diagram', desc: 'Pipeline Setup' },
   ];
