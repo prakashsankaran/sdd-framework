@@ -1,36 +1,97 @@
 import React, { useState } from 'react';
 
 const AVAILABLE_PROJECTS = ['sdd-enterprise-dev', 'mobile-app-v2', 'legacy-migration'];
-const AVAILABLE_PERSONAS = ['Super Admin', 'Admin', 'Product Owner', 'Business Analyst', 'Technical Lead', 'Developer'];
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: 'Prakash Sankaran',
-      email: 'prakash@frugalforge.io',
-      projectAccess: [
-        { projectId: 'sdd-enterprise-dev', personas: ['Super Admin'] },
-        { projectId: 'mobile-app-v2', personas: ['Product Owner', 'Technical Lead'] }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Sarah Chen',
-      email: 'sarah.c@frugalforge.io',
-      projectAccess: [
-        { projectId: 'legacy-migration', personas: ['Business Analyst'] }
-      ]
+  const [availablePersonas, setAvailablePersonas] = useState(() => {
+    const saved = localStorage.getItem('sdd_personas');
+    let loadedPersonas = [];
+    if (saved) {
+      try { loadedPersonas = JSON.parse(saved); } catch (e) { console.error(e); }
     }
-  ]);
+    if (!loadedPersonas || loadedPersonas.length === 0) {
+      loadedPersonas = [
+        { name: 'Admin' },
+        { name: 'Product Owner' },
+        { name: 'Business Analyst' },
+        { name: 'Technical Lead' }
+      ];
+    }
+    // Extract names, ignoring Super Admin as it's a global role now
+    return loadedPersonas.map(p => p.name).filter(name => name !== 'Super Admin');
+  });
+
+  const [users, setUsers] = useState(() => {
+    const saved = localStorage.getItem('sdd_users');
+    let loadedUsers = null;
+    if (saved) {
+      try { loadedUsers = JSON.parse(saved); } catch (e) { console.error(e); }
+    }
+    
+    if (!loadedUsers) {
+      loadedUsers = [
+        {
+          id: 1,
+          name: 'Prakash Sankaran',
+          email: 'prakash@frugalforge.io',
+          isSuperAdmin: true,
+          projectAccess: [
+            { projectId: 'mobile-app-v2', personas: ['Product Owner', 'Technical Lead'] }
+          ]
+        },
+        {
+          id: 2,
+          name: 'Sarah Chen',
+          email: 'sarah.c@frugalforge.io',
+          isSuperAdmin: false,
+          projectAccess: [
+            { projectId: 'legacy-migration', personas: ['Business Analyst'] }
+          ]
+        },
+        {
+          id: 3,
+          name: 'Prasanna',
+          email: 'prasanna@frugalforge.io',
+          isSuperAdmin: true,
+          projectAccess: []
+        }
+      ];
+    } else {
+      // Migrate existing users to have isSuperAdmin flag if they had the persona
+      loadedUsers = loadedUsers.map(u => {
+        let isSuperAdmin = u.isSuperAdmin || false;
+        let modifiedProjectAccess = u.projectAccess ? [...u.projectAccess] : [];
+        
+        modifiedProjectAccess.forEach(pAccess => {
+          if (pAccess.personas && pAccess.personas.includes('Super Admin')) {
+            isSuperAdmin = true;
+            pAccess.personas = pAccess.personas.filter(p => p !== 'Super Admin');
+          }
+        });
+        
+        // Cleanup empty project access blocks if they only had Super Admin
+        modifiedProjectAccess = modifiedProjectAccess.filter(pAccess => (pAccess.personas && pAccess.personas.length > 0) || pAccess.projectId);
+
+        return { ...u, isSuperAdmin, projectAccess: modifiedProjectAccess };
+      });
+    }
+    return loadedUsers;
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem('sdd_users', JSON.stringify(users));
+  }, [users]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUserId, setEditingUserId] = useState(null);
-  const [newUser, setNewUser] = useState({ name: '', email: '', projectAccess: [] });
+  const [newUser, setNewUser] = useState({ name: '', email: '', isSuperAdmin: false, projectAccess: [] });
+  
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   const handleOpenCreate = () => {
     setEditingUserId(null);
-    setNewUser({ name: '', email: '', projectAccess: [] });
+    setNewUser({ name: '', email: '', isSuperAdmin: false, projectAccess: [] });
     setIsModalOpen(true);
   };
 
@@ -40,6 +101,7 @@ export default function AdminUsers() {
     setNewUser({
       name: user.name,
       email: user.email,
+      isSuperAdmin: user.isSuperAdmin || false,
       projectAccess: JSON.parse(JSON.stringify(user.projectAccess))
     });
     setIsModalOpen(true);
@@ -85,6 +147,24 @@ export default function AdminUsers() {
       }
       setIsModalOpen(false);
     }
+  };
+
+  const handleDeleteClick = (user) => {
+    setUserToDelete(user);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (userToDelete) {
+      setUsers(users.filter(u => u.id !== userToDelete.id));
+      setIsDeleteModalOpen(false);
+      setUserToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setUserToDelete(null);
   };
 
   return (
@@ -135,7 +215,14 @@ export default function AdminUsers() {
                     </div>
                   </td>
                   <td className="py-4 px-6">
-                    {user.projectAccess.length === 0 ? (
+                    {user.isSuperAdmin ? (
+                      <div className="flex items-center space-x-2">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-400 text-[11px] font-bold">
+                          <i className="fas fa-shield-alt mr-1.5"></i>
+                          Global Super Admin
+                        </span>
+                      </div>
+                    ) : user.projectAccess.length === 0 ? (
                       <span className="text-slate-500 text-[12px] italic">No active project assignments</span>
                     ) : (
                       <div className="flex flex-col space-y-2">
@@ -160,12 +247,21 @@ export default function AdminUsers() {
                     )}
                   </td>
                   <td className="py-4 px-6 text-right align-top">
-                    <button 
-                      onClick={() => handleOpenModify(user)}
-                      className="bg-slate-800/60 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-300 px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-colors mt-1"
-                    >
-                      Modify
-                    </button>
+                    <div className="flex items-center justify-end space-x-2 mt-1">
+                      <button 
+                        onClick={() => handleOpenModify(user)}
+                        className="bg-slate-800/60 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-300 px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-colors"
+                      >
+                        Modify
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteClick(user)}
+                        className="bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 text-rose-400 hover:text-rose-300 px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center"
+                        title="Delete User"
+                      >
+                        <i className="fas fa-trash-alt text-[12px]"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -209,18 +305,39 @@ export default function AdminUsers() {
                 </div>
               </div>
 
-              {/* Project Access Blocks */}
-              <div>
-                <div className="flex justify-between items-center mb-3">
-                  <label className="block text-[14px] font-bold text-slate-300">Project Access Control</label>
-                  <button 
-                    onClick={handleAddProjectAccess}
-                    className="text-indigo-400 hover:text-indigo-300 text-[12px] font-semibold flex items-center space-x-1"
-                  >
-                    <i className="fas fa-plus-circle"></i>
-                    <span>Assign Project</span>
-                  </button>
+              {/* Super Admin Toggle */}
+              <div className="bg-rose-500/5 border border-rose-500/20 rounded-xl p-5 flex items-center justify-between">
+                <div>
+                  <h4 className="text-rose-400 font-bold text-[14px] flex items-center mb-1">
+                    <i className="fas fa-shield-alt mr-2"></i>
+                    Global Super Admin Access
+                  </h4>
+                  <p className="text-slate-400 text-[12px]">Grants full administrative control across all workspaces. Bypasses project-specific assignments.</p>
                 </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer"
+                    checked={newUser.isSuperAdmin}
+                    onChange={(e) => setNewUser({...newUser, isSuperAdmin: e.target.checked})}
+                  />
+                  <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
+                </label>
+              </div>
+
+              {/* Project Access Blocks - Hidden if Super Admin */}
+              {!newUser.isSuperAdmin && (
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <label className="block text-[14px] font-bold text-slate-300">Project Access Control</label>
+                    <button 
+                      onClick={handleAddProjectAccess}
+                      className="text-indigo-400 hover:text-indigo-300 text-[12px] font-semibold flex items-center space-x-1"
+                    >
+                      <i className="fas fa-plus-circle"></i>
+                      <span>Assign Project</span>
+                    </button>
+                  </div>
 
                 <div className="space-y-4">
                   {newUser.projectAccess.length === 0 ? (
@@ -255,7 +372,7 @@ export default function AdminUsers() {
                         <div>
                           <label className="block text-[12px] font-semibold text-slate-400 mb-2 uppercase tracking-wide">Assigned Personas</label>
                           <div className="flex flex-wrap gap-2">
-                            {AVAILABLE_PERSONAS.map(persona => {
+                            {availablePersonas.map(persona => {
                               const isSelected = access.personas.includes(persona);
                               return (
                                 <button
@@ -279,7 +396,8 @@ export default function AdminUsers() {
                   )}
                 </div>
               </div>
-            </div>
+            )}
+          </div>
 
             <div className="p-6 border-t border-slate-800 flex justify-end space-x-3 shrink-0 bg-[#0c1222]">
               <button 
@@ -295,6 +413,41 @@ export default function AdminUsers() {
               >
                 <i className="fas fa-save"></i>
                 <span>{editingUserId ? 'Save Modifications' : 'Provision User'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0c1222] border border-slate-800 rounded-2xl w-full max-w-sm shadow-2xl relative overflow-hidden flex flex-col">
+            <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-rose-500 to-orange-500"></div>
+            
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto mb-4">
+                <i className="fas fa-exclamation-triangle text-rose-500 text-2xl"></i>
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">Delete User</h2>
+              <p className="text-[13px] text-slate-400">
+                Are you sure you want to permanently remove <strong className="text-slate-200">{userToDelete?.name}</strong>? This action cannot be undone.
+              </p>
+            </div>
+            
+            <div className="p-5 border-t border-slate-800 flex justify-center space-x-3 bg-slate-900/30">
+              <button 
+                onClick={cancelDelete}
+                className="px-5 py-2 rounded-xl text-[13px] font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDelete}
+                className="bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white px-6 py-2 rounded-xl text-[13px] font-bold shadow-[0_4px_15px_rgba(225,29,72,0.3)] transition-all flex items-center space-x-2"
+              >
+                <i className="fas fa-trash-alt text-[11px]"></i>
+                <span>Yes, Delete</span>
               </button>
             </div>
           </div>

@@ -1,19 +1,32 @@
 import React, { useState, useEffect } from 'react';
 
 const AVAILABLE_PROJECTS = ['sdd-enterprise-dev', 'mobile-app-v2', 'legacy-migration'];
-const AVAILABLE_PERSONAS = ['Super Admin', 'Admin', 'Product Owner', 'Business Analyst', 'Technical Lead', 'Developer', 'UX Designer', 'QA Engineer'];
 const AVAILABLE_AGENTS = [
   'Spec to Story', 'User Stories', 'UX Wireframe', 'Functional Spec', 'Tech Architecture', 
-  'Database Design', 'Test Cases', 'Traceability Matrix', 'Review Agent'
+  'Database Design', 'Test Cases', 'Traceability Matrix', 'Review Agent',
+  'Impact & Gap Specs', 'Delta Stories', 'Tech Arch & Migration'
 ];
 
 const INITIAL_MAPPINGS = [
   { id: 1, project: 'sdd-enterprise-dev', persona: 'Product Owner', agents: ['Spec to Story', 'User Stories'] },
   { id: 2, project: 'sdd-enterprise-dev', persona: 'Business Analyst', agents: ['Functional Spec', 'Traceability Matrix'] },
-  { id: 3, project: 'mobile-app-v2', persona: 'UX Designer', agents: ['UX Wireframe'] }
+  { id: 3, project: 'mobile-app-v2', persona: 'UX Designer', agents: ['UX Wireframe'] },
+  { id: 4, project: 'legacy-migration', persona: 'Business Analyst', agents: ['Impact & Gap Specs', 'Delta Stories', 'Tech Arch & Migration'] }
 ];
 
 export default function AdminAgentMapping() {
+  const [availablePersonas, setAvailablePersonas] = useState(() => {
+    const saved = localStorage.getItem('sdd_personas');
+    let loadedPersonas = [];
+    if (saved) {
+      try { loadedPersonas = JSON.parse(saved); } catch (e) {}
+    }
+    if (!loadedPersonas || loadedPersonas.length === 0) {
+      loadedPersonas = [{ name: 'Admin' }, { name: 'Product Owner' }, { name: 'Business Analyst' }, { name: 'Technical Lead' }, { name: 'Developer' }, { name: 'UX Designer' }, { name: 'QA Engineer' }];
+    }
+    return loadedPersonas.map(p => p.name).filter(name => name !== 'Super Admin');
+  });
+
   const [mappings, setMappings] = useState(() => {
     const saved = localStorage.getItem('agentMappings');
     return saved ? JSON.parse(saved) : INITIAL_MAPPINGS;
@@ -25,11 +38,11 @@ export default function AdminAgentMapping() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMappingId, setEditingMappingId] = useState(null);
-  const [newMapping, setNewMapping] = useState({ project: AVAILABLE_PROJECTS[0], persona: AVAILABLE_PERSONAS[2], agents: [] });
+  const [newMapping, setNewMapping] = useState({ project: AVAILABLE_PROJECTS[0], persona: availablePersonas[0] || '', agents: [] });
 
   const handleOpenCreate = () => {
     setEditingMappingId(null);
-    setNewMapping({ project: AVAILABLE_PROJECTS[0], persona: AVAILABLE_PERSONAS[2], agents: [] });
+    setNewMapping({ project: AVAILABLE_PROJECTS[0], persona: availablePersonas[0] || '', agents: [] });
     setIsModalOpen(true);
   };
 
@@ -187,7 +200,7 @@ export default function AdminAgentMapping() {
                     onChange={(e) => setNewMapping({...newMapping, persona: e.target.value})}
                     className="w-full bg-[#060913]/70 border border-slate-800 rounded-lg py-2.5 px-3 text-[13px] text-white focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
                   >
-                    {AVAILABLE_PERSONAS.map(persona => (
+                    {availablePersonas.map(persona => (
                       <option key={persona} value={persona}>{persona}</option>
                     ))}
                   </select>

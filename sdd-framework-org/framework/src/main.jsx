@@ -74,8 +74,38 @@ function Layout({ children }) {
   const navigate = useNavigate();
   const { projectMode, setProjectMode } = usePageContext();
 
-  const activePersona = localStorage.getItem('activePersona') || 'Admin';
-  const activeProject = 'sdd-enterprise-dev'; // Fixed project context for now
+  const [users] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('sdd_users')) || []; } catch { return []; }
+  });
+  
+  const activeUserId = Number(localStorage.getItem('activeUserId'));
+  const activeUser = users.find(u => u.id === activeUserId);
+  
+  const [allProjects] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('sdd_projects')) || []; } catch { return []; }
+  });
+
+  const userProjects = activeUser 
+    ? (activeUser.isSuperAdmin 
+        ? allProjects.map(p => ({ projectId: p.name, personas: ['Super Admin'] })) 
+        : (activeUser.projectAccess || []))
+    : [];
+
+  const [activeProject, setActiveProject] = useState(() => {
+    return userProjects.length > 0 ? userProjects[0].projectId : 'sdd-enterprise-dev';
+  });
+
+  const activeUserAccess = userProjects.find(p => p.projectId === activeProject);
+  const activePersona = activeUserAccess && activeUserAccess.personas.length > 0 ? activeUserAccess.personas[0] : (activeUser?.isSuperAdmin ? 'Super Admin' : 'Admin');
+
+  useEffect(() => {
+    const proj = allProjects.find(p => p.name === activeProject);
+    if (proj && proj.type === 'Brown Field') {
+      setProjectMode('brownfield');
+    } else {
+      setProjectMode('greenfield');
+    }
+  }, [activeProject, allProjects, setProjectMode]);
   
   const baseNavigationItems = projectMode === 'brownfield' ? brownfieldNavigationItems : greenfieldNavigationItems;
   
@@ -85,12 +115,20 @@ function Layout({ children }) {
   } else {
     try {
       const savedMappingsStr = localStorage.getItem('agentMappings');
+      let savedMappings = [];
       if (savedMappingsStr) {
-        const savedMappings = JSON.parse(savedMappingsStr);
-        const applicableMapping = savedMappings.find(m => m.persona === activePersona && m.project === activeProject);
-        if (applicableMapping && applicableMapping.agents) {
-          activeNavigationItems = baseNavigationItems.filter(item => applicableMapping.agents.includes(item.label));
-        }
+        savedMappings = JSON.parse(savedMappingsStr);
+      } else {
+        savedMappings = [
+          { id: 1, project: 'sdd-enterprise-dev', persona: 'Product Owner', agents: ['Spec to Story', 'User Stories'] },
+          { id: 2, project: 'sdd-enterprise-dev', persona: 'Business Analyst', agents: ['Functional Spec', 'Traceability Matrix'] },
+          { id: 3, project: 'mobile-app-v2', persona: 'UX Designer', agents: ['UX Wireframe'] },
+          { id: 4, project: 'legacy-migration', persona: 'Business Analyst', agents: ['Impact & Gap Specs', 'Delta Stories', 'Tech Arch & Migration'] }
+        ];
+      }
+      const applicableMapping = savedMappings.find(m => m.persona === activePersona && m.project === activeProject);
+      if (applicableMapping && applicableMapping.agents) {
+        activeNavigationItems = baseNavigationItems.filter(item => applicableMapping.agents.includes(item.label));
       }
     } catch (e) {
       console.error('Failed to load agent mappings', e);
@@ -108,6 +146,17 @@ function Layout({ children }) {
     setTheme(nextTheme);
     localStorage.setItem('theme', nextTheme);
   };
+
+  useEffect(() => {
+    if (location.pathname === '/') {
+      if (activeNavigationItems.length > 0) {
+        navigate(activeNavigationItems[0].path, { replace: true });
+      } else {
+        navigate('/requirements', { replace: true });
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const handleModeToggle = (mode) => {
     setProjectMode(mode);
@@ -340,16 +389,29 @@ function Layout({ children }) {
 
             <div class="h-5 w-px bg-slate-800 mx-3 hidden lg:block"></div>
             
-            {/* Project Chip */}
-            <button class="hidden lg:flex items-center space-x-2 bg-slate-800/30 border border-slate-800 hover:bg-slate-800/60 rounded-lg px-3 py-1.5 text-xs text-slate-300 transition-colors">
-              <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              </svg>
-              <span>sdd-enterprise-dev</span>
-              <svg class="w-3 h-3 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
+            {/* Project Chip Dropdown */}
+            <div className="hidden lg:flex relative items-center">
+              <div className="absolute left-3 pointer-events-none">
+                <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                </svg>
+              </div>
+              <select 
+                value={activeProject}
+                onChange={(e) => setActiveProject(e.target.value)}
+                className="bg-slate-800/30 border border-slate-800 hover:bg-slate-800/60 rounded-lg pl-9 pr-8 py-1.5 text-xs text-slate-300 transition-colors focus:outline-none cursor-pointer appearance-none h-[34px]"
+              >
+                {userProjects.map(up => (
+                  <option key={up.projectId} value={up.projectId}>{up.projectId}</option>
+                ))}
+                {userProjects.length === 0 && <option value="">No Projects Assigned</option>}
+              </select>
+              <div className="absolute right-3 pointer-events-none">
+                <svg className="w-3 h-3 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+            </div>
           </div>
 
           <div class="flex items-center space-x-2 text-[10px] shrink-0 ml-4">
@@ -388,7 +450,7 @@ function Layout({ children }) {
               <i className="fas fa-robot text-5xl mb-4 opacity-50"></i>
               <h2 className="text-xl font-semibold text-slate-400">No Agents Mapped</h2>
               <p className="text-sm mt-2 max-w-md text-center">
-                Your persona (<span className="text-indigo-400">{activePersona}</span>) has not been mapped to any agents yet. This will be configured by the Super Administrator.
+                Your assigned persona (<span className="text-indigo-400">{activePersona}</span>) for project <span className="text-indigo-400">{activeProject}</span> has not been mapped to any agents yet. This will be configured by the Super Administrator.
               </p>
             </div>
           ) : projectMode === 'brownfield' && brownfieldNavigationItems.find(item => item.path === location.pathname && item.wip) ? (
@@ -438,7 +500,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           </Route>
 
           <Route element={<Layout><Outlet /></Layout>}>
-            <Route path="/" element={<Navigate to="/requirements" replace />} />
+            <Route path="/" element={null} />
             <Route path="/orchestrator" element={<AgentOrchestrator />} />
             <Route path="/requirements" element={<RequirementAgent />} />
             <Route path="/validator" element={<ValidatorAgent />} />
@@ -455,6 +517,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/code-to-spec" element={<CodeToSpecView />} />
             <Route path="/impact-analysis" element={<ImpactAnalysisView />} />
             <Route path="/repo" element={<Repository />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
       </BrowserRouter>

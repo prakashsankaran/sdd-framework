@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
 
 export default function AdminPersonas() {
-  const [personas, setPersonas] = useState([
-    { name: 'Admin', role: 'Global Config, Security, Orchestration', type: 'System', status: 'Active' },
-    { name: 'Product Owner', role: 'Backlog, Epics, Stories, Stakeholder Signoff', type: 'System', status: 'Active' },
-    { name: 'Business Analyst', role: 'Requirements, BRD, Use-case Generation', type: 'System', status: 'Active' },
-    { name: 'Technical Lead', role: 'Code Reviews, Architecture, Technical Tasking', type: 'System', status: 'Active' },
-  ]);
+  const [personas, setPersonas] = useState(() => {
+    const saved = localStorage.getItem('sdd_personas');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+    }
+    return [
+      { name: 'Admin', role: 'Global Config, Security, Orchestration', type: 'System', status: 'Active' },
+      { name: 'Product Owner', role: 'Backlog, Epics, Stories, Stakeholder Signoff', type: 'System', status: 'Active' },
+      { name: 'Business Analyst', role: 'Requirements, BRD, Use-case Generation', type: 'System', status: 'Active' },
+      { name: 'Technical Lead', role: 'Code Reviews, Architecture, Technical Tasking', type: 'System', status: 'Active' },
+    ];
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem('sdd_personas', JSON.stringify(personas));
+  }, [personas]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPersonaIndex, setEditingPersonaIndex] = useState(null);

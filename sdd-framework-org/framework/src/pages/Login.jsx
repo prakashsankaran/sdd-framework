@@ -3,26 +3,62 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [selectedPersona, setSelectedPersona] = useState('Super Admin');
-  const [email, setEmail] = useState('superadmin@sddframework.io');
+  const [users, setUsers] = useState(() => {
+    const saved = localStorage.getItem('sdd_users');
+    if (saved) {
+      try { 
+        // We must also apply the migration logic here in case AdminUsers hasn't run yet
+        let loadedUsers = JSON.parse(saved);
+        return loadedUsers.map(u => {
+          let isSuperAdmin = u.isSuperAdmin || false;
+          let modifiedProjectAccess = [...u.projectAccess];
+          modifiedProjectAccess.forEach(pAccess => {
+            if (pAccess.personas.includes('Super Admin')) {
+              isSuperAdmin = true;
+              pAccess.personas = pAccess.personas.filter(p => p !== 'Super Admin');
+            }
+          });
+          modifiedProjectAccess = modifiedProjectAccess.filter(pAccess => pAccess.personas.length > 0 || pAccess.projectId);
+          return { ...u, isSuperAdmin, projectAccess: modifiedProjectAccess };
+        });
+      } catch (e) {}
+    }
+    return [
+      { id: 1, name: 'Prakash Sankaran', email: 'prakash@frugalforge.io', isSuperAdmin: true, projectAccess: [{ projectId: 'mobile-app-v2', personas: ['Product Owner', 'Technical Lead'] }] },
+      { id: 2, name: 'Sarah Chen', email: 'sarah.c@frugalforge.io', isSuperAdmin: false, projectAccess: [{ projectId: 'legacy-migration', personas: ['Business Analyst'] }] },
+      { id: 3, name: 'Prasanna', email: 'prasanna@frugalforge.io', isSuperAdmin: true, projectAccess: [] }
+    ];
+  });
+
+  const getPrimaryPersona = (user) => {
+    if (!user) return 'No Role';
+    if (user.isSuperAdmin) return 'Super Admin';
+    if (!user.projectAccess || user.projectAccess.length === 0) return 'No Role';
+    return user.projectAccess[0].personas[0] || 'No Role';
+  };
+
+  const [selectedUserId, setSelectedUserId] = useState(users.length > 0 ? users[0].id : null);
+  const selectedUser = users.find(u => u.id === selectedUserId);
+  const [email, setEmail] = useState(selectedUser ? selectedUser.email : '');
 
   const handleLogin = (e) => {
     e.preventDefault();
-    localStorage.setItem('activePersona', selectedPersona);
-    if (selectedPersona === 'Super Admin') {
-      navigate('/admin/dashboard');
-    } else {
-      navigate('/requirements');
-    }
+    if (!selectedUser) return;
+    localStorage.setItem('activeUserId', selectedUser.id);
+    
+    // Check if user is Super Admin in any project
+      if (selectedUser.isSuperAdmin) {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/');
+      }
   };
 
-  const handlePersonaChange = (e) => {
-    const persona = e.target.value;
-    setSelectedPersona(persona);
-    if (persona === 'Super Admin') setEmail('superadmin@sddframework.io');
-    else if (persona === 'Admin') setEmail('admin@sddframework.io');
-    else if (persona === 'Product Owner') setEmail('sarah.po@sddframework.io');
-    else setEmail(`${persona.toLowerCase().replace(/\s+/g, '.')}@sddframework.io`);
+  const handleUserChange = (e) => {
+    const userId = Number(e.target.value);
+    setSelectedUserId(userId);
+    const user = users.find(u => u.id === userId);
+    if (user) setEmail(user.email);
   };
 
   return (
@@ -47,26 +83,20 @@ export default function Login() {
 
         </div>
 
-        {/* Persona Selector */}
+        {/* User Selector */}
         <div className="flex items-center space-x-3 pointer-events-auto">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">ACTIVE PERSONA:</span>
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">ACTIVE USER:</span>
           <div className="relative">
             <select 
-              value={selectedPersona}
-              onChange={handlePersonaChange}
-              className="appearance-none bg-[#0c1222] border border-slate-800 text-slate-300 text-[13px] font-semibold rounded-lg pl-3 pr-8 py-2 focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer w-[180px]"
+              value={selectedUserId || ''}
+              onChange={handleUserChange}
+              className="appearance-none bg-[#0c1222] border border-slate-800 text-slate-300 text-[13px] font-semibold rounded-lg pl-3 pr-8 py-2 focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer max-w-[240px]"
             >
-              <option value="Super Admin">Super Admin</option>
-              <option value="Admin">Admin</option>
-              <option value="Product Owner">Product Owner</option>
-              <option value="Business Analyst">Business Analyst</option>
-              <option value="Solution Architect">Solution Architect</option>
-              <option value="Technical Architect">Technical Architect</option>
-              <option value="Developer">Developer</option>
-              <option value="QA Engineer">QA Engineer</option>
-              <option value="Security Specialist">Security Specialist</option>
-              <option value="Compliance Officer">Compliance Officer</option>
-              <option value="DevOps Engineer">DevOps Engineer</option>
+              {users.map(user => (
+                <option key={user.id} value={user.id}>
+                  {user.name} ({getPrimaryPersona(user)})
+                </option>
+              ))}
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
               <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
