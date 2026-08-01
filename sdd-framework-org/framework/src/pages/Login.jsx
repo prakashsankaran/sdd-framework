@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [selectedPersona, setSelectedPersona] = useState('Admin');
-  const [email, setEmail] = useState('admin@sddframework.io');
+  const [selectedPersona, setSelectedPersona] = useState('Super Admin');
+  const [email, setEmail] = useState('superadmin@sddframework.io');
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (selectedPersona === 'Admin') {
+    localStorage.setItem('activePersona', selectedPersona);
+    if (selectedPersona === 'Super Admin') {
       navigate('/admin/personas');
     } else {
       navigate('/requirements');
@@ -18,7 +19,8 @@ export default function Login() {
   const handlePersonaChange = (e) => {
     const persona = e.target.value;
     setSelectedPersona(persona);
-    if (persona === 'Admin') setEmail('admin@sddframework.io');
+    if (persona === 'Super Admin') setEmail('superadmin@sddframework.io');
+    else if (persona === 'Admin') setEmail('admin@sddframework.io');
     else if (persona === 'Product Owner') setEmail('sarah.po@sddframework.io');
     else setEmail(`${persona.toLowerCase().replace(/\s+/g, '.')}@sddframework.io`);
   };
@@ -38,25 +40,11 @@ export default function Login() {
             S
           </div>
           
-          <div className="flex items-center space-x-2">
-            <span className="text-[20px] font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">SDD Framework</span>
-            <span className="text-[10px] font-bold text-[#6366f1] uppercase tracking-widest border border-[#6366f1]/40 px-2 py-0.5 rounded ml-2">
-              PROTOTYPE
-            </span>
+          <div className="flex flex-col">
+            <span className="text-[20px] font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent leading-tight">Frugal Forge</span>
+            <span className="text-[10px] text-[#6366f1] font-semibold tracking-wider uppercase">Intelligent SDLC Workspace</span>
           </div>
 
-          <div className="h-5 w-px bg-slate-800 mx-3"></div>
-          
-          {/* Project Chip */}
-          <button className="flex items-center space-x-2 bg-slate-800/30 border border-slate-800 hover:bg-slate-800/60 rounded-lg px-3 py-1.5 text-xs text-slate-300 transition-colors">
-            <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            </svg>
-            <span>sdd-enterprise-dev</span>
-            <svg className="w-3 h-3 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
         </div>
 
         {/* Persona Selector */}
@@ -68,6 +56,7 @@ export default function Login() {
               onChange={handlePersonaChange}
               className="appearance-none bg-[#0c1222] border border-slate-800 text-slate-300 text-[13px] font-semibold rounded-lg pl-3 pr-8 py-2 focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer w-[180px]"
             >
+              <option value="Super Admin">Super Admin</option>
               <option value="Admin">Admin</option>
               <option value="Product Owner">Product Owner</option>
               <option value="Business Analyst">Business Analyst</option>
@@ -97,7 +86,7 @@ export default function Login() {
 
           <div className="text-center mb-8">
             <h2 className="text-[28px] font-bold text-white mb-2 tracking-tight">Welcome Back</h2>
-            <p className="text-slate-400 text-[14px]">Enter your credentials to access SDD Workspace</p>
+            <p className="text-slate-400 text-[14px]">Enter your credentials to access Frugal Forge</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">

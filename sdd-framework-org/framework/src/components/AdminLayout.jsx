@@ -7,6 +7,7 @@ export default function AdminLayout() {
   const navigate = useNavigate();
 
   const navigationItems = [
+    { path: '/admin/projects', label: 'Project Management', icon: 'fas fa-briefcase', desc: 'Manage Projects' },
     { path: '/admin/personas', label: 'Persona Management', icon: 'fas fa-users-cog', desc: 'Manage Roles' },
     { path: '/admin/agents', label: 'Agent Pool', icon: 'fas fa-robot', desc: 'Configure Agents' },
     { path: '/admin/workflows', label: 'Workflows', icon: 'fas fa-project-diagram', desc: 'Pipeline Setup' },
@@ -34,8 +35,8 @@ export default function AdminLayout() {
             </div>
             {!isSidebarCollapsed && (
               <div className="truncate">
-                <h1 className="text-xs font-black uppercase tracking-widest bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">SDD Admin</h1>
-                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Control Center</p>
+                <h1 className="text-xs font-black uppercase tracking-widest bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Frugal Forge</h1>
+                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Admin Control Center</p>
               </div>
             )}
           </div>
@@ -84,11 +85,11 @@ export default function AdminLayout() {
           {!isSidebarCollapsed && (
             <div className="mb-4 px-2 py-3 rounded-lg bg-slate-900/40 border border-slate-800 flex items-center space-x-3">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex flex-shrink-0 items-center justify-center font-bold text-white text-xs">
-                AD
+                SA
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white truncate">Administrator</p>
-                <p className="text-[10px] text-slate-400 truncate">admin@sddframework.io</p>
+                <p className="text-xs font-semibold text-white truncate">Super Administrator</p>
+                <p className="text-[10px] text-slate-400 truncate">superadmin@sddframework.io</p>
               </div>
             </div>
           )}
@@ -125,6 +126,19 @@ export default function AdminLayout() {
             <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest hidden lg:block shrink-0">
               Admin Dashboard
             </h2>
+
+            <div className="h-5 w-px bg-slate-800 mx-3 hidden lg:block"></div>
+            
+            {/* Project Chip */}
+            <button className="hidden lg:flex items-center space-x-2 bg-slate-800/30 border border-slate-800 hover:bg-slate-800/60 rounded-lg px-3 py-1.5 text-xs text-slate-300 transition-colors">
+              <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              </svg>
+              <span>sdd-enterprise-dev</span>
+              <svg className="w-3 h-3 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
           </div>
 
           <div className="flex items-center space-x-4">

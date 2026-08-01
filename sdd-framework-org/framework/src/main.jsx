@@ -28,6 +28,7 @@ import AdminLayout from './components/AdminLayout';
 import AdminPersonas from './pages/admin/AdminPersonas';
 import AdminAgents from './pages/admin/AdminAgents';
 import AdminWorkflows from './pages/admin/AdminWorkflows';
+import AdminProjects from './pages/admin/AdminProjects';
 import { Outlet } from 'react-router-dom';
 
 import HeaderTokenBadge from './components/HeaderTokenBadge';
@@ -70,7 +71,10 @@ function Layout({ children }) {
   const navigate = useNavigate();
   const { projectMode, setProjectMode } = usePageContext();
 
-  const activeNavigationItems = projectMode === 'brownfield' ? brownfieldNavigationItems : greenfieldNavigationItems;
+  const activePersona = localStorage.getItem('activePersona') || 'Admin';
+  
+  const baseNavigationItems = projectMode === 'brownfield' ? brownfieldNavigationItems : greenfieldNavigationItems;
+  const activeNavigationItems = activePersona === 'Admin' ? baseNavigationItems : [];
 
   const [specs, setSpecs] = useState([]);
   const [activeSpec, setActiveSpec] = useState('');
@@ -152,15 +156,15 @@ function Layout({ children }) {
             class={`px-4 py-4 border-b border-slate-800 flex items-center bg-slate-950/20 hover:bg-slate-950/40 transition cursor-pointer ${
               isSidebarCollapsed ? 'justify-center' : 'space-x-3'
             }`}
-            title="SDD AI Studio"
+            title="Frugal Forge"
           >
             <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 shrink-0">
               <i class="fas fa-bolt text-white text-sm"></i>
             </div>
             {!isSidebarCollapsed && (
               <div class="truncate">
-                <h1 class="text-xs font-black uppercase tracking-widest bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">SDD AI Studio</h1>
-                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Requirements Framework</p>
+                <h1 class="text-xs font-black uppercase tracking-widest bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Frugal Forge</h1>
+                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Intelligent Requirements Framework</p>
               </div>
             )}
           </Link>
@@ -370,6 +374,19 @@ function Layout({ children }) {
             <h2 class="text-xs font-black text-slate-400 uppercase tracking-widest hidden lg:block shrink-0">
               {projectMode === 'brownfield' ? 'Brownfield Spec Board' : 'Workspace Spec Board'}
             </h2>
+
+            <div class="h-5 w-px bg-slate-800 mx-3 hidden lg:block"></div>
+            
+            {/* Project Chip */}
+            <button class="hidden lg:flex items-center space-x-2 bg-slate-800/30 border border-slate-800 hover:bg-slate-800/60 rounded-lg px-3 py-1.5 text-xs text-slate-300 transition-colors">
+              <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              </svg>
+              <span>sdd-enterprise-dev</span>
+              <svg class="w-3 h-3 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
           </div>
 
           <div class="flex items-center space-x-2 text-[10px] shrink-0 ml-4">
@@ -403,7 +420,15 @@ function Layout({ children }) {
 
         {/* Dynamic page contents wrapper */}
         <div class="flex-1 p-6 overflow-y-auto custom-scroll">
-          {projectMode === 'brownfield' && brownfieldNavigationItems.find(item => item.path === location.pathname && item.wip) ? (
+          {activePersona !== 'Admin' ? (
+            <div className="flex flex-col items-center justify-center h-full text-slate-500">
+              <i className="fas fa-robot text-5xl mb-4 opacity-50"></i>
+              <h2 className="text-xl font-semibold text-slate-400">No Agents Mapped</h2>
+              <p className="text-sm mt-2 max-w-md text-center">
+                Your persona (<span className="text-indigo-400">{activePersona}</span>) has not been mapped to any agents yet. This will be configured by the Super Administrator.
+              </p>
+            </div>
+          ) : projectMode === 'brownfield' && brownfieldNavigationItems.find(item => item.path === location.pathname && item.wip) ? (
             (() => {
               const item = brownfieldNavigationItems.find(i => i.path === location.pathname);
               return (
@@ -439,6 +464,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/login" element={<Login />} />
           
           <Route path="/admin" element={<AdminLayout />}>
+            <Route path="projects" element={<AdminProjects />} />
             <Route path="personas" element={<AdminPersonas />} />
             <Route path="agents" element={<AdminAgents />} />
             <Route path="workflows" element={<AdminWorkflows />} />

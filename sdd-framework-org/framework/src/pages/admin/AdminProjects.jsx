@@ -1,0 +1,204 @@
+import React, { useState } from 'react';
+
+export default function AdminProjects() {
+  const [projects, setProjects] = useState([
+    { id: 1, name: 'sdd-enterprise-dev', description: 'Enterprise platform core development', status: 'Active' },
+    { id: 2, name: 'mobile-app-v2', description: 'Next generation mobile application', status: 'In Progress' },
+    { id: 3, name: 'legacy-migration', description: 'Migration from legacy systems to cloud', status: 'Planning' },
+  ]);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProjectId, setEditingProjectId] = useState(null);
+  const [newProject, setNewProject] = useState({ name: '', description: '', status: 'Active' });
+
+  return (
+    <div className="text-white fade-in">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-[28px] font-bold tracking-tight text-white">Project Management</h1>
+          <p className="text-slate-400 mt-1 text-[14px]">Manage workspaces, define project scopes, and monitor active developments.</p>
+        </div>
+        <button 
+          onClick={() => {
+            setEditingProjectId(null);
+            setNewProject({ name: '', description: '', status: 'Active' });
+            setIsModalOpen(true);
+          }}
+          className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white font-semibold py-2.5 px-5 rounded-xl shadow-[0_4px_15px_rgba(99,102,241,0.3)] transition-all flex items-center space-x-2 text-[14px]"
+        >
+          <i className="fas fa-plus text-xs"></i>
+          <span>Create Project</span>
+        </button>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-[#0b0f19] border border-slate-800/80 rounded-2xl p-6 relative overflow-hidden group hover:border-indigo-500/50 transition-colors shadow-lg">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Total Projects</span>
+              <h3 className="text-3xl font-bold text-white">{projects.length} Defined</h3>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
+              <i className="fas fa-briefcase"></i>
+            </div>
+          </div>
+          <span className="inline-block px-2.5 py-1 rounded border border-blue-500/30 bg-blue-500/10 text-blue-400 text-[10px] font-bold">
+            All Workspaces
+          </span>
+        </div>
+
+        <div className="bg-[#0b0f19] border border-slate-800/80 rounded-2xl p-6 relative overflow-hidden group hover:border-emerald-500/50 transition-colors shadow-lg">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Active Projects</span>
+              <h3 className="text-3xl font-bold text-white">{projects.filter(p => p.status === 'Active' || p.status === 'In Progress').length} Active</h3>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+              <i className="fas fa-chart-line"></i>
+            </div>
+          </div>
+          <span className="inline-block px-2.5 py-1 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">
+            Currently Running
+          </span>
+        </div>
+      </div>
+
+      {/* Table Panel */}
+      <div className="bg-[#0b0f19] border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
+        <div className="p-6 border-b border-slate-800/80 bg-slate-900/20">
+          <h3 className="text-lg font-bold text-white mb-1">Project Directory</h3>
+          <p className="text-[13px] text-slate-400">View and manage all active and past projects in the organization.</p>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-900/40 border-b border-slate-800/80 text-[11px] uppercase tracking-wider text-slate-500 font-bold">
+                <th className="py-4 px-6 font-semibold">Project Name</th>
+                <th className="py-4 px-6 font-semibold">Description</th>
+                <th className="py-4 px-6 font-semibold">Status</th>
+                <th className="py-4 px-6 font-semibold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/80">
+              {projects.map((project) => (
+                <tr key={project.id} className="hover:bg-slate-800/20 transition-colors group">
+                  <td className="py-4 px-6">
+                    <span className="font-bold text-[14px] text-slate-200">{project.name}</span>
+                  </td>
+                  <td className="py-4 px-6 text-[13px] text-slate-400">
+                    {project.description}
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide border ${
+                      project.status === 'Active' 
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                        : project.status === 'In Progress' 
+                        ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                        : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                        project.status === 'Active' ? 'bg-emerald-500' : project.status === 'In Progress' ? 'bg-blue-500' : 'bg-amber-500'
+                      }`}></span>
+                      {project.status}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6 text-right">
+                    <button 
+                      onClick={() => {
+                        setEditingProjectId(project.id);
+                        setNewProject(project);
+                        setIsModalOpen(true);
+                      }}
+                      className="bg-slate-800/60 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-300 px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-colors"
+                    >
+                      Modify
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Create Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#0c1222] border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+            
+            <h2 className="text-xl font-bold text-white mb-4">
+              {editingProjectId ? "Modify Project" : "Create New Project"}
+            </h2>
+            
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-[13px] font-medium text-slate-400 mb-2">Project Name</label>
+                <input 
+                  type="text"
+                  value={newProject.name}
+                  onChange={(e) => setNewProject({...newProject, name: e.target.value})}
+                  className="w-full bg-[#060913]/70 border border-slate-800 rounded-lg py-2.5 px-4 text-[14px] text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                  placeholder="e.g. sdd-ecommerce-app"
+                />
+              </div>
+              <div>
+                <label className="block text-[13px] font-medium text-slate-400 mb-2">Description</label>
+                <textarea 
+                  value={newProject.description}
+                  onChange={(e) => setNewProject({...newProject, description: e.target.value})}
+                  className="w-full bg-[#060913]/70 border border-slate-800 rounded-lg py-2.5 px-4 text-[14px] text-white focus:outline-none focus:border-indigo-500 transition-colors min-h-[80px]"
+                  placeholder="Brief description of the project"
+                />
+              </div>
+              <div>
+                <label className="block text-[13px] font-medium text-slate-400 mb-2">Initial Status</label>
+                <select
+                  value={newProject.status}
+                  onChange={(e) => setNewProject({...newProject, status: e.target.value})}
+                  className="w-full bg-[#060913]/70 border border-slate-800 rounded-lg py-2.5 px-4 text-[14px] text-white focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+                >
+                  <option value="Active">Active</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Planning">Planning</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button 
+                onClick={() => {
+                  setEditingProjectId(null);
+                  setIsModalOpen(false);
+                }}
+                className="px-4 py-2 rounded-lg text-[13px] font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  if (newProject.name) {
+                    if (editingProjectId) {
+                      setProjects(projects.map(p => p.id === editingProjectId ? { ...newProject, id: editingProjectId } : p));
+                    } else {
+                      setProjects([...projects, { ...newProject, id: Date.now() }]);
+                    }
+                    setNewProject({ name: '', description: '', status: 'Active' });
+                    setEditingProjectId(null);
+                    setIsModalOpen(false);
+                  }
+                }}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-[13px] font-semibold transition-colors"
+              >
+                {editingProjectId ? "Save Changes" : "Create Project"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
