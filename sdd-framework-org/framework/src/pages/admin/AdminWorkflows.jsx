@@ -12,6 +12,8 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
+const AVAILABLE_PROJECTS = ['sdd-enterprise-dev', 'mobile-app-v2', 'legacy-migration'];
+
 const agentDefs = [
   { id: 'workspace-context', label: 'Workspace Context', artifacts: ['Requirement Brief', 'Legacy Code', 'Business Rules'] },
   { id: 'spec-to-story', label: 'Spec to Story', artifacts: ['User Stories', 'Acceptance Criteria'] },
@@ -118,24 +120,43 @@ const Sidebar = ({ nodes }) => {
 const nodeTypes = { agentNode: AgentNode };
 
 export default function AdminWorkflows() {
+  const [selectedProject, setSelectedProject] = useState(null);
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [cycleError, setCycleError] = useState(false);
+  const [projectMappings, setProjectMappings] = useState({});
   const reactFlowWrapper = useRef(null);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   
   useEffect(() => {
-    const saved = localStorage.getItem('sdd_workflows');
+    // Load all project workflows on mount
+    const saved = localStorage.getItem('sdd_project_workflows');
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
-        setNodes(parsed.nodes || []);
-        setEdges(parsed.edges || []);
+        setProjectMappings(JSON.parse(saved));
       } catch (e) {
         console.error(e);
       }
     }
   }, []);
+
+  const openCanvas = (project) => {
+    setSelectedProject(project);
+    const existingWorkflow = projectMappings[project];
+    if (existingWorkflow) {
+      setNodes(existingWorkflow.nodes || []);
+      setEdges(existingWorkflow.edges || []);
+    } else {
+      setNodes([]);
+      setEdges([]);
+    }
+  };
+
+  const closeCanvas = () => {
+    setSelectedProject(null);
+    setNodes([]);
+    setEdges([]);
+  };
 
   const onNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -230,10 +251,15 @@ export default function AdminWorkflows() {
   );
 
   const saveWorkflow = () => {
-    const flow = { nodes, edges };
-    localStorage.setItem('sdd_workflows', JSON.stringify(flow));
+    if (!selectedProject) return;
     
-    // Tiny visual feedback without alerts
+    const flow = { nodes, edges };
+    const updatedMappings = { ...projectMappings, [selectedProject]: flow };
+    
+    setProjectMappings(updatedMappings);
+    localStorage.setItem('sdd_project_workflows', JSON.stringify(updatedMappings));
+    
+    // Tiny visual feedback before closing
     const btn = document.getElementById('save-workflow-btn');
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-check text-xs"></i><span>Saved!</span>';
@@ -241,7 +267,8 @@ export default function AdminWorkflows() {
     setTimeout(() => {
       btn.innerHTML = originalText;
       btn.classList.replace('from-green-500', 'from-emerald-500');
-    }, 2000);
+      closeCanvas();
+    }, 1000);
   };
 
   const clearWorkflow = () => {
@@ -251,13 +278,92 @@ export default function AdminWorkflows() {
     }
   };
 
+  // -------------------------------------------------------------
+  // LIST VIEW RENDER
+  // -------------------------------------------------------------
+  if (!selectedProject) {
+    return (
+      <div className="text-white h-full flex flex-col fade-in">
+        <div className="flex justify-between items-start mb-6 shrink-0">
+          <div>
+            <h1 className="text-[28px] font-bold tracking-tight text-white">Agent Workflow</h1>
+            <p className="text-slate-400 mt-1 text-[14px]">Define the artefact generation pipeline for each project.</p>
+          </div>
+        </div>
+
+        <div className="bg-[#0b0f19] border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
+          <div className="p-6 border-b border-slate-800/80 bg-slate-900/20">
+            <h3 className="text-lg font-bold text-white mb-1">Project Workflows</h3>
+            <p className="text-[13px] text-slate-400">Manage mapping dependencies per project.</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-900/40 border-b border-slate-800/80 text-[11px] uppercase tracking-wider text-slate-500 font-bold">
+                  <th className="py-4 px-6 font-semibold">Target Project</th>
+                  <th className="py-4 px-6 font-semibold">Workflow Status</th>
+                  <th className="py-4 px-6 font-semibold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/80">
+                {AVAILABLE_PROJECTS.map((project) => {
+                  const isConfigured = !!projectMappings[project];
+                  return (
+                    <tr key={project} className="hover:bg-slate-800/20 transition-colors group">
+                      <td className="py-4 px-6">
+                        <span className="inline-block px-2 py-0.5 rounded border border-slate-700 bg-slate-800/50 text-slate-300 text-[11px] font-semibold whitespace-nowrap">
+                          <i className="fas fa-cubes mr-1.5 text-slate-500"></i>
+                          {project}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        {isConfigured ? (
+                          <span className="inline-flex items-center space-x-1.5 text-emerald-400 text-[12px] font-semibold">
+                            <i className="fas fa-check-circle"></i>
+                            <span>Configured</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center space-x-1.5 text-slate-500 text-[12px] italic">
+                            <i className="fas fa-exclamation-circle text-[10px]"></i>
+                            <span>Not Configured</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-4 px-6 text-right">
+                        <button 
+                          onClick={() => openCanvas(project)}
+                          className="bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/20 text-indigo-400 hover:text-indigo-300 px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-colors flex items-center space-x-2 ml-auto"
+                        >
+                          <i className={`fas ${isConfigured ? 'fa-edit' : 'fa-plus'}`}></i>
+                          <span>{isConfigured ? 'Edit Mapping' : 'Define Mapping'}</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // CANVAS VIEW RENDER
+  // -------------------------------------------------------------
   return (
     <div className="text-white h-full flex flex-col fade-in">
       {/* Header */}
       <div className="flex justify-between items-start mb-6 shrink-0">
         <div>
-          <h1 className="text-[28px] font-bold tracking-tight text-white">Workflow Configurator</h1>
-          <p className="text-slate-400 mt-1 text-[14px]">Design the execution sequence and artefact dependencies for autonomous agents.</p>
+          <h1 className="text-[28px] font-bold tracking-tight text-white flex items-center space-x-3">
+            <button onClick={closeCanvas} className="text-slate-500 hover:text-white transition-colors">
+              <i className="fas fa-arrow-left text-xl"></i>
+            </button>
+            <span>{selectedProject} Workflow</span>
+          </h1>
+          <p className="text-slate-400 mt-1 text-[14px]">Design the execution sequence and artefact dependencies.</p>
         </div>
         <div className="flex space-x-3">
           <button 

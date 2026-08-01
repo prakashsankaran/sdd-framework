@@ -13,7 +13,7 @@ export default function AdminLayout() {
     { path: '/admin/users', label: 'User Management', icon: 'fas fa-user-shield', desc: 'Provision Users' },
     { path: '/admin/agents', label: 'Agent Definition', icon: 'fas fa-robot', desc: 'Configure Agents' },
     { path: '/admin/agent-mapping', label: 'Agent Mapping', icon: 'fas fa-project-diagram', desc: 'Map Agents' },
-    { path: '/admin/workflows', label: 'Workflows', icon: 'fas fa-network-wired', desc: 'Pipeline Setup' },
+    { path: '/admin/workflows', label: 'Agent Workflow', icon: 'fas fa-network-wired', desc: 'Pipeline Setup' },
   ];
 
   const handleLogout = () => {
