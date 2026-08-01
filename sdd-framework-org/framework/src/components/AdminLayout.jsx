@@ -7,11 +7,12 @@ export default function AdminLayout() {
   const navigate = useNavigate();
 
   const navigationItems = [
+    { path: '/admin/users', label: 'User Management', icon: 'fas fa-user-shield', desc: 'Provision Users' },
     { path: '/admin/personas', label: 'Persona Management', icon: 'fas fa-users-cog', desc: 'Manage Roles' },
     { path: '/admin/projects', label: 'Project Management', icon: 'fas fa-briefcase', desc: 'Manage Projects' },
-    { path: '/admin/users', label: 'User Management', icon: 'fas fa-user-shield', desc: 'Provision Users' },
-    { path: '/admin/agents', label: 'Agent Pool', icon: 'fas fa-robot', desc: 'Configure Agents' },
-    { path: '/admin/workflows', label: 'Workflows', icon: 'fas fa-project-diagram', desc: 'Pipeline Setup' },
+    { path: '/admin/agents', label: 'Agent Definition', icon: 'fas fa-robot', desc: 'Configure Agents' },
+    { path: '/admin/agent-mapping', label: 'Agent Mapping', icon: 'fas fa-project-diagram', desc: 'Map Agents' },
+    { path: '/admin/workflows', label: 'Workflows', icon: 'fas fa-network-wired', desc: 'Pipeline Setup' },
   ];
 
   const handleLogout = () => {
@@ -129,17 +130,7 @@ export default function AdminLayout() {
             </h2>
 
             <div className="h-5 w-px bg-slate-800 mx-3 hidden lg:block"></div>
-            
-            {/* Project Chip */}
-            <button className="hidden lg:flex items-center space-x-2 bg-slate-800/30 border border-slate-800 hover:bg-slate-800/60 rounded-lg px-3 py-1.5 text-xs text-slate-300 transition-colors">
-              <svg className="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              </svg>
-              <span>sdd-enterprise-dev</span>
-              <svg className="w-3 h-3 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
+
           </div>
 
           <div className="flex items-center space-x-4">

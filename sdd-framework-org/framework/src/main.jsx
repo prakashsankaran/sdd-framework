@@ -27,6 +27,7 @@ import Login from './pages/Login';
 import AdminLayout from './components/AdminLayout';
 import AdminPersonas from './pages/admin/AdminPersonas';
 import AdminAgents from './pages/admin/AdminAgents';
+import AdminAgentMapping from './pages/admin/AdminAgentMapping';
 import AdminWorkflows from './pages/admin/AdminWorkflows';
 import AdminProjects from './pages/admin/AdminProjects';
 import AdminUsers from './pages/admin/AdminUsers';
@@ -73,9 +74,27 @@ function Layout({ children }) {
   const { projectMode, setProjectMode } = usePageContext();
 
   const activePersona = localStorage.getItem('activePersona') || 'Admin';
+  const activeProject = 'sdd-enterprise-dev'; // Fixed project context for now
   
   const baseNavigationItems = projectMode === 'brownfield' ? brownfieldNavigationItems : greenfieldNavigationItems;
-  const activeNavigationItems = activePersona === 'Admin' ? baseNavigationItems : [];
+  
+  let activeNavigationItems = [];
+  if (activePersona === 'Admin' || activePersona === 'Super Admin') {
+    activeNavigationItems = baseNavigationItems;
+  } else {
+    try {
+      const savedMappingsStr = localStorage.getItem('agentMappings');
+      if (savedMappingsStr) {
+        const savedMappings = JSON.parse(savedMappingsStr);
+        const applicableMapping = savedMappings.find(m => m.persona === activePersona && m.project === activeProject);
+        if (applicableMapping && applicableMapping.agents) {
+          activeNavigationItems = baseNavigationItems.filter(item => applicableMapping.agents.includes(item.label));
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load agent mappings', e);
+    }
+  }
 
   const [specs, setSpecs] = useState([]);
   const [activeSpec, setActiveSpec] = useState('');
@@ -421,7 +440,7 @@ function Layout({ children }) {
 
         {/* Dynamic page contents wrapper */}
         <div class="flex-1 p-6 overflow-y-auto custom-scroll">
-          {activePersona !== 'Admin' ? (
+          {activeNavigationItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-slate-500">
               <i className="fas fa-robot text-5xl mb-4 opacity-50"></i>
               <h2 className="text-xl font-semibold text-slate-400">No Agents Mapped</h2>
@@ -469,6 +488,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="projects" element={<AdminProjects />} />
             <Route path="personas" element={<AdminPersonas />} />
             <Route path="agents" element={<AdminAgents />} />
+            <Route path="agent-mapping" element={<AdminAgentMapping />} />
             <Route path="workflows" element={<AdminWorkflows />} />
           </Route>
 
