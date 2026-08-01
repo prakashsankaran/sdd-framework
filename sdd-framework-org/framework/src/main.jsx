@@ -37,6 +37,8 @@ import { Outlet } from 'react-router-dom';
 import HeaderTokenBadge from './components/HeaderTokenBadge';
 import TokenTrackerWidget from './components/TokenTrackerWidget';
 import TokenThresholdAlert from './components/TokenThresholdAlert';
+import WorkflowStatusTracker from './components/WorkflowStatusTracker';
+import MissingDependencyView from './components/MissingDependencyView';
 
 import './index.css';
 
@@ -72,7 +74,7 @@ const brownfieldNavigationItems = [
 function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { projectMode, setProjectMode } = usePageContext();
+  const { projectMode, setProjectMode, pages } = usePageContext();
 
   const [users] = useState(() => {
     try { return JSON.parse(localStorage.getItem('sdd_users')) || []; } catch { return []; }
@@ -210,6 +212,59 @@ function Layout({ children }) {
       console.error('Failed to change active spec:', err);
     }
   };
+
+  // Dependency Checker Logic
+  const getMissingDependencies = () => {
+    if (activePersona === 'Admin' || activePersona === 'Super Admin') return null;
+    
+    // Check if the current route is actually an agent
+    const isAgentRoute = greenfieldNavigationItems.some(i => i.path === location.pathname) || 
+                         brownfieldNavigationItems.some(i => i.path === location.pathname);
+    if (!isAgentRoute) return null;
+
+    const currentAgentId = location.pathname.substring(1);
+
+    try {
+      const saved = localStorage.getItem('sdd_project_workflows');
+      if (!saved) return null; // No workflows defined
+      
+      const mappings = JSON.parse(saved);
+      const workflowData = mappings[activeProject];
+      if (!workflowData || !workflowData.nodes) return null;
+
+      const { nodes, edges } = workflowData;
+      
+      const targetNode = nodes.find(n => n.data.id === currentAgentId);
+      if (!targetNode) return null;
+
+      const incomingEdges = edges.filter(e => e.target === targetNode.id);
+      
+      const missing = [];
+      incomingEdges.forEach(edge => {
+         const sourceNode = nodes.find(n => n.id === edge.source);
+         if (sourceNode) {
+           const sourceAgentId = sourceNode.data.id;
+           const isSourceGenerated = pages[sourceAgentId] && pages[sourceAgentId].output !== null;
+           
+           if (!isSourceGenerated) {
+             const artifactName = edge.sourceHandle ? edge.sourceHandle.replace('out-', '') : 'Data';
+             missing.push({
+               sourceAgent: sourceNode.data.label,
+               artifact: artifactName
+             });
+           }
+         }
+      });
+      
+      if (missing.length > 0) return missing;
+    } catch (e) {
+      console.error(e);
+    }
+    
+    return null;
+  };
+
+  const missingDependencies = getMissingDependencies();
 
   return (
     <div class={`flex h-screen overflow-hidden bg-[#070a13] text-[#f3f4f6] ${theme}`}>
@@ -443,6 +498,11 @@ function Layout({ children }) {
           </div>
         </header>
 
+        {/* Workflow Status Tracker */}
+        {(activePersona !== 'Admin' && activePersona !== 'Super Admin') && (
+          <WorkflowStatusTracker activeProject={activeProject} />
+        )}
+
         {/* Dynamic page contents wrapper */}
         <div class="flex-1 p-6 overflow-y-auto custom-scroll">
           {activeNavigationItems.length === 0 ? (
@@ -453,6 +513,8 @@ function Layout({ children }) {
                 Your assigned persona (<span className="text-indigo-400">{activePersona}</span>) for project <span className="text-indigo-400">{activeProject}</span> has not been mapped to any agents yet. This will be configured by the Super Administrator.
               </p>
             </div>
+          ) : missingDependencies ? (
+            <MissingDependencyView missing={missingDependencies} />
           ) : projectMode === 'brownfield' && brownfieldNavigationItems.find(item => item.path === location.pathname && item.wip) ? (
             (() => {
               const item = brownfieldNavigationItems.find(i => i.path === location.pathname);

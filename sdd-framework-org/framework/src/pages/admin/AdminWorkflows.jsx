@@ -15,13 +15,14 @@ import 'reactflow/dist/style.css';
 const AVAILABLE_PROJECTS = ['sdd-enterprise-dev', 'mobile-app-v2', 'legacy-migration'];
 
 const agentDefs = [
-  { id: 'workspace-context', label: 'Workspace Context', artifacts: ['Requirement Brief', 'Legacy Code', 'Business Rules'] },
-  { id: 'spec-to-story', label: 'Spec to Story', artifacts: ['User Stories', 'Acceptance Criteria'] },
+  { id: 'spec-to-story', label: 'Spec to Story', artifacts: ['Requirement Brief', 'Acceptance Criteria'] },
+  { id: 'user-stories', label: 'User Stories', artifacts: ['User Stories', 'Sprint Backlog'] },
+  { id: 'ux-wireframe', label: 'UX Wireframe', artifacts: ['UI Prototypes', 'Design System'] },
   { id: 'functional-spec', label: 'Functional Spec', artifacts: ['FSD Document', 'Process Flowchart'] },
-  { id: 'tech-arch', label: 'Tech Architecture', artifacts: ['System Blueprint', 'Tech Stack Selection'] },
-  { id: 'db-design', label: 'Database Design', artifacts: ['ERD Diagram', 'DDL Scripts'] },
+  { id: 'tech-architecture', label: 'Tech Architecture', artifacts: ['System Blueprint', 'Tech Stack Selection'] },
+  { id: 'database-design', label: 'Database Design', artifacts: ['ERD Diagram', 'DDL Scripts'] },
   { id: 'test-cases', label: 'Test Cases', artifacts: ['Test Matrix', 'Gherkin Scenarios'] },
-  { id: 'traceability', label: 'Traceability Matrix', artifacts: ['Requirements Map'] },
+  { id: 'traceability-matrix', label: 'Traceability Matrix', artifacts: ['Requirements Map'] },
   { id: 'review-agent', label: 'Review Agent', artifacts: ['Security Scan', 'Compliance Report'] }
 ];
 
