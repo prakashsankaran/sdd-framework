@@ -428,10 +428,76 @@ Human-Friendly Answer:`;
   }
 }
 
+/**
+ * Indexes brownfield context items (code snippet, DB DDL, document, guardrail) into Qdrant or Local Store.
+ */
+
+async function indexBrownfieldItem(category, filename, content, activeSpec = '') {
+  try {
+    if (!content || !content.trim()) return { success: true, chunksCount: 0 };
+    await initQdrantCollection();
+
+    const chunks = chunkText(content);
+    if (chunks.length === 0) return { success: true, chunksCount: 0 };
+
+    console.log(`[Brownfield Indexer] Embedding ${chunks.length} chunks for [${category}] ${filename}...`);
+    const points = [];
+
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      const vector = await generateEmbedding(chunk);
+      const id = crypto.randomUUID();
+
+      points.push({
+        id,
+        vector,
+        payload: {
+          activeSpec: activeSpec || '',
+          agentId: `brownfield-${category}`,
+          filename,
+          category,
+          format: 'text',
+          chunkIndex: i,
+          text: chunk,
+          createdAt: new Date().toISOString()
+        }
+      });
+    }
+
+    if (!useLocalFallback) {
+      try {
+        const client = getQdrantClient();
+        await client.upsert(COLLECTION_NAME, { wait: true, points });
+        console.log(`[Qdrant] Successfully indexed ${chunks.length} chunks for ${filename}.`);
+      } catch (err) {
+        console.warn(`[Qdrant] Indexing failed (${err.message}). Saving to local vector store JSON fallback instead.`);
+        useLocalFallback = true;
+      }
+    }
+
+    if (useLocalFallback) {
+      const localStore = readLocalStore();
+      const cleanedStore = localStore.filter(point => point.payload.filename !== filename);
+      cleanedStore.push(...points);
+      writeLocalStore(cleanedStore);
+      console.log(`[Local Store] Successfully indexed ${chunks.length} chunks for ${filename} into vector_store.json.`);
+    }
+
+    return { success: true, chunksCount: chunks.length };
+  } catch (err) {
+    console.error(`[Brownfield Indexer] Failed indexing ${filename}:`, err.message);
+    return { success: false, error: err.message };
+  }
+}
+
 module.exports = {
   initQdrantCollection,
   generateEmbedding,
   indexDocument,
+  indexBrownfieldItem,
   searchDocuments,
-  answerQuery
+  answerQuery,
+  getGenAI
 };
+
+

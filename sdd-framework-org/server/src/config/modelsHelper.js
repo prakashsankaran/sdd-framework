@@ -37,6 +37,11 @@ function getModelsConfig() {
   if (process.env.ACTIVE_SLM) {
     config.active_slm = process.env.ACTIVE_SLM;
   }
+  if (process.env.AI_SRB_ENABLED !== undefined) {
+    config.ai_srb_enabled = process.env.AI_SRB_ENABLED === 'true';
+  } else if (config.ai_srb_enabled === undefined) {
+    config.ai_srb_enabled = true; // default to true
+  }
 
   return config;
 }

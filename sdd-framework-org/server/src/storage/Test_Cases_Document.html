@@ -1,82 +1,78 @@
-<div style="background-color: #0f172a; color: #e2e8f0; font-family: 'Inter', sans-serif; padding: 40px;">
+<div style="background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px;">
 
-<h1 style="color: #6366f1; border-bottom: 2px solid #334155; padding-bottom: 10px;">Master Test Strategy & Execution Plan</h1>
-<p style="font-size: 1.1em; opacity: 0.8;">Intelligent Meeting & Action Management Platform | QA Architecture Assessment</p>
+    <h1 style="color: #6366f1; border-bottom: 2px solid #6366f1; padding-bottom: 10px;">QA Strategy & Engineering Blueprint: Visitor Management System</h1>
 
-<section style="margin-bottom: 30px;">
-    <h2 style="color: #22d3ee; border-left: 4px solid #22d3ee; padding-left: 10px;">1. Test Strategy Summary</h2>
-    <div style="background: #1e293b; padding: 20px; border-radius: 8px; border: 1px solid #334155;">
-        <p><strong>Scope:</strong> End-to-end validation of the meeting lifecycle, covering audio ingestion, AI-driven extraction, API integrity, and RBAC security.</p>
-        <p><strong>Approach:</strong> Shift-left testing with automated CI/CD gating. We will employ Model-Based Testing (MBT) for AI pipeline verification and Contract Testing (Pact) for API stability.</p>
-        <p><strong>Entry/Exit:</strong> Entry requires stable build with auth; Exit requires 95% pass rate on critical paths and zero open P0/P1 defects.</p>
+    <div style="background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+        <h2 style="color: #22d3ee;">1. Test Strategy Summary</h2>
+        <p><strong>Objective:</strong> Ensure 100% data integrity, secure PII handling, and strict compliance with the defense-in-depth architecture.</p>
+        <p><strong>Approach:</strong> Shift-left testing with automated contract testing for APIs (Pact), RLS policy verification, and automated PII anonymization validation. Performance testing focuses on sub-2s response latency under simulated load.</p>
+        <p><strong>Entry Criteria:</strong> API contract definitions approved, Mock S3 service available, Auth service configured.</p>
+        <p><strong>Exit Criteria:</strong> 100% pass rate on P1/P2 test cases, all security vulnerabilities (CRITICAL/HIGH) resolved, performance benchmarks met.</p>
     </div>
-</section>
 
-<section style="margin-bottom: 30px;">
-    <h2 style="color: #22d3ee; border-left: 4px solid #22d3ee; padding-left: 10px;">2. Test Environment Configuration</h2>
-    <table style="width: 100%; border-collapse: collapse; background: #1e293b; border: 1px solid #334155;">
-        <tr style="border-bottom: 1px solid #334155;"><th style="padding: 10px; text-align: left;">Environment</th><th style="padding: 10px; text-align: left;">Purpose</th><th style="padding: 10px; text-align: left;">Database</th></tr>
-        <tr><td style="padding: 10px;">QA-Sandbox</td><td>Functional/Unit</td><td>Ephemeral PostgreSQL</td></tr>
-        <tr><td style="padding: 10px;">Staging-PreProd</td><td>UAT/Security/Perf</td><td>Anonymized Production Clone</td></tr>
-    </table>
-</section>
+    <div style="background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+        <h2 style="color: #22d3ee;">2. Detailed Test Cases</h2>
+        <table style="width: 100%; border-collapse: collapse; color: #e2e8f0; font-size: 0.9em;">
+            <thead>
+                <tr style="background: #334155;">
+                    <th style="padding: 12px; border: 1px solid #475569;">TC ID</th>
+                    <th style="padding: 12px; border: 1px solid #475569;">Req ID</th>
+                    <th style="padding: 12px; border: 1px solid #475569;">Scenario</th>
+                    <th style="padding: 12px; border: 1px solid #475569;">Priority</th>
+                    <th style="padding: 12px; border: 1px solid #475569;">Expected Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #475569;">TC-001</td>
+                    <td style="padding: 10px; border: 1px solid #475569;">FR-01</td>
+                    <td style="padding: 10px; border: 1px solid #475569;">Unique mobile constraint for active visits</td>
+                    <td style="padding: 10px; border: 1px solid #475569;">P0</td>
+                    <td style="padding: 10px; border: 1px solid #475569;">DB rejects duplicate mobile for active session</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #475569;">TC-002</td>
+                    <td style="padding: 10px; border: 1px solid #475569;">SEC-01</td>
+                    <td style="padding: 10px; border: 1px solid #475569;">Verify RLS enforcement on API</td>
+                    <td style="padding: 10px; border: 1px solid #475569;">P0</td>
+                    <td style="padding: 10px; border: 1px solid #475569;">User cannot access records owned by others</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #475569;">TC-003</td>
+                    <td style="padding: 10px; border: 1px solid #475569;">SEC-02</td>
+                    <td style="padding: 10px; border: 1px solid #475569;">S3 Presigned URL expiration</td>
+                    <td style="padding: 10px; border: 1px solid #475569;">P1</td>
+                    <td style="padding: 10px; border: 1px solid #475569;">Upload fails after URL lifetime</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-<section style="margin-bottom: 30px;">
-    <h2 style="color: #22d3ee; border-left: 4px solid #22d3ee; padding-left: 10px;">3. Comprehensive Test Case Matrix</h2>
-    <table style="width: 100%; font-size: 0.9em; border-collapse: collapse; background: #1e293b;">
-        <thead style="background: #0f172a;">
-            <tr>
-                <th style="padding: 10px; border: 1px solid #334155;">TC ID</th>
-                <th style="padding: 10px; border: 1px solid #334155;">Module</th>
-                <th style="padding: 10px; border: 1px solid #334155;">Scenario</th>
-                <th style="padding: 10px; border: 1px solid #334155;">Priority</th>
-                <th style="padding: 10px; border: 1px solid #334155;">Automation</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td style="padding: 10px; border: 1px solid #334155;">TC-001</td>
-                <td style="padding: 10px; border: 1px solid #334155;">Ingestion</td>
-                <td style="padding: 10px; border: 1px solid #334155;">Validate Calendar Sync Trigger</td>
-                <td style="padding: 10px; border: 1px solid #334155;">P0</td>
-                <td style="padding: 10px; border: 1px solid #334155;">Automated</td>
-            </tr>
-            <tr>
-                <td style="padding: 10px; border: 1px solid #334155;">TC-002</td>
-                <td style="padding: 10px; border: 1px solid #334155;">AI Extraction</td>
-                <td style="padding: 10px; border: 1px solid #334155;">Verify JSON schema for Action items</td>
-                <td style="padding: 10px; border: 1px solid #334155;">P0</td>
-                <td style="padding: 10px; border: 1px solid #334155;">Automated</td>
-            </tr>
-            <tr>
-                <td style="padding: 10px; border: 1px solid #334155;">TC-003</td>
-                <td style="padding: 10px; border: 1px solid #334155;">Security</td>
-                <td style="padding: 10px; border: 1px solid #334155;">Verify RBAC hierarchy (Emp cannot view Exec dashboards)</td>
-                <td style="padding: 10px; border: 1px solid #334155;">P0</td>
-                <td style="padding: 10px; border: 1px solid #334155;">Automated</td>
-            </tr>
-        </tbody>
-    </table>
-</section>
-
-<section style="margin-bottom: 30px;">
-    <h2 style="color: #22d3ee; border-left: 4px solid #22d3ee; padding-left: 10px;">4. Security & Performance Mandates</h2>
-    <div style="background: #1e293b; padding: 20px; border-radius: 8px;">
+    <div style="background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+        <h2 style="color: #22d3ee;">3. Specialized Test Suites</h2>
+        
+        <h3 style="color: #6366f1;">Security & Privacy Testing</h3>
         <ul>
-            <li><strong>Security (Audit):</strong> Inject dummy records; verify that the `AuditLog` table records the action within 500ms.</li>
-            <li><strong>Security (MFA):</strong> Force-fail login for Admin account with MFA disabled to ensure access is denied.</li>
-            <li><strong>Performance:</strong> SLA Target: AI Extraction must return results within < 5s for a 60-minute meeting file.</li>
+            <li><strong>BOLA/IDOR:</strong> Attempt accessing `/api/visitors/{id}` with a token from a different department.</li>
+            <li><strong>PII Anonymization:</strong> Verify nightly batch job correctly scrubs DB fields older than 30 days.</li>
+            <li><strong>Token Handling:</strong> Verify refresh token rotation and HttpOnly cookie attributes.</li>
+        </ul>
+
+        <h3 style="color: #6366f1;">Performance & Boundary Testing</h3>
+        <ul>
+            <li><strong>Constraint Stress:</strong> Attempt visit duration > 480 minutes (Expect 400 Bad Request).</li>
+            <li><strong>Chronology:</strong> Ensure check_out time cannot be earlier than check_in time (DB Trigger check).</li>
+            <li><strong>SLA Monitoring:</strong> Measure 95th percentile response time for `GET /api/reports/export`.</li>
         </ul>
     </div>
-</section>
 
-<section style="margin-bottom: 30px;">
-    <h2 style="color: #22d3ee; border-left: 4px solid #22d3ee; padding-left: 10px;">5. Regression & Suite Mapping</h2>
-    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-        <div style="background: #334155; padding: 15px; border-radius: 5px;"><strong>Smoke Suite:</strong> Basic auth, health check, meeting creation.</div>
-        <div style="background: #334155; padding: 15px; border-radius: 5px;"><strong>Sanity Suite:</strong> CRUD operations on Action Items, Vector Search responsiveness.</div>
-        <div style="background: #334155; padding: 15px; border-radius: 5px;"><strong>Regression:</strong> End-to-end full flows, RBAC matrix validation, multi-user concurrency.</div>
+    <div style="background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px;">
+        <h2 style="color: #22d3ee;">4. Execution Plan</h2>
+        <ul style="list-style: none;">
+            <li><span style="color: #6366f1;">✔ Smoke:</span> Critical paths (Check-in flow, Auth).</li>
+            <li><span style="color: #6366f1;">✔ Sanity:</span> Emp portal access and notification dispatch.</li>
+            <li><span style="color: #6366f1;">✔ Regression:</span> Full suite including RLS policy edge cases and audit log integrity.</li>
+        </ul>
     </div>
-</section>
 
 </div>

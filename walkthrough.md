@@ -132,3 +132,60 @@ Verification test completed successfully!
 * **Environment Overrides**: Set up `orchestrator.service.js` to parse this catalog at startup and respect `.env` overrides `ACTIVE_LLM` and `ACTIVE_SLM` to assign complexity categories.
 * **Unified API Client Dispatcher**: Implemented `callGenerativeModel` inside [orchestrator.service.js](file:///Users/saravanan/Prakash/SDD%20Framework/sdd-framework-org/server/src/services/orchestrator.service.js#L41-L102) to dynamically handle API requests to Google (via library client) and OpenAI / Anthropic / Custom endpoints (via direct REST API execution with Axios).
 * **Dynamic Routing Integration**: Refactored `selectorNode` and `generatorNode` to execute model routing choices from the registry, displaying the selected model tags seamlessly on the client viewport.
+
+---
+
+## 12. AI Specification Review Board (AI-SRB) Governance Layer (Part 1 & Part 2)
+* **Multi-Agent Review Panel**: Designed and implemented [aisrb.service.js](file:///Users/saravanan/Prakash/SDD%20Framework/sdd-framework-org/server/src/services/aisrb.service.js) executing six independent agent reviewers:
+  - **Senior Software Architect**: Feasibility, boundaries, and tech alignment.
+  - **Lead Security Architect**: OWASP auditing, auth, and vector access boundaries.
+  - **Performance Engineer**: Scalability, database bottlenecks, and caching.
+  - **Cloud FinOps Engineer**: Hosting optimization and compute resource pricing.
+  - **Product Owner**: Gaps in user stories and requirements coverage.
+  - **Devil's Advocate**: Contrarian analysis and unstated assumption risks.
+* **Stage 4: Debate Round (Cross-Review)**: Reviewers read others' reports, challenge findings, and publish revised positions/votes (e.g., *Approved, Needs Clarification, Rejected*).
+* **Stage 5 & 6: Moderator & Editor Spec Modification**:
+  - The **Debate Moderator** synthesizes the discussion, resolves conflicts, and outputs **Required Revisions**.
+  - The **Specification Editor** applies the Required Revisions to raw `spec.md` and generates refined `spec_v2.md`.
+* **Stage 7 & 8: Validation & CEO Sign-off**:
+  - The **Validation Agent** confirms each moderator request was successfully addressed.
+  - The **CEO Approval Agent** conducts a final sign-off, providing business impact, risk profile, and financial feasibility reports.
+* **Quota & Network Resilience**: Implemented dynamic exponential backoff and transparent fallback routing (trying `active_llm` -> `gemini-2.0-flash` -> `gemini-1.5-flash` -> `gemini-3.1-flash-lite`) inside `generateWithRetryAndFallback()`. If premium models experience high demand (503/429), the board automatically heals and delegates to next available models.
+* **Backward Compatibility (Toggle)**: Introduced `ai_srb_enabled` flag in [models.json](file:///Users/saravanan/Prakash/SDD%20Framework/sdd-framework-org/server/src/config/models.json) and [modelsHelper.js](file:///Users/saravanan/Prakash/SDD%20Framework/sdd-framework-org/server/src/config/modelsHelper.js). If disabled (`false`):
+  - Ingestion and downstream pipelines bypass `spec_v2.md` and consume `spec.md`.
+  - The `/api/specs/validate` endpoint falls back to the legacy single-agent validator.
+* **SDD Integration**: Updated `getSpecFilePath()` in [index.queue.js](file:///Users/saravanan/Prakash/SDD%20Framework/sdd-framework-org/server/src/index.queue.js) and `getSpecContent()` in [orchestrator.service.js](file:///Users/saravanan/Prakash/SDD%20Framework/sdd-framework-org/server/src/services/orchestrator.service.js) to dynamically serve `spec_v2.md` when AI-SRB is enabled.
+* **Automated Verification**: Created and executed [test-aisrb.js](file:///Users/saravanan/Prakash/SDD%20Framework/sdd-framework-org/server/src/scripts/test-aisrb.js) which successfully compiled the multi-agent debate history and generated `spec_v2.md`, `review_trail.md`, `validation_report.md`, and `validation_status.json` on disk.
+* **Part 3 Governance, Decisions, and Operational Design Updates**:
+  - **Review Policy & Dynamic Selection**: Configured policies to automatically analyze specifications and dynamically select reviewer agents (adding support for **Data Architect**, **DevOps**, and **Compliance** agents) based on keyword triggers.
+  - **Organizational Memory Integration**: Integrated a persistent lessons learned database ([organizational_memory.json](file:///Users/saravanan/Prakash/SDD%20Framework/sdd-framework-org/server/src/storage/organizational_memory.json)) loaded with past project incidents (e.g. cache desync, RAG-level BOLA vulnerabilities, synchronous OOM crashes). Lessons are injected into agent contexts to force risk mitigations.
+  - **Debate Rounds 0-3**: Configured structured debate lifecycle from understanding to cross-challenge, debate rebuttals, and consensus.
+  - **Standalone Review Artifacts**: Generates a dedicated `review/` subfolder under the spec directory containing:
+    1. `debate_transcript.md`: Full cross-review and debate rounds log.
+    2. `conflict_matrix.md`: Clean matrix of conflicts, resolutions, and rationales.
+    3. `decision_log.md`: Decisions, approvers, reasons, and confidence.
+    4. `spec_diff.md`: A standard git-style line-by-line unified diff showing added/deleted specification items.
+    5. `approval_report.md`: Standalone CEO approval and executive sign-off report.
+    6. `spec_v2.md`: Standalone refined specification.
+  - **Decision Memory Post-Approval**: Automatically extracts final decisions post-approval and saves them into the persistent [decision_memory.json](file:///Users/saravanan/Prakash/SDD%20Framework/sdd-framework-org/server/src/storage/decision_memory.json) record log.
+  - **Visual Boardroom Simulation Interface**: Implemented an interactive visual courtroom simulation in the frontend page [ValidatorAgent.jsx](file:///Users/saravanan/Prakash/SDD%20Framework/sdd-framework-org/framework/src/pages/ValidatorAgent.jsx). When validation starts, it displays:
+    1. A symmetrical layout representing the 9 board specialists surrounding the central hub.
+    2. Real-time active states (pulsing glowing borders, status badges, and dynamic recommendation votes) that transition one-by-one as the simulation runs.
+    3. Concentric radar waves reflecting stage-by-stage pipelines (Understanding, Panels, Debates, Gavel synthesis, Editing, Validation, and CEO Approval).
+    4. An auto-scrolling log console displaying custom color-coded internal thoughts for each individual agent.
+  - **Live Progress Polling & Resilient Run Pipeline**:
+    1. **Real-time Backend Tracker**: Added progress state parsing inside `/api/specs/validate` POST execution which maps terminal log patterns directly to step numbers, active reviewer cards, and exact pipeline status.
+    2. **Short-polling Endpoint**: Added a GET `/api/specs/validate/progress/:folder` endpoint in `index.queue.js` that tracks in-flight runs in an in-memory database and retrieves cached final statuses upon completion.
+    3. **Resilience Overlays**: Added a glowing HUD overlay in the central courtroom visualizer (orange for retries, green for failovers) that parses logs in real-time, explaining when the system is waiting out Gemini API quota resets.
+    4. **LangGraph Orchestrator Integration**: Verified that `getSpecContent()` inside `orchestrator.service.js` automatically prioritizes the refined `spec_v2.md` generated by the board for subsequent story/wireframe/traceability generation nodes.
+
+---
+
+## 13. AI-SRB LangGraph Subgraph Alignment & Enhancements
+* **State Schema Alignment**: Refactored the `DebateStateAnnotation` State Schema in [aisrbGraph.service.js](file:///Users/saravanan/Prakash/SDD%20Framework/sdd-framework-org/server/src/services/aisrbGraph.service.js) to strictly match the specification fields: `session_id`, `specification`, `project_context`, `organizational_memory`, `agent_reviews`, `debate_history`, `conflicts`, `opinion_changes`, `moderator_decision`, `revised_specification`, `validation_result`, `approval_result`, `logs`, and `metrics`. Added mapping/aliases to preserve full backward compatibility with existing fields (`reviewer_outputs` and `debate_rounds`).
+* **Dedicated Memory Retrieval Node**: Extracted lessons learned, previous architecture decisions, production incidents, and approved patterns from `organizational_memory.json` in a distinct `memoryRetrievalNode` within the graph, injecting this context into reviewer prompts.
+* **Agent Opinion Change Tracking**: Implemented tracking of agent opinion revisions in `debateControllerNode`. Re-evaluated each agent's initial vote and confidence against the group debate transcript, logging any changes (initial vs revised positions, challenge sources, and reasons) in `state.opinion_changes`, which are dynamically appended to the generated `validation_report.md` and `decision_log.md`.
+* **Execution Mode Configuration**: Introduced configurable execution modes (sequential development mode vs chunked parallel production mode with controlled concurrency and retry handling) inside both the review panel and debate controller nodes.
+* **Observability & Metrics Collection**: Added execution metrics collection inside the graph state tracking start/end times, node latency tracking, and token usage estimation (prompts and completions tokens), which are outputted in both the final audit reports and `validation_status.json`.
+* **Unified Validation Subgraph API**: Replaced the legacy single-script execution logic in `runAISRB` (located in [aisrb.service.js](file:///Users/saravanan/Prakash/SDD%20Framework/sdd-framework-org/server/src/services/aisrb.service.js)) to delegate validation directly to the compiled LangGraph subgraph. Both manual validator page runs and orchestrator pipeline invocations now execute the exact same LangGraph state, checkpointing, opinion change tracking, and observability collectors.
+* **Integration Testing**: Executed the integration test script (`test-aisrb-graph.js`) which successfully verified end-to-end traversal of all 9 nodes, state persistence, dynamic decision storage extraction, metrics outputting, and file generations.

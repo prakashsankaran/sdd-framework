@@ -6,8 +6,15 @@ const fs = require('fs');
 
 // Load environment variables and vector db services
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
-const { indexDocument } = require('./services/vectorDb.service');
+const { indexDocument, indexBrownfieldItem } = require('./services/vectorDb.service');
+
 const tokenTracker = require('./services/tokenTracker.service');
+const codeToSpecService = require('./services/codeToSpec.service');
+const impactAnalysisService = require('./services/impactAnalysis.service');
+const AdmZip = require('adm-zip');
+
+
+
 
 const app = express();
 const PORT = 7001;
@@ -18,10 +25,26 @@ const modelsConfig = new Proxy({}, {
   get: (target, prop) => getModelsConfig()[prop]
 });
 
-// Enable CORS & JSON parsers
+// Enable CORS & JSON parsers with 50mb payload limits
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Setup multer file uploads
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+const upload = multer({ storage });
+
 
 // Token Usage Tracker API endpoints
 app.get('/api/tokens/summary', (req, res) => {
@@ -52,20 +75,402 @@ app.delete('/api/tokens/clear', (req, res) => {
   }
 });
 
-// Setup multer file uploads
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+// Storage & Endpoints for Brownfield Mode and Context
+const brownfieldStorageFile = path.join(__dirname, 'storage/brownfield_context.json');
+let activeProjectMode = 'greenfield';
+
+app.post('/api/brownfield/mode', (req, res) => {
+  const { mode } = req.body;
+  if (mode === 'brownfield' || mode === 'greenfield') {
+    activeProjectMode = mode;
+    return res.json({ success: true, mode: activeProjectMode });
+  }
+  res.status(400).json({ success: false, error: 'Invalid mode' });
+});
+
+app.get('/api/brownfield/mode', (req, res) => {
+  res.json({ success: true, mode: activeProjectMode });
+});
+
+app.get('/api/brownfield/context', (req, res) => {
+  try {
+    if (fs.existsSync(brownfieldStorageFile)) {
+      const data = JSON.parse(fs.readFileSync(brownfieldStorageFile, 'utf8'));
+      return res.json({ success: true, context: data });
+    }
+    res.json({ success: true, context: null });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
-const upload = multer({ storage });
+
+app.post('/api/brownfield/ingest', async (req, res) => {
+  try {
+    const { context } = req.body;
+    if (!context) {
+      return res.status(400).json({ success: false, error: 'Context is required' });
+    }
+
+    const storageDir = path.dirname(brownfieldStorageFile);
+    if (!fs.existsSync(storageDir)) {
+      fs.mkdirSync(storageDir, { recursive: true });
+    }
+    fs.writeFileSync(brownfieldStorageFile, JSON.stringify(context, null, 2), 'utf8');
+
+    const totalSnippets = (context.codeSnippets || []).length;
+    const totalDocs = (context.documents || []).length;
+    const totalItems = totalSnippets + totalDocs + (context.dbSchema ? 1 : 0) + (context.legacyGuardrails ? 1 : 0);
+
+    // Return instant success response to client
+    res.json({
+      success: true,
+      message: `Successfully saved ${totalItems} brownfield context items to storage! Vector indexing running in background.`,
+      stats: { totalItems }
+    });
+
+    // Asynchronous background vector indexing
+    (async () => {
+      if (Array.isArray(context.codeSnippets)) {
+        for (const snippet of context.codeSnippets) {
+          if (snippet.content) {
+            await indexBrownfieldItem('code', snippet.fileName, snippet.content, activeSpecDirName);
+          }
+        }
+      }
+      if (context.dbSchema && context.dbSchema.trim()) {
+        await indexBrownfieldItem('db_schema', 'database_schema.sql', context.dbSchema, activeSpecDirName);
+      }
+      if (Array.isArray(context.documents)) {
+        for (const doc of context.documents) {
+          if (doc.content) {
+            await indexBrownfieldItem('document', doc.title || 'legacy-doc', doc.content, activeSpecDirName);
+          }
+        }
+      }
+      if (context.legacyGuardrails) {
+        const guardrailText = `Legacy Guardrails & Tech Stack:
+Framework/Versions: ${context.legacyGuardrails.frameworkVersion || 'Not specified'}
+API Prefix: ${context.legacyGuardrails.apiPrefix || '/api/v1'}
+Rules: ${context.legacyGuardrails.preservationRules || 'None'}`;
+        await indexBrownfieldItem('guardrails', 'legacy_guardrails.txt', guardrailText, activeSpecDirName);
+      }
+    })().catch(err => console.error('Background vector indexing error:', err));
+
+
+  } catch (err) {
+    console.error('Failed brownfield ingestion:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+// Helper for file extensions & directory ignores
+const IGNORE_DIRS = new Set([
+  'node_modules', '.git', '.idea', '.vscode', 'dist', 'build', 
+  'target', 'bin', 'obj', 'vendor', '__pycache__', '.next', 'coverage', '.antigravity'
+]);
+
+const ALLOWED_EXTS = new Set([
+  '.js', '.jsx', '.ts', '.tsx', '.py', '.java', '.cs', '.go', 
+  '.rb', '.php', '.sql', '.json', '.yaml', '.yml', '.md', '.html', 
+  '.css', '.c', '.cpp', '.h', '.hpp', '.kt', '.swift', '.sh', '.env.example'
+]);
+
+function shouldIncludeFile(filePath) {
+  const parts = filePath.split(/[/\\]/);
+  if (parts.some(p => IGNORE_DIRS.has(p))) return false;
+  const ext = path.extname(filePath).toLowerCase();
+  return ALLOWED_EXTS.has(ext);
+}
+
+function processZipBuffer(buffer) {
+  const zip = new AdmZip(buffer);
+  const zipEntries = zip.getEntries();
+  const snippets = [];
+
+  for (const entry of zipEntries) {
+    if (entry.isDirectory) continue;
+    const entryPath = entry.entryName;
+
+    if (!shouldIncludeFile(entryPath)) continue;
+
+    try {
+      const content = zip.readAsText(entry);
+      if (content && content.trim()) {
+        snippets.push({
+          id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+          fileName: entryPath,
+          content: content.length > 50000 ? content.substring(0, 50000) + '\n... [truncated]' : content
+        });
+      }
+    } catch (e) {
+      console.warn(`Failed reading zip entry ${entryPath}:`, e.message);
+    }
+  }
+  return snippets;
+}
+
+function scanLocalDirectory(dirPath, baseDir = dirPath) {
+  let snippets = [];
+  if (!fs.existsSync(dirPath)) return snippets;
+
+  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = path.join(dirPath, entry.name);
+    const relPath = path.relative(baseDir, fullPath).replace(/\\/g, '/');
+
+    if (entry.isDirectory()) {
+      if (IGNORE_DIRS.has(entry.name)) continue;
+      snippets = snippets.concat(scanLocalDirectory(fullPath, baseDir));
+    } else if (entry.isFile()) {
+      if (shouldIncludeFile(relPath)) {
+        try {
+          const stat = fs.statSync(fullPath);
+          if (stat.size < 500000) {
+            const content = fs.readFileSync(fullPath, 'utf8');
+            if (content && content.trim()) {
+              snippets.push({
+                id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+                fileName: relPath,
+                content: content.length > 50000 ? content.substring(0, 50000) + '\n... [truncated]' : content
+              });
+            }
+          }
+        } catch (e) {
+          console.warn(`Failed reading local file ${fullPath}:`, e.message);
+        }
+      }
+    }
+  }
+
+  return snippets;
+}
+
+// Endpoint: Upload Zipped Codebase Archive (.zip)
+app.post('/api/brownfield/upload-zip', upload.single('zipFile'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No zip file provided' });
+    }
+
+    const zipFilePath = req.file.path;
+    const snippets = processZipBuffer(fs.readFileSync(zipFilePath));
+
+    // Clean up uploaded zip file
+    fs.unlinkSync(zipFilePath);
+
+    res.json({
+      success: true,
+      message: `Extracted ${snippets.length} source code files from zip archive.`,
+      snippets
+    });
+  } catch (err) {
+    console.error('Failed processing zip file:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Endpoint: Scan Local Folder Path
+app.post('/api/brownfield/scan-folder', (req, res) => {
+  try {
+    const { folderPath } = req.body;
+    if (!folderPath || !folderPath.trim()) {
+      return res.status(400).json({ success: false, error: 'Folder path is required' });
+    }
+
+    const resolvedPath = path.resolve(folderPath.trim());
+    if (!fs.existsSync(resolvedPath)) {
+      return res.status(404).json({ success: false, error: `Directory not found at path: ${resolvedPath}` });
+    }
+
+    const snippets = scanLocalDirectory(resolvedPath);
+
+    res.json({
+      success: true,
+      message: `Scanned and discovered ${snippets.length} source files in ${resolvedPath}`,
+      snippets
+    });
+  } catch (err) {
+    console.error('Failed scanning folder path:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Endpoint: Upload Database Schema file (.sql, .prisma, .json, .zip)
+app.post('/api/brownfield/upload-schema-file', upload.single('schemaFile'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No schema file provided' });
+    }
+
+    const filePath = req.file.path;
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    let schemaText = '';
+
+    if (ext === '.zip') {
+      const zip = new AdmZip(filePath);
+      const entries = zip.getEntries();
+      const sqlEntries = entries.filter(e => !e.isDirectory && (e.entryName.endsWith('.sql') || e.entryName.endsWith('.prisma') || e.entryName.endsWith('.json') || e.entryName.endsWith('.yaml') || e.entryName.endsWith('.yml')));
+      schemaText = sqlEntries.map(e => `-- FILE: ${e.entryName}\n` + zip.readAsText(e)).join('\n\n');
+    } else {
+      schemaText = fs.readFileSync(filePath, 'utf8');
+    }
+
+    fs.unlinkSync(filePath);
+
+    res.json({
+      success: true,
+      message: `Database schema loaded successfully from ${req.file.originalname}`,
+      schema: schemaText
+    });
+  } catch (err) {
+    console.error('Failed processing schema file upload:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Endpoint: Upload Legacy Document file (.md, .txt, .json, .yaml, .zip)
+app.post('/api/brownfield/upload-doc-file', upload.single('docFile'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No document file provided' });
+    }
+
+    const filePath = req.file.path;
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    const documents = [];
+
+    if (ext === '.zip') {
+      const zip = new AdmZip(filePath);
+      const entries = zip.getEntries();
+      const docEntries = entries.filter(e => !e.isDirectory && (e.entryName.endsWith('.md') || e.entryName.endsWith('.txt') || e.entryName.endsWith('.json') || e.entryName.endsWith('.yaml') || e.entryName.endsWith('.yml')));
+      
+      for (const entry of docEntries) {
+        documents.push({
+          id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+          title: entry.entryName,
+          content: zip.readAsText(entry)
+        });
+      }
+    } else {
+      const content = fs.readFileSync(filePath, 'utf8');
+      documents.push({
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        title: req.file.originalname,
+        content: content
+      });
+    }
+
+    fs.unlinkSync(filePath);
+
+    res.json({
+      success: true,
+      message: `Extracted ${documents.length} document(s) from ${req.file.originalname}`,
+      documents
+    });
+  } catch (err) {
+    console.error('Failed processing document file upload:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+
+// Code-to-Spec Baseline Generator Endpoints
+app.post('/api/code-to-spec/generate', async (req, res) => {
+  try {
+    let context = req.body.context;
+    if (!context && fs.existsSync(brownfieldStorageFile)) {
+      context = JSON.parse(fs.readFileSync(brownfieldStorageFile, 'utf8'));
+    }
+    if (!context) {
+      return res.status(400).json({ success: false, error: 'No brownfield context found. Please attach code/schema context first.' });
+    }
+
+    const result = await codeToSpecService.generateBaselineSpec(context, activeSpecDirName);
+    res.json({ success: true, baselineSpec: result.baselineSpec });
+  } catch (err) {
+    console.error('Failed Code-to-Spec baseline generation:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/code-to-spec/merge', async (req, res) => {
+  try {
+    const { baselineSpec, manualSpec } = req.body;
+    let existingManualSpec = manualSpec;
+    
+    if (!existingManualSpec) {
+      const specPath = getSpecFilePath();
+      if (fs.existsSync(specPath)) {
+        existingManualSpec = fs.readFileSync(specPath, 'utf8');
+      }
+    }
+
+    const result = await codeToSpecService.mergeBaselineWithManualSpec(baselineSpec, existingManualSpec || '');
+    res.json({ success: true, mergedSpec: result.mergedSpec });
+  } catch (err) {
+    console.error('Failed Code-to-Spec merge:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/code-to-spec/export', (req, res) => {
+  try {
+    const { finalSpec } = req.body;
+    if (!finalSpec) {
+      return res.status(400).json({ success: false, error: 'finalSpec is required' });
+    }
+
+    const specPath = getSpecFilePath();
+    fs.writeFileSync(specPath, finalSpec, 'utf8');
+
+    // Store baseline version backup
+    const backupDir = path.join(specsDir, activeSpecDirName, 'versions');
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+    fs.writeFileSync(path.join(backupDir, `baseline-spec-${Date.now()}.md`), finalSpec, 'utf8');
+
+    res.json({
+      success: true,
+      message: `Successfully promoted & exported baseline spec to ${activeSpecDirName}/spec.md as new Source of Truth!`,
+      path: `specs/${activeSpecDirName}/spec.md`
+    });
+  } catch (err) {
+    console.error('Failed Code-to-Spec export:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Impact & Gap Analysis Endpoint
+app.post('/api/impact-analysis/analyze', async (req, res) => {
+
+  try {
+    const { newRequirement } = req.body;
+    if (!newRequirement || !newRequirement.trim()) {
+      return res.status(400).json({ success: false, error: 'New Requirement text is required.' });
+    }
+
+    let context = req.body.context;
+    if (!context && fs.existsSync(brownfieldStorageFile)) {
+      context = JSON.parse(fs.readFileSync(brownfieldStorageFile, 'utf8'));
+    }
+
+    const result = await impactAnalysisService.analyzeImpact(newRequirement.trim(), context);
+    res.json(result);
+  } catch (err) {
+    console.error('Failed Impact Analysis:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+
+
+// Workspace dynamic specs path configuration
+
 
 // Workspace dynamic specs path configuration
 const specsDir = path.join(__dirname, '../../specs');
@@ -85,6 +490,10 @@ if (fs.existsSync(specsDir)) {
 }
 
 const getSpecFilePath = () => {
+  const specV2Path = path.join(specsDir, activeSpecDirName, 'spec_v2.md');
+  if (modelsConfig.ai_srb_enabled !== false && fs.existsSync(specV2Path)) {
+    return specV2Path;
+  }
   const specFilePath = path.join(specsDir, activeSpecDirName, 'spec.md');
   const specDir = path.dirname(specFilePath);
   if (!fs.existsSync(specDir)) {
@@ -222,7 +631,183 @@ app.post('/api/specs/save', (req, res) => {
   }
 });
 
-// Spec Kit Validate Specs and Tech Stack
+// Spec Kit Validate Specs and Tech Stack (AI-SRB multi-agent governance board with backward compatibility)
+if (!global.activeValidationRuns) {
+  global.activeValidationRuns = {};
+}
+
+function updateActiveRun(folder, msg) {
+  if (!global.activeValidationRuns[folder]) {
+    global.activeValidationRuns[folder] = {
+      status: 'running',
+      logs: [],
+      step: 1,
+      progress: 0,
+      activeMember: null,
+      statuses: {},
+      votes: {}
+    };
+  }
+  const run = global.activeValidationRuns[folder];
+
+  // Format log messages nicely
+  let formattedMsg = msg;
+  if (!msg.startsWith('[Selector]') && !msg.startsWith('[System]') && !msg.startsWith('[Moderator]') && !msg.startsWith('[Editor]') && !msg.startsWith('[Validation]') && !msg.startsWith('[CEO Agent]') && !msg.startsWith('[Resilience]')) {
+    if (msg.includes('review completed for')) {
+      formattedMsg = `[System] ${msg}`;
+    } else if (msg.includes('debate completed for')) {
+      formattedMsg = `[System] ${msg}`;
+    } else {
+      formattedMsg = `[System] ${msg}`;
+    }
+  }
+
+  run.logs.push(formattedMsg);
+
+  const memberNameMap = {
+    'architect': 'architect',
+    'product_owner': 'product_owner',
+    'devil_advocate': 'devil_advocate',
+    'security': 'security',
+    'performance': 'performance',
+    'cost': 'cost',
+    'data_architect': 'data_architect',
+    'devops': 'devops',
+    'compliance': 'compliance'
+  };
+
+  const findMemberKey = (text) => {
+    const lower = text.toLowerCase();
+    for (const key of Object.keys(memberNameMap)) {
+      const sanitizedKey = key.replace('_', '');
+      if (lower.includes(sanitizedKey) || lower.includes(key)) {
+        return memberNameMap[key];
+      }
+    }
+    return null;
+  };
+
+  if (msg.includes('Active Board Members selected:')) {
+    run.step = 1;
+    run.progress = 5;
+    const parts = msg.split('selected:')[1] || '';
+    const members = parts.split(',').map(m => m.trim().toLowerCase());
+    members.forEach(m => {
+      const key = findMemberKey(m) || m;
+      run.statuses[key] = 'idle';
+    });
+  }
+
+  if (msg.includes('Loading organizational lessons learned memory') || msg.includes('lessons learned from organizational_memory')) {
+    run.step = 2;
+    run.progress = 10;
+    Object.keys(run.statuses).forEach(k => {
+      run.statuses[k] = 'thinking';
+    });
+  }
+
+  if (msg.includes('AI-SRB Round 1: Running Independent Review Panel')) {
+    run.step = 3;
+    run.progress = 15;
+    Object.keys(run.statuses).forEach(k => {
+      run.statuses[k] = 'idle';
+    });
+  }
+
+  if (msg.includes('Round 1: Running independent review for')) {
+    const memberName = msg.split('review for')[1].replace('...', '').trim();
+    const key = findMemberKey(memberName);
+    if (key) {
+      run.activeMember = key;
+      run.statuses[key] = 'thinking';
+      const keys = Object.keys(run.statuses);
+      const idx = keys.indexOf(key);
+      if (idx !== -1) {
+        run.progress = 15 + Math.floor((idx / keys.length) * 30);
+      }
+    }
+  }
+
+  if (msg.includes('Round 1 review completed for')) {
+    const parts = msg.split('review completed for')[1] || '';
+    const namePart = parts.split(':')[0].trim();
+    const vote = parts.split(':')[1]?.trim() || 'APPROVED';
+    const key = findMemberKey(namePart);
+    if (key) {
+      run.statuses[key] = 'done';
+      run.votes[key] = vote.replace('.', '').trim();
+      if (run.activeMember === key) {
+        run.activeMember = null;
+      }
+    }
+  }
+
+  if (msg.includes('AI-SRB Round 2: Running Cross-Agent Challenge Debate')) {
+    run.step = 4;
+    run.progress = 45;
+    Object.keys(run.statuses).forEach(k => {
+      run.statuses[k] = 'debating';
+    });
+  }
+
+  if (msg.includes('Round 2: Running debate feedback for')) {
+    const memberName = msg.split('debate feedback for')[1].replace('...', '').trim();
+    const key = findMemberKey(memberName);
+    if (key) {
+      run.activeMember = key;
+      run.statuses[key] = 'thinking';
+      const keys = Object.keys(run.statuses);
+      const idx = keys.indexOf(key);
+      if (idx !== -1) {
+        run.progress = 45 + Math.floor((idx / keys.length) * 25);
+      }
+    }
+  }
+
+  if (msg.includes('Round 2 debate completed for')) {
+    const memberName = msg.split('debate completed for')[1].trim();
+    const key = findMemberKey(memberName);
+    if (key) {
+      run.statuses[key] = 'done';
+      if (run.activeMember === key) {
+        run.activeMember = null;
+      }
+    }
+  }
+
+  if (msg.includes('AI-SRB Round 3: Running Debate Moderator consensus formation')) {
+    run.step = 5;
+    run.progress = 70;
+    run.activeMember = null;
+    Object.keys(run.statuses).forEach(k => {
+      run.statuses[k] = 'done';
+    });
+  }
+
+  if (msg.includes('AI-SRB: Running Specification Editor Agent')) {
+    run.step = 6;
+    run.progress = 80;
+  }
+
+  if (msg.includes('AI-SRB: Running Validation Agent audit')) {
+    run.step = 7;
+    run.progress = 90;
+  }
+
+  if (msg.includes('AI-SRB: Running CEO Approval Agent final checkpoint')) {
+    run.step = 8;
+    run.progress = 95;
+  }
+
+  if (msg.includes('AI Specification Review Board pipeline finished successfully')) {
+    run.step = 9;
+    run.progress = 100;
+    run.status = 'completed';
+  }
+}
+
+global.updateActiveRun = updateActiveRun;
+
 app.post('/api/specs/validate', async (req, res) => {
   const { folder } = req.body;
   if (!folder) {
@@ -239,34 +824,72 @@ app.post('/api/specs/validate', async (req, res) => {
   }
 
   try {
-    const readFile = (name) => {
-      const p = path.join(specsDir, name);
-      return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : '';
-    };
+    if (modelsConfig.ai_srb_enabled !== false) {
+      const { runAISRB } = require('./services/aisrb.service');
+      
+      // Initialize active progress tracking state
+      global.activeValidationRuns[folder] = {
+        status: 'running',
+        logs: ['[System] Initializing AI Specification Review Board (AI-SRB) Governance Layer...'],
+        step: 1,
+        progress: 0,
+        activeMember: null,
+        statuses: {},
+        votes: {}
+      };
 
-    let requirements = readFile('requirements.md');
-    const spec = readFile('spec.md');
-    const constitution = readFile('constitution.md');
-    const plan = readFile('plan.md');
-    const tasks = readFile('tasks.md');
-    const research = readFile('research.md');
+      const logCallback = (msg) => {
+        console.log(`[AI-SRB Progress] ${msg}`);
+        updateActiveRun(folder, msg);
+      };
 
-    if (!requirements) {
-      requirements = `Reconstructed Requirements based on active specification documentation:\n\n` +
-        (constitution ? `### Constitution Principles:\n${constitution.substring(0, 1000)}\n\n` : '') +
-        (spec ? `### Specification Goals:\n${spec.substring(0, 1000)}` : 'Build a system according to the design guidelines.');
-      fs.writeFileSync(path.join(specsDir, 'requirements.md'), requirements, 'utf8');
-    }
+      const result = await runAISRB(folder, logCallback);
 
-    const { GoogleGenerativeAI } = require('@google/generative-ai');
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ error: 'GEMINI_API_KEY is not set in environment variables' });
-    }
+      // Set complete state
+      if (global.activeValidationRuns[folder]) {
+        global.activeValidationRuns[folder].status = 'completed';
+        global.activeValidationRuns[folder].step = 9;
+        global.activeValidationRuns[folder].progress = 100;
+        global.activeValidationRuns[folder].approved = result.approved;
+        global.activeValidationRuns[folder].report = result.report;
+      }
 
-    const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = ai.getGenerativeModel({ model: modelsConfig.active_llm });
+      res.json({
+        success: true,
+        log: global.activeValidationRuns[folder].logs,
+        report: result.report,
+        approved: result.approved
+      });
+    } else {
+      const log = ['[Validator Progress] AI-SRB disabled. Running legacy single-agent validator...'];
+      const readFile = (name) => {
+        const p = path.join(specsDir, name);
+        return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : '';
+      };
 
-    const prompt = `You are a Senior Principal Architect and Spec Validator.
+      let requirements = readFile('requirements.md');
+      const spec = readFile('spec.md');
+      const constitution = readFile('constitution.md');
+      const plan = readFile('plan.md');
+      const tasks = readFile('tasks.md');
+      const research = readFile('research.md');
+
+      if (!requirements) {
+        requirements = `Reconstructed Requirements based on active specification documentation:\n\n` +
+          (constitution ? `### Constitution Principles:\n${constitution.substring(0, 1000)}\n\n` : '') +
+          (spec ? `### Specification Goals:\n${spec.substring(0, 1000)}` : 'Build a system according to the design guidelines.');
+        fs.writeFileSync(path.join(specsDir, 'requirements.md'), requirements, 'utf8');
+      }
+
+      const { GoogleGenerativeAI } = require('@google/generative-ai');
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(500).json({ error: 'GEMINI_API_KEY is not set in environment variables' });
+      }
+
+      const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const model = ai.getGenerativeModel({ model: modelsConfig.active_llm });
+
+      const prompt = `You are a Senior Principal Architect and Spec Validator.
 Your task is to thoroughly analyze the generated specifications and technical documents against the user's original requirements.
 
 Original Requirements:
@@ -319,24 +942,142 @@ Please compile a detailed markdown validation report addressing the following:
 
 Return only the clean markdown report. Do not add any introductory or wrap-up commentary outside of the markdown block.`;
 
-    const result = await model.generateContent(prompt);
-    const reportContent = result.response.text();
+      const result = await model.generateContent(prompt);
+      const reportContent = result.response.text();
 
-    fs.writeFileSync(path.join(specsDir, 'validation_report.md'), reportContent, 'utf8');
+      fs.writeFileSync(path.join(specsDir, 'validation_report.md'), reportContent, 'utf8');
 
-    const statusPath = path.join(specsDir, 'validation_status.json');
-    if (!fs.existsSync(statusPath)) {
-      fs.writeFileSync(statusPath, JSON.stringify({ approved: false }), 'utf8');
+      const statusPath = path.join(specsDir, 'validation_status.json');
+      if (!fs.existsSync(statusPath)) {
+        fs.writeFileSync(statusPath, JSON.stringify({ approved: false }), 'utf8');
+      }
+
+      res.json({
+        success: true,
+        log,
+        report: reportContent,
+        approved: false
+      });
     }
+
+  } catch (err) {
+    if (global.activeValidationRuns && global.activeValidationRuns[folder]) {
+      global.activeValidationRuns[folder].status = 'failed';
+      global.activeValidationRuns[folder].error = err.message;
+      global.activeValidationRuns[folder].logs.push(`[System] Validation failed: ${err.message}`);
+    }
+    res.status(500).json({ error: 'Validation failed: ' + err.message });
+  }
+});
+
+// Spec Kit Validate Progress Polling Endpoint
+app.get('/api/specs/validate/progress/:folder', (req, res) => {
+  const { folder } = req.params;
+  if (!folder) {
+    return res.status(400).json({ error: 'Folder name is required' });
+  }
+
+  if (global.activeValidationRuns && global.activeValidationRuns[folder]) {
+    return res.json(global.activeValidationRuns[folder]);
+  }
+
+  // Fallback to cached validation status
+  const specsDir = path.join(__dirname, '../../specs', folder);
+  const statusFile = path.join(specsDir, 'validation_status.json');
+  if (fs.existsSync(statusFile)) {
+    try {
+      const statusData = JSON.parse(fs.readFileSync(statusFile, 'utf8'));
+      return res.json({
+        status: 'completed',
+        step: 9,
+        progress: 100,
+        approved: statusData.approved,
+        report: statusData.report || '',
+        logs: ['[System] Audit complete. Loaded cached validation report.']
+      });
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  return res.json({ status: 'idle' });
+});
+
+// POST human architecture gate approval decision
+app.post('/api/specs/validate/human-decision', async (req, res) => {
+  const { folder, session_id, decision, comments, user } = req.body;
+  if (!folder || !session_id || !decision) {
+    return res.status(400).json({ error: 'Folder name, session_id, and decision decision type are required' });
+  }
+
+  if (folder.includes('..')) {
+    return res.status(400).json({ error: 'Invalid parameters' });
+  }
+
+  const specsDir = path.join(__dirname, '../../specs', folder);
+  if (!fs.existsSync(specsDir)) {
+    return res.status(404).json({ error: `Spec folder "${folder}" not found` });
+  }
+
+  try {
+    const { aisrbGraph } = require('./services/aisrbGraph.service');
+    const config = { configurable: { thread_id: session_id } };
+
+    // Register dynamic active status polling log
+    if (global.activeValidationRuns && global.activeValidationRuns[folder]) {
+      global.activeValidationRuns[folder].status = 'running';
+      global.activeValidationRuns[folder].step = 9;
+      global.activeValidationRuns[folder].progress = 98;
+      global.activeValidationRuns[folder].logs.push(`[System] Human decision received: ${decision}. comments: "${comments || ''}". Resuming debate graph...`);
+    }
+
+    // Update Checkpoint State
+    await aisrbGraph.updateState(config, {
+      human_approval_status: decision,
+      human_approval_details: {
+        approved_by: user || 'Human Architecture Board',
+        decision,
+        comments: comments || '',
+        timestamp: new Date().toISOString()
+      }
+    });
+
+    // Run graph execution resume handler in the background asynchronously
+    const resumeInvoke = async () => {
+      try {
+        const finalState = await aisrbGraph.invoke(null, config);
+        const hasApproved = finalState.human_approval_status === 'APPROVED';
+        
+        // Read final report from validation_report.md
+        const reportPath = path.join(specsDir, 'validation_report.md');
+        const reportText = fs.existsSync(reportPath) ? fs.readFileSync(reportPath, 'utf8') : '';
+
+        if (global.activeValidationRuns[folder]) {
+          global.activeValidationRuns[folder].status = 'completed';
+          global.activeValidationRuns[folder].approved = hasApproved;
+          global.activeValidationRuns[folder].progress = 100;
+          global.activeValidationRuns[folder].step = 9;
+          global.activeValidationRuns[folder].report = reportText;
+          global.activeValidationRuns[folder].logs.push(`[System] Governance subgraph execution resumed and completed successfully. Status: ${finalState.human_approval_status}`);
+        }
+      } catch (err) {
+        console.error('Failed to execute resumed subgraph:', err);
+        if (global.activeValidationRuns[folder]) {
+          global.activeValidationRuns[folder].status = 'failed';
+          global.activeValidationRuns[folder].error = err.message;
+          global.activeValidationRuns[folder].logs.push(`[System] Resumed execution error: ${err.message}`);
+        }
+      }
+    };
+
+    resumeInvoke();
 
     res.json({
       success: true,
-      report: reportContent,
-      approved: false
+      message: `Human decision '${decision}' accepted. Governance graph resuming...`
     });
-
   } catch (err) {
-    res.status(500).json({ error: 'Validation failed: ' + err.message });
+    res.status(500).json({ error: 'Failed to resume validation checkpoint state: ' + err.message });
   }
 });
 
@@ -382,9 +1123,14 @@ app.get('/api/specs/validate/status/:folder', (req, res) => {
 
   try {
     const statusPath = path.join(specsDir, 'validation_status.json');
-    const approved = fs.existsSync(statusPath) 
-      ? JSON.parse(fs.readFileSync(statusPath, 'utf8')).approved 
-      : false;
+    let statusData = { approved: false };
+    if (fs.existsSync(statusPath)) {
+      try {
+        statusData = JSON.parse(fs.readFileSync(statusPath, 'utf8'));
+      } catch (e) {
+        // ignore
+      }
+    }
 
     const reportPath = path.join(specsDir, 'validation_report.md');
     const report = fs.existsSync(reportPath)
@@ -393,7 +1139,12 @@ app.get('/api/specs/validate/status/:folder', (req, res) => {
 
     res.json({
       success: true,
-      approved,
+      approved: statusData.approved,
+      human_approval_status: statusData.human_approval_status || (statusData.approved ? 'APPROVED' : 'PENDING'),
+      human_approval_details: statusData.human_approval_details || {},
+      session_id: statusData.session_id || '',
+      metrics: statusData.metrics || {},
+      opinion_changes: statusData.opinion_changes || [],
       report
     });
   } catch (err) {

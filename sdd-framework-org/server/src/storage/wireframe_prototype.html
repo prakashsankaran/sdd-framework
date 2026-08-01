@@ -3,138 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intelligent Meeting Platform | Dashboard</title>
+    <title>VMS | Secure Visitor Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
-        tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] } } } }
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { slate: { 950: '#020617' } } } }
+        }
     </script>
     <style>
-        body { background-color: #020617; color: #f1f5f9; }
-        .glass { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; }
+        .glass { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .glow { box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="text-slate-200">
 
-<nav class="glass sticky top-0 z-50 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
-    <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center"><i class="fa-solid fa-brain"></i></div>
-        <span class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">InsightMeeting</span>
-    </div>
-    <div class="flex items-center gap-6 text-sm font-medium">
-        <a href="#" class="text-indigo-400">Dashboard</a>
-        <a href="#" class="text-slate-400 hover:text-white">Meetings</a>
-        <a href="#" class="text-slate-400 hover:text-white">Analytics</a>
-        <button onclick="toggleModal()" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-full transition-all text-xs font-bold uppercase tracking-wider">New Action</button>
-    </div>
-</nav>
-
-<main class="p-6 max-w-7xl mx-auto">
-    <header class="mb-8">
-        <h1 class="text-3xl font-bold text-white mb-2">Executive Overview</h1>
-        <p class="text-slate-400">Real-time risk monitoring and action tracking infrastructure.</p>
-    </header>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="glass p-6 rounded-2xl border-l-4 border-indigo-500">
-            <h3 class="text-slate-400 text-sm">Open Action Items</h3>
-            <p class="text-3xl font-bold mt-2">24</p>
+    <nav class="glass fixed w-full top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center"><i class="fas fa-shield-halved"></i></div>
+            <span class="font-bold text-lg tracking-tight">VMS <span class="text-blue-500 font-light">Pro</span></span>
         </div>
-        <div class="glass p-6 rounded-2xl border-l-4 border-amber-500">
-            <h3 class="text-slate-400 text-sm">Risk Detected</h3>
-            <p class="text-3xl font-bold mt-2">3 <span class="text-sm font-normal text-amber-500">High Priority</span></p>
+        <div class="flex items-center gap-6 text-sm font-medium">
+            <span class="text-blue-400">Receptionist Console</span>
+            <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center"><i class="fas fa-user"></i></div>
         </div>
-        <div class="glass p-6 rounded-2xl border-l-4 border-emerald-500">
-            <h3 class="text-slate-400 text-sm">Completion Rate</h3>
-            <p class="text-3xl font-bold mt-2">88%</p>
-        </div>
-    </div>
+    </nav>
 
-    <div class="glass rounded-2xl overflow-hidden">
-        <table class="w-full text-left">
-            <thead class="bg-slate-900/50">
-                <tr>
-                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Title</th>
-                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Owner</th>
-                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Due Date</th>
-                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Status</th>
-                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Action</th>
+    <main class="pt-24 px-6 pb-12 max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Registration Form -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="glass p-6 rounded-2xl">
+                    <h2 class="text-xl font-semibold mb-6 flex items-center gap-2"><i class="fas fa-user-plus text-blue-500"></i> New Check-In</h2>
+                    <form id="checkInForm" class="space-y-4">
+                        <div>
+                            <label class="text-xs text-slate-400 uppercase tracking-wider">Visitor Name</label>
+                            <input type="text" id="vName" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 mt-1 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 uppercase tracking-wider">Mobile Number</label>
+                            <input type="tel" id="vMobile" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 mt-1 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 uppercase tracking-wider">Employee Host</label>
+                            <select id="vEmp" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 mt-1 outline-none">
+                                <option>Sarah Jenkins (Dev)</option>
+                                <option>Mark Ross (Ops)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-lg font-bold transition-all glow">Process Registration</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Visitor Table -->
+            <div class="lg:col-span-2 glass rounded-2xl p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">Active Visitors</h2>
+                    <input type="text" id="search" placeholder="Search logs..." class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm outline-none">
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-slate-400 text-xs uppercase border-b border-slate-700">
+                                <th class="pb-3">Name</th>
+                                <th class="pb-3">Host</th>
+                                <th class="pb-3">Check-In</th>
+                                <th class="pb-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="visitorTable" class="text-sm">
+                            <!-- JS Injection -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const visitors = [
+            { id: 1, name: 'John Doe', emp: 'Sarah Jenkins', time: '10:45 AM', status: 'Checked-In' },
+            { id: 2, name: 'Alice Smith', emp: 'Mark Ross', time: '09:20 AM', status: 'Checked-In' }
+        ];
+
+        function renderTable() {
+            const container = document.getElementById('visitorTable');
+            container.innerHTML = visitors.map(v => `
+                <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition-colors">
+                    <td class="py-4 font-semibold">${v.name}</td>
+                    <td class="py-4 text-slate-400">${v.emp}</td>
+                    <td class="py-4 text-slate-400">${v.time}</td>
+                    <td class="py-4"><span class="px-2 py-1 bg-green-500/10 text-green-400 rounded-full text-xs">${v.status}</span></td>
                 </tr>
-            </thead>
-            <tbody id="actionTable" class="divide-y divide-slate-800">
-                <!-- Rows injected by JS -->
-            </tbody>
-        </table>
-    </div>
-</main>
+            `).join('');
+        }
 
-<div id="modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50">
-    <div class="glass p-8 rounded-2xl w-full max-w-lg shadow-2xl">
-        <h2 class="text-xl font-bold mb-6">Create New Action Item</h2>
-        <form id="actionForm" class="space-y-4">
-            <div>
-                <label class="block text-xs font-bold text-slate-400 mb-1">TITLE</label>
-                <input type="text" id="title" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 outline-none focus:border-indigo-500">
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 mb-1">OWNER EMAIL</label>
-                    <input type="email" id="email" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 mb-1">PRIORITY</label>
-                    <select id="priority" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 outline-none">
-                        <option>Critical</option>
-                        <option>High</option>
-                        <option>Medium</option>
-                    </select>
-                </div>
-            </div>
-            <div class="flex gap-4 mt-6">
-                <button type="button" onclick="toggleModal()" class="flex-1 border border-slate-700 py-3 rounded-lg hover:bg-slate-800">Cancel</button>
-                <button type="submit" class="flex-1 bg-indigo-600 py-3 rounded-lg hover:bg-indigo-500 font-bold">Submit Action</button>
-            </div>
-        </form>
-    </div>
-</div>
+        document.getElementById('checkInForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('vName').value;
+            if(!name) return alert('Input required');
+            
+            // Mock API Flow
+            visitors.push({ id: Date.now(), name, emp: 'TBD', time: new Date().toLocaleTimeString(), status: 'Checked-In' });
+            renderTable();
+            e.target.reset();
+            alert('POST /api/visitors/check-in successful. Notification dispatched.');
+        });
 
-<script>
-    const actions = [
-        { title: "Finalize Q4 Budget", owner: "jane@company.com", due: "2023-12-31", status: "OPEN" },
-        { title: "Security Audit Patch", owner: "dev@company.com", due: "2023-11-15", status: "IN_PROGRESS" }
-    ];
-
-    const renderTable = () => {
-        const tbody = document.getElementById('actionTable');
-        tbody.innerHTML = actions.map(a => `
-            <tr class="hover:bg-slate-800/30 transition-colors">
-                <td class="p-4 font-semibold">${a.title}</td>
-                <td class="p-4 text-slate-400 text-sm">${a.owner}</td>
-                <td class="p-4 text-slate-400 text-sm">${a.due}</td>
-                <td class="p-4"><span class="px-2 py-1 rounded bg-slate-800 text-[10px] font-bold">${a.status}</span></td>
-                <td class="p-4"><button class="text-indigo-400 hover:text-white"><i class="fa-solid fa-chevron-right"></i></button></td>
-            </tr>
-        `).join('');
-    };
-
-    const toggleModal = () => document.getElementById('modal').classList.toggle('hidden');
-
-    document.getElementById('actionForm').onsubmit = (e) => {
-        e.preventDefault();
-        const newAction = {
-            title: document.getElementById('title').value,
-            owner: document.getElementById('email').value,
-            due: '2023-12-31',
-            status: 'OPEN'
-        };
-        actions.push(newAction);
         renderTable();
-        toggleModal();
-        alert('API POST /api/v1/actions successful: act-9988');
-    };
-
-    renderTable();
-</script>
+    </script>
 </body>
 </html>

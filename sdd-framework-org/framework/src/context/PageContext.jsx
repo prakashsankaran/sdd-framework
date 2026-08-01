@@ -22,6 +22,28 @@ const keys = [
 ];
 
 export const PageProvider = ({ children }) => {
+  const [projectMode, setProjectModeState] = useState(() => localStorage.getItem('projectMode') || 'greenfield');
+  const [brownfieldContext, setBrownfieldContext] = useState({
+    codeSnippets: [],
+    dbSchema: '',
+    documents: [],
+    legacyGuardrails: {
+      frameworkVersion: '',
+      apiPrefix: '/api/v1',
+      preservationRules: ''
+    }
+  });
+
+  const setProjectMode = (mode) => {
+    setProjectModeState(mode);
+    localStorage.setItem('projectMode', mode);
+    fetch('http://localhost:7001/api/brownfield/mode', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode })
+    }).catch(err => console.error('Failed to sync project mode with server:', err));
+  };
+
   const [pages, setPages] = useState(() => {
     const state = {};
     keys.forEach((key) => {
@@ -82,10 +104,28 @@ export const PageProvider = ({ children }) => {
 
   useEffect(() => {
     loadSavedOutputs();
+    // Load initial brownfield context if present
+    fetch('http://localhost:7001/api/brownfield/context')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.context) {
+          setBrownfieldContext(data.context);
+        }
+      })
+      .catch(err => console.error('Failed loading brownfield context:', err));
   }, [loadSavedOutputs]);
 
   return (
-    <PageContext.Provider value={{ pages, updatePageState, resetPageState, loadSavedOutputs }}>
+    <PageContext.Provider value={{ 
+      pages, 
+      updatePageState, 
+      resetPageState, 
+      loadSavedOutputs,
+      projectMode,
+      setProjectMode,
+      brownfieldContext,
+      setBrownfieldContext
+    }}>
       {children}
     </PageContext.Provider>
   );
@@ -98,4 +138,5 @@ export const usePageContext = () => {
   }
   return context;
 };
+
 

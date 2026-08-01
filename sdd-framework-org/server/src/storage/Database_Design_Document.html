@@ -1,42 +1,38 @@
-<div style="background-color: #0f172a; color: #e2e8f0; font-family: sans-serif; padding: 20px;">
-<h1 style="color: #6366f1;">Intelligent Meeting & Action Management - Database Design</h1>
+<article style="background-color: #0f172a; color: #e2e8f0; font-family: sans-serif; padding: 2rem;">
+  <h1 style="color: #6366f1;">Visitor Management System: Database Design</h1>
+  
+  <section style="background: #1e293b; border: 1px solid #334155; padding: 1.5rem; margin-bottom: 1rem; border-radius: 8px;">
+    <h2 style="color: #22d3ee;">1. PURPOSE</h2>
+    <p>This document defines the schema architecture for the VMS, ensuring ACID compliance, security through RLS, and data integrity for visitor workflows.</p>
+  </section>
 
-<section style="background: #1e293b; padding: 15px; border: 1px solid #334155; margin-bottom: 20px;">
-<h2 style="color: #22d3ee;">DOCUMENT INFORMATION</h2>
-<p><strong>Version:</strong> 1.0.0 | <strong>Status:</strong> Finalized | <strong>Database:</strong> PostgreSQL 15+</p>
-</section>
+  <section style="background: #1e293b; border: 1px solid #334155; padding: 1.5rem; margin-bottom: 1rem; border-radius: 8px;">
+    <h2 style="color: #22d3ee;">2. DATABASE OVERVIEW</h2>
+    <p>Utilizes PostgreSQL to enforce strict relationships between Users, Employees, and Visit logs. Design focuses on auditability and PII protection.</p>
+  </section>
 
-<section style="background: #1e293b; padding: 15px; border: 1px solid #334155; margin-bottom: 20px;">
-<h2 style="color: #22d3ee;">1. PURPOSE</h2>
-<p>Define the persistence layer for the meeting intelligence platform, ensuring high-performance vector retrieval and robust audit trails for enterprise compliance.</p>
-</section>
+  <section style="background: #1e293b; border: 1px solid #334155; padding: 1.5rem; margin-bottom: 1rem; border-radius: 8px;">
+    <h2 style="color: #22d3ee;">4. TABLE SPECIFICATIONS</h2>
+    <table style="width: 100%; border-collapse: collapse;">
+      <tr style="border-bottom: 1px solid #334155;"><th style="text-align: left;">Table</th><th>Primary Key</th><th>Description</th></tr>
+      <tr><td>Users</td><td>user_id</td><td>Authentication and RBAC metadata.</td></tr>
+      <tr><td>Employees</td><td>emp_id</td><td>Organization internal staff registry.</td></tr>
+      <tr><td>VisitHistory</td><td>visit_id</td><td>Primary transactional log for visitor movements.</td></tr>
+    </table>
+  </section>
 
-<section style="background: #1e293b; padding: 15px; border: 1px solid #334155; margin-bottom: 20px;">
-<h2 style="color: #22d3ee;">3. ENTITY DEFINITIONS</h2>
-<ul>
-<li><strong>Users:</strong> Central registry for organizational hierarchy.</li>
-<li><strong>Meetings:</strong> Temporal entities linking audio streams and extracted intelligence.</li>
-<li><strong>ActionItems:</strong> Task-based tracking for operational flow.</li>
-<li><strong>Embeddings:</strong> High-dimensional data for vector similarity search.</li>
-</ul>
-</section>
+  <section style="background: #1e293b; border: 1px solid #334155; padding: 1.5rem; margin-bottom: 1rem; border-radius: 8px;">
+    <h2 style="color: #22d3ee;">14. SECURITY</h2>
+    <p>Row-Level Security (RLS) is implemented on the <code>VisitHistory</code> table to prevent unauthorized cross-departmental access. PostgreSQL <code>SET LOCAL app.current_user_id</code> is required for context-aware queries.</p>
+  </section>
 
-<section style="background: #1e293b; padding: 15px; border: 1px solid #334155; margin-bottom: 20px;">
-<h2 style="color: #22d3ee;">4. TABLE SPECIFICATIONS</h2>
-<table style="width: 100%; border-collapse: collapse;">
-<tr style="background: #334155;"><th style="padding: 10px;">Table</th><th style="padding: 10px;">Key Attributes</th></tr>
-<tr><td style="padding: 10px; border-bottom: 1px solid #334155;">ACTION_ITEMS</td><td style="padding: 10px; border-bottom: 1px solid #334155;">id (UUID), status (ENUM), priority (ENUM)</td></tr>
-</table>
-</section>
+  <section style="background: #1e293b; border: 1px solid #334155; padding: 1.5rem; margin-bottom: 1rem; border-radius: 8px;">
+    <h2 style="color: #22d3ee;">15. DATA RETENTION</h2>
+    <p>PII is scrubbed via cron jobs after 30 days. Media assets are purged from S3 via Lifecycle Policies at 14 days.</p>
+  </section>
 
-<section style="background: #1e293b; padding: 15px; border: 1px solid #334155; margin-bottom: 20px;">
-<h2 style="color: #22d3ee;">14. SECURITY</h2>
-<p>RBAC enforced via the `role` attribute in `Users`. Sensitive fields encrypted at rest using AES-256. Audit trails mandated for all data mutation queries.</p>
-</section>
-
-<section style="background: #1e293b; padding: 15px; border: 1px solid #334155; margin-bottom: 20px;">
-<h2 style="color: #22d3ee;">16. PERFORMANCE</h2>
-<p>Utilizing pgvector indexes (HNSW) for `embeddings` table to ensure sub-millisecond retrieval of contextually relevant meeting segments.</p>
-</section>
-
-</div>
+  <section style="background: #1e293b; border: 1px solid #334155; padding: 1.5rem; border-radius: 8px;">
+    <h2 style="color: #22d3ee;">16. PERFORMANCE</h2>
+    <p>Partial unique indices are used on the visitor history to optimize the check-in validation lookup for high-traffic reception points.</p>
+  </section>
+</article>
