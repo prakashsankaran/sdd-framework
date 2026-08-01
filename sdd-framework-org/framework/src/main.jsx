@@ -45,6 +45,7 @@ import './index.css';
 
 
 const greenfieldNavigationItems = [
+  { path: '/validator', label: 'Live Debate Boardroom', icon: 'fas fa-balance-scale', desc: 'AI-SRB Validation' },
   { path: '/spec-to-story', label: 'Spec to Story', icon: 'fas fa-exchange-alt', desc: 'Agile story generator' },
   { path: '/user-stories', label: 'User Stories', icon: 'fas fa-clipboard-list', desc: 'Backlog decomposition' },
   { path: '/ux-wireframe', label: 'UX Wireframe', icon: 'fas fa-desktop', desc: 'Tailwind prototypes' },
@@ -57,6 +58,7 @@ const greenfieldNavigationItems = [
 ];
 
 const brownfieldNavigationItems = [
+  { path: '/validator', label: 'Live Debate Boardroom', icon: 'fas fa-balance-scale', desc: 'AI-SRB Validation' },
   { path: '/brownfield-context', label: '1. Project Context', icon: 'fas fa-folder-plus', desc: 'Code, DDL & legacy docs', badge: 'Context' },
   { path: '/code-to-spec', label: '2. Code to Spec', icon: 'fas fa-microchip', desc: 'Reverse-engineer v1 baseline', badge: 'Baseline' },
   { path: '/impact-analysis', label: 'Impact & Gap Specs', icon: 'fas fa-search-minus', desc: 'System impact analysis', badge: 'Impact' },

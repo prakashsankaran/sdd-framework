@@ -176,5 +176,99 @@
       "Unauthorized data access"
     ],
     "outcome": "Approved"
+  },
+  {
+    "project": "Project Nexus",
+    "decision": "Managed Third-Party Billing Portal Integration (Phase 2 Primary Strategy)",
+    "alternatives_rejected": [
+      "Custom transactional billing engine design"
+    ],
+    "reason": "Mandates using an out-of-the-box, PCI-compliant vendor customer portal (such as Stripe or Braintree) as the primary billing integration path. This completely eliminates custom transactional billing engine design, bypasses high-cost PCI-DSS compliance audits, avoids handling custom file upload vulnerabilities, and reduces development time by an estimated 6–8 weeks.",
+    "risks": [
+      "High-cost PCI-DSS compliance audits",
+      "Custom file upload vulnerabilities"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "Project Nexus",
+    "decision": "Strict Prohibition of Volatile Transactional Billing Caching",
+    "alternatives_rejected": [
+      "Caching volatile transactional billing states (e.g., balances and payment statuses) in Redis or local memory without strict, event-driven invalidation triggers"
+    ],
+    "reason": "Explicitly forbids caching volatile transactional billing states (e.g., balances and payment statuses) in Redis or local memory unless accompanied by strict, event-driven invalidation triggers (such as Change Data Capture or Pub/Sub events). This directly mitigates the risks of data desynchronization and double-billing experienced in previous platform releases.",
+    "risks": [
+      "Data desynchronization",
+      "Double-billing"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "Project Nexus",
+    "decision": "Asynchronous Uploads and Direct-to-Storage Presigned URLs",
+    "alternatives_rejected": [
+      "Processing binary payloads, document uploads, and heavy processing on application server worker threads"
+    ],
+    "reason": "Requires all binary payloads, document uploads (e.g., dispute verification), and heavy processing (e.g., PDF generation) to bypass application server worker threads entirely. Clients will upload documents directly to cloud storage (e.g., AWS S3) using short-lived presigned URLs. Downstream processing will run asynchronously via background message queues (SQS/RabbitMQ) and return an immediate 202 Accepted status to prevent API gateway timeouts (504) and Out-Of-Memory (OOM) server crashes.",
+    "risks": [
+      "API gateway timeouts (504)",
+      "Out-Of-Memory (OOM) server crashes"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "Project Nexus",
+    "decision": "Implementation of a Two-Phase Phased Rollout",
+    "alternatives_rejected": [
+      "Single-phase deployment combining front-end/UX modernization and transactional backend changes"
+    ],
+    "reason": "De-risks implementation by separating front-end/UX modernization risks from transactional backend risks. Phase 1 focuses exclusively on modernizing the consumer-facing portal on an Edge CDN with telemetry. Phase 2 introduces the self-service billing integration workflows.",
+    "risks": [
+      "Front-end/UX modernization risks",
+      "Transactional backend risks"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "Project Nexus",
+    "decision": "Integration of Mandated Product Telemetry",
+    "alternatives_rejected": [
+      "Proceeding without product analytics and session-tracking telemetry in Phase 1"
+    ],
+    "reason": "Resolves potential causation fallacies by mandating product analytics and session-tracking telemetry (configured at /api/v1/telemetry/events) in Phase 1. This telemetry scientifically isolates and proves whether UX and performance modernizations directly correlate with recovering the 25% retention drop.",
+    "risks": [
+      "Causation fallacies",
+      "Inability to scientifically isolate and prove retention drop correlation"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "Project Nexus",
+    "decision": "Quantifiable Core Web Vitals and Latency SLA Guardrails",
+    "alternatives_rejected": [
+      "Subjective speed requirements"
+    ],
+    "reason": "Establishes strict, objective, and measurable performance thresholds to replace subjective speed requirements. Specifically: Largest Contentful Paint (LCP) <= 2.5 seconds (p95), Interaction to Next Paint (INP) <= 200 milliseconds (p95), Cumulative Layout Shift (CLS) <= 0.1 (p95), Standard Portal APIs latency <= 200 milliseconds (p99), and Billing query endpoints latency <= 300 milliseconds (p99).",
+    "risks": [
+      "Subjective performance evaluation"
+    ],
+    "outcome": "Approved"
+  },
+  {
+    "project": "Project Nexus",
+    "decision": "CI/CD Quality Gates, Health Observability, and Canary Releases",
+    "alternatives_rejected": [
+      "Manual deployments without automated quality gates, health observability, or progressive Canary rollouts"
+    ],
+    "reason": "Safeguards the production environment from performance regressions and downtime. The pipeline will enforce automated synthetic Lighthouse / Core Web Vitals checks to block non-compliant builds, utilize /healthz endpoints to monitor queue lag and billing connectivity, and deploy via progressive Canary releases with automated rollback triggers if HTTP 5xx rates exceed 0.5% or p99 latency spikes above 500ms.",
+    "risks": [
+      "Performance regressions",
+      "Downtime",
+      "Queue lag",
+      "Billing connectivity disruptions",
+      "HTTP 5xx rate spikes",
+      "p99 latency spikes"
+    ],
+    "outcome": "Approved"
   }
 ]
