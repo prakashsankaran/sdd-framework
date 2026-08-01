@@ -23,6 +23,12 @@ import ImpactAnalysisView from './pages/ImpactAnalysisView';
 import WipPlaceholder from './components/WipPlaceholder';
 import ChatbotWidget from './components/ChatbotWidget';
 
+import Login from './pages/Login';
+import AdminLayout from './components/AdminLayout';
+import AdminPersonas from './pages/admin/AdminPersonas';
+import AdminAgents from './pages/admin/AdminAgents';
+import AdminWorkflows from './pages/admin/AdminWorkflows';
+import { Outlet } from 'react-router-dom';
 
 import HeaderTokenBadge from './components/HeaderTokenBadge';
 import TokenTrackerWidget from './components/TokenTrackerWidget';
@@ -326,6 +332,16 @@ function Layout({ children }) {
             </div>
           )}
 
+          {/* Sign Out Button */}
+          <button
+            onClick={() => navigate('/login')}
+            class="w-full py-1.5 mt-2 mb-2 rounded-lg bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 hover:border-rose-500/40 text-rose-400 hover:text-rose-300 text-xs flex items-center justify-center transition cursor-pointer gap-2"
+            title="Sign Out"
+          >
+            <i class="fas fa-sign-out-alt"></i>
+            {!isSidebarCollapsed && <span>Sign Out</span>}
+          </button>
+
           {/* Bottom Sidebar Collapse Button */}
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
@@ -419,8 +435,16 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <PageProvider>
       <BrowserRouter>
-        <Layout>
-          <Routes>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route path="personas" element={<AdminPersonas />} />
+            <Route path="agents" element={<AdminAgents />} />
+            <Route path="workflows" element={<AdminWorkflows />} />
+          </Route>
+
+          <Route element={<Layout><Outlet /></Layout>}>
             <Route path="/" element={<Navigate to="/requirements" replace />} />
             <Route path="/orchestrator" element={<AgentOrchestrator />} />
             <Route path="/requirements" element={<RequirementAgent />} />
@@ -438,10 +462,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/code-to-spec" element={<CodeToSpecView />} />
             <Route path="/impact-analysis" element={<ImpactAnalysisView />} />
             <Route path="/repo" element={<Repository />} />
-
-
-          </Routes>
-        </Layout>
+          </Route>
+        </Routes>
       </BrowserRouter>
     </PageProvider>
   </React.StrictMode>
