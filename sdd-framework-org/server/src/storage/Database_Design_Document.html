@@ -1,38 +1,1466 @@
-<article style="background-color: #0f172a; color: #e2e8f0; font-family: sans-serif; padding: 2rem;">
-  <h1 style="color: #6366f1;">Visitor Management System: Database Design</h1>
+<div style="background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 2rem; max-width: 1200px; margin: 0 auto; line-height: 1.6; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
   
-  <section style="background: #1e293b; border: 1px solid #334155; padding: 1.5rem; margin-bottom: 1rem; border-radius: 8px;">
-    <h2 style="color: #22d3ee;">1. PURPOSE</h2>
-    <p>This document defines the schema architecture for the VMS, ensuring ACID compliance, security through RLS, and data integrity for visitor workflows.</p>
-  </section>
+  <style>
+    .nexus-container h1, .nexus-container h2, .nexus-container h3, .nexus-container h4 {
+      color: #6366f1;
+      font-weight: 700;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+    }
+    .nexus-container h1 {
+      font-size: 2.25rem;
+      border-bottom: 2px solid #334155;
+      padding-bottom: 0.5rem;
+    }
+    .nexus-container h2 {
+      font-size: 1.75rem;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 0.5rem;
+    }
+    .nexus-container h3 {
+      font-size: 1.35rem;
+    }
+    .nexus-card {
+      background-color: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .nexus-badge {
+      background-color: rgba(34, 211, 238, 0.1);
+      color: #22d3ee;
+      border: 1px solid #22d3ee;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: bold;
+      display: inline-block;
+    }
+    .nexus-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+    .nexus-table th {
+      background-color: #334155;
+      color: #f8fafc;
+      text-align: left;
+      padding: 0.75rem;
+      border: 1px solid #475569;
+    }
+    .nexus-table td {
+      padding: 0.75rem;
+      border: 1px solid #334155;
+      vertical-align: top;
+    }
+    .nexus-table tr:nth-child(even) {
+      background-color: #1e293b;
+    }
+    .nexus-table tr:nth-child(odd) {
+      background-color: #0f172a;
+    }
+    .text-indigo {
+      color: #818cf8;
+    }
+    .text-cyan {
+      color: #22d3ee;
+    }
+    .toc-list {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    .toc-list li {
+      margin-bottom: 0.5rem;
+    }
+    .toc-list a {
+      color: #22d3ee;
+      text-decoration: none;
+    }
+    .toc-list a:hover {
+      text-decoration: underline;
+    }
+    .code-block {
+      background-color: #090d16;
+      border: 1px solid #334155;
+      border-left: 4px solid #6366f1;
+      padding: 1rem;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.85rem;
+      color: #f1f5f9;
+      overflow-x: auto;
+      border-radius: 4px;
+      margin: 1rem 0;
+    }
+  </style>
 
-  <section style="background: #1e293b; border: 1px solid #334155; padding: 1.5rem; margin-bottom: 1rem; border-radius: 8px;">
-    <h2 style="color: #22d3ee;">2. DATABASE OVERVIEW</h2>
-    <p>Utilizes PostgreSQL to enforce strict relationships between Users, Employees, and Visit logs. Design focuses on auditability and PII protection.</p>
-  </section>
+  <div class="nexus-container">
+    
+    <!-- DOCUMENT INFORMATION -->
+    <header style="border-bottom: 3px solid #6366f1; padding-bottom: 2rem; margin-bottom: 2rem;">
+      <span class="nexus-badge" style="float: right;">Enterprise Design Document</span>
+      <h1 style="margin: 0; font-size: 2.75rem; color: #f8fafc;">DATABASE DESIGN DOCUMENT</h1>
+      <p style="font-size: 1.25rem; color: #94a3b8; margin: 0.5rem 0 0 0;">Project Nexus: Modernized Consumer Portal &amp; Self-Service Billing System</p>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+        <div>
+          <strong style="color: #6366f1;">Project Name:</strong> Project Nexus<br>
+          <strong style="color: #6366f1;">Version:</strong> 2.1.0-RC3<br>
+          <strong style="color: #6366f1;">Status:</strong> Approved for Implementation
+        </div>
+        <div>
+          <strong style="color: #6366f1;">Author:</strong> Principal Database Architect<br>
+          <strong style="color: #6366f1;">Lead Reviewer:</strong> VP of Core Infrastructure Engineering<br>
+          <strong style="color: #6366f1;">Approvers:</strong> Chief Technical Officer, Director of Product Security
+        </div>
+      </div>
 
-  <section style="background: #1e293b; border: 1px solid #334155; padding: 1.5rem; margin-bottom: 1rem; border-radius: 8px;">
-    <h2 style="color: #22d3ee;">4. TABLE SPECIFICATIONS</h2>
-    <table style="width: 100%; border-collapse: collapse;">
-      <tr style="border-bottom: 1px solid #334155;"><th style="text-align: left;">Table</th><th>Primary Key</th><th>Description</th></tr>
-      <tr><td>Users</td><td>user_id</td><td>Authentication and RBAC metadata.</td></tr>
-      <tr><td>Employees</td><td>emp_id</td><td>Organization internal staff registry.</td></tr>
-      <tr><td>VisitHistory</td><td>visit_id</td><td>Primary transactional log for visitor movements.</td></tr>
-    </table>
-  </section>
+      <div style="margin-top: 2rem;">
+        <h3 style="margin-top: 0; font-size: 1.1rem; color: #e2e8f0;">Revision Log</h3>
+        <table class="nexus-table" style="margin: 0.5rem 0 0 0;">
+          <thead>
+            <tr>
+              <th style="width: 10%;">Version</th>
+              <th style="width: 15%;">Date</th>
+              <th style="width: 25%;">Author</th>
+              <th style="width: 50%;">Primary Changes Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1.0.0</td>
+              <td>2024-02-15</td>
+              <td>Database Architect Team</td>
+              <td>Initial Draft for conceptual review. Introduced basic layout of customer and billing schema.</td>
+            </tr>
+            <tr>
+              <td>2.0.0</td>
+              <td>2024-03-22</td>
+              <td>Lead DB Architect</td>
+              <td>Added robust partitioning schemas and optimized foreign key constraint indexes for 40% performance boost.</td>
+            </tr>
+            <tr>
+              <td>2.1.0-RC3</td>
+              <td>2024-04-05</td>
+              <td>Principal DB Architect</td>
+              <td>Finalized schema specs for transactions_log, integrated JSONB payload schemas, and completed the high-performance indexing strategy.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-  <section style="background: #1e293b; border: 1px solid #334155; padding: 1.5rem; margin-bottom: 1rem; border-radius: 8px;">
-    <h2 style="color: #22d3ee;">14. SECURITY</h2>
-    <p>Row-Level Security (RLS) is implemented on the <code>VisitHistory</code> table to prevent unauthorized cross-departmental access. PostgreSQL <code>SET LOCAL app.current_user_id</code> is required for context-aware queries.</p>
-  </section>
+      <div style="margin-top: 1.5rem;">
+        <strong style="color: #6366f1;">Distribution List:</strong> Engineering Leadership, Core Platform Team, Billing Operations Group, SecOps Infrastructure Team, Portal Front-End Architecture Lead.
+      </div>
+    </header>
 
-  <section style="background: #1e293b; border: 1px solid #334155; padding: 1.5rem; margin-bottom: 1rem; border-radius: 8px;">
-    <h2 style="color: #22d3ee;">15. DATA RETENTION</h2>
-    <p>PII is scrubbed via cron jobs after 30 days. Media assets are purged from S3 via Lifecycle Policies at 14 days.</p>
-  </section>
+    <!-- TABLE OF CONTENTS -->
+    <nav class="nexus-card">
+      <h2 style="margin-top: 0; color: #22d3ee;">Table of Contents</h2>
+      <ul class="toc-list">
+        <li><a href="#section-1">1. Purpose</a></li>
+        <li><a href="#section-2">2. Database Overview</a></li>
+        <li><a href="#section-3">3. Entity Definitions</a></li>
+        <li><a href="#section-4">4. Table Specifications</a></li>
+        <li><a href="#section-5">5. Relationships</a></li>
+        <li><a href="#section-6">6. Constraints</a></li>
+        <li><a href="#section-7">7. Index Strategy</a></li>
+        <li><a href="#section-8">8. Views</a></li>
+        <li><a href="#section-9">9. Stored Procedures</a></li>
+        <li><a href="#section-10">10. Triggers</a></li>
+        <li><a href="#section-11">11. Sequences &amp; Identity Columns</a></li>
+        <li><a href="#section-12">12. Data Dictionary</a></li>
+        <li><a href="#section-13">13. Normalization</a></li>
+        <li><a href="#section-14">14. Security</a></li>
+        <li><a href="#section-15">15. Data Retention</a></li>
+        <li><a href="#section-16">16. Performance Optimization</a></li>
+        <li><a href="#section-17">17. Backup Strategy</a></li>
+        <li><a href="#section-18">18. Migration Strategy</a></li>
+      </ul>
+    </nav>
 
-  <section style="background: #1e293b; border: 1px solid #334155; padding: 1.5rem; border-radius: 8px;">
-    <h2 style="color: #22d3ee;">16. PERFORMANCE</h2>
-    <p>Partial unique indices are used on the visitor history to optimize the check-in validation lookup for high-traffic reception points.</p>
-  </section>
-</article>
+    <!-- 1. PURPOSE -->
+    <section id="section-1" class="nexus-card">
+      <h2>1. Purpose</h2>
+      <p>This Database Design Document serves as the authoritative blueprint for the Project Nexus persistence layer. The core objectives of Project Nexus are to resolve a critical <span class="text-cyan">25% drop in consumer retention</span>, optimize database performance for ultra-fast, mobile-optimized load times, and empower users through an advanced, self-service billing system.</p>
+      <p>By implementing this highly optimized relational schema, Project Nexus aims to deflect customer service workloads and achieve a <span class="text-cyan">40% reduction in support call volume within six months</span> of deployment. This document defines the structural representation, rules, relationships, security schemas, performance profiles, and archival pathways supporting these strategic initiatives.</p>
+    </section>
+
+    <!-- 2. DATABASE OVERVIEW -->
+    <section id="section-2" class="nexus-card">
+      <h2>2. Database Overview</h2>
+      <p>The chosen architecture for Project Nexus relies on a highly scalable, clustered relational database system designed to maintain strict consistency for financial transactions while delivering low-latency reads for mobile and web frontends.</p>
+      <table class="nexus-table">
+        <thead>
+          <tr>
+            <th style="width: 30%;">Attribute</th>
+            <th style="width: 70%;">Specification</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Database Engine</strong></td>
+            <td>PostgreSQL Engine (AWS Aurora Serverless v2 Multi-AZ Deployment)</td>
+          </tr>
+          <tr>
+            <td><strong>Version Compatibility</strong></td>
+            <td>PostgreSQL Version 16.2</td>
+          </tr>
+          <tr>
+            <td><strong>Primary Architectural Purpose</strong></td>
+            <td>To serve as the primary System of Record (SoR) for user portal profiles, payment profiles, statements, and transaction processing. It achieves sub-50ms API read times to prevent abandonment, directly addressing retention issues.</td>
+          </tr>
+          <tr>
+            <td><strong>Hosting Architecture</strong></td>
+            <td>Highly-Available (HA) Aurora cluster with 1 primary writer instance and 2 auto-scaling read-replicas distributed across multiple availability zones.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 3. ENTITY DEFINITIONS -->
+    <section id="section-3" class="nexus-card">
+      <h2>3. Entity Definitions</h2>
+      <p>The following entities have been modeled to support the modernized web portal and self-service billing modules. These tables organize user data, active sessions, financial constructs, and comprehensive auditing trails.</p>
+      
+      <table class="nexus-table">
+        <thead>
+          <tr>
+            <th style="width: 25%;">Entity Name</th>
+            <th style="width: 45%;">Description / Conceptual Purpose</th>
+            <th style="width: 30%;">Service Owner</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>users</strong></td>
+            <td>Represents portal-authenticated consumers. Essential for tracking user authentication, active state, contact details, and last login events to monitor retention metrics.</td>
+            <td>Identity &amp; Access Control (IAM)</td>
+          </tr>
+          <tr>
+            <td><strong>billing_accounts</strong></td>
+            <td>Tracks the core ledger accounts linked to consumers. Serves as the operational hub for billing balances, payment terms, and status variables.</td>
+            <td>Billing Core Engine</td>
+          </tr>
+          <tr>
+            <td><strong>payment_profiles</strong></td>
+            <td>Safeguards securely tokenized payment vectors (e.g., card tokens, ACH data tokens). Avoids direct storage of raw PCI-DSS sensitive data.</td>
+            <td>Payment Integration Services</td>
+          </tr>
+          <tr>
+            <td><strong>invoices</strong></td>
+            <td>Represents billing statements generated for consumer self-service viewing, payment actions, and balance calculations.</td>
+            <td>Financial Statements Module</td>
+          </tr>
+          <tr>
+            <td><strong>transactions_log</strong></td>
+            <td>The immutable transactional audit trail tracking payments, refunds, gateway communication responses, and error events. Highly optimized for real-time tracking.</td>
+            <td>Core Financial Ledger Service</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 4. TABLE SPECIFICATIONS -->
+    <section id="section-4" class="nexus-card">
+      <h2>4. Table Specifications</h2>
+      <p>This section provides the exhaustive, field-level technical implementation specifications for all active Project Nexus tables. Strict data types and integrity rules have been configured to support mobile speed patterns.</p>
+      
+      <!-- Table 1: users -->
+      <h3 class="text-indigo">4.1 Table Name: <span class="text-cyan">users</span></h3>
+      <p>Purpose: Stores consumer access metadata and core contact information.</p>
+      <table class="nexus-table">
+        <thead>
+          <tr>
+            <th>Column Name</th>
+            <th>Data Type</th>
+            <th>Len/Prec</th>
+            <th>Null?</th>
+            <th>PK?</th>
+            <th>FK?</th>
+            <th>Default</th>
+            <th>Uniq?</th>
+            <th>Idx?</th>
+            <th>Description / Constraints</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>user_id</strong></td>
+            <td>UUID</td>
+            <td>-</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>gen_random_uuid()</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Primary key. Secure identifier.</td>
+          </tr>
+          <tr>
+            <td><strong>email</strong></td>
+            <td>VARCHAR</td>
+            <td>255</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>None</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Used as authenticated login handle. Lowercase constrained.</td>
+          </tr>
+          <tr>
+            <td><strong>password_hash</strong></td>
+            <td>VARCHAR</td>
+            <td>255</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>None</td>
+            <td>No</td>
+            <td>No</td>
+            <td>Bcrypt high-entropy hash of user credentials.</td>
+          </tr>
+          <tr>
+            <td><strong>full_name</strong></td>
+            <td>VARCHAR</td>
+            <td>128</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>None</td>
+            <td>No</td>
+            <td>No</td>
+            <td>Display name.</td>
+          </tr>
+          <tr>
+            <td><strong>is_mobile_opt_in</strong></td>
+            <td>BOOLEAN</td>
+            <td>-</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>true</td>
+            <td>No</td>
+            <td>No</td>
+            <td>Tracks user preference for mobile-friendly interface adjustments.</td>
+          </tr>
+          <tr>
+            <td><strong>created_at</strong></td>
+            <td>TIMESTAMPTZ</td>
+            <td>-</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>CURRENT_TIMESTAMP</td>
+            <td>No</td>
+            <td>No</td>
+            <td>Account creation timestamp in UTC.</td>
+          </tr>
+          <tr>
+            <td><strong>last_login_at</strong></td>
+            <td>TIMESTAMPTZ</td>
+            <td>-</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>No</td>
+            <td>NULL</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>Analyzed to track and address user retention rates.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Table 2: billing_accounts -->
+      <h3 class="text-indigo">4.2 Table Name: <span class="text-cyan">billing_accounts</span></h3>
+      <p>Purpose: Core commercial accounts associated with system consumers.</p>
+      <table class="nexus-table">
+        <thead>
+          <tr>
+            <th>Column Name</th>
+            <th>Data Type</th>
+            <th>Len/Prec</th>
+            <th>Null?</th>
+            <th>PK?</th>
+            <th>FK?</th>
+            <th>Default</th>
+            <th>Uniq?</th>
+            <th>Idx?</th>
+            <th>Description / Constraints</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>account_id</strong></td>
+            <td>UUID</td>
+            <td>-</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>gen_random_uuid()</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Primary key identifier for billing account.</td>
+          </tr>
+          <tr>
+            <td><strong>user_id</strong></td>
+            <td>UUID</td>
+            <td>-</td>
+            <td>No</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>None</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>References users(user_id). 1-to-1 consumer billing master.</td>
+          </tr>
+          <tr>
+            <td><strong>account_status</strong></td>
+            <td>VARCHAR</td>
+            <td>32</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>'ACTIVE'</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>Allowed values: ACTIVE, DELINQUENT, SUSPENDED, TERMINATED.</td>
+          </tr>
+          <tr>
+            <td><strong>current_balance</strong></td>
+            <td>NUMERIC</td>
+            <td>12,2</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>0.00</td>
+            <td>No</td>
+            <td>No</td>
+            <td>Real-time account balance tracking. Can be positive or negative.</td>
+          </tr>
+          <tr>
+            <td><strong>currency</strong></td>
+            <td>VARCHAR</td>
+            <td>3</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>'USD'</td>
+            <td>No</td>
+            <td>No</td>
+            <td>ISO 4217 Currency Code. Default standard is USD.</td>
+          </tr>
+          <tr>
+            <td><strong>updated_at</strong></td>
+            <td>TIMESTAMPTZ</td>
+            <td>-</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>CURRENT_TIMESTAMP</td>
+            <td>No</td>
+            <td>No</td>
+            <td>SLA tracking timestamp for state updates.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Table 3: payment_profiles -->
+      <h3 class="text-indigo">4.3 Table Name: <span class="text-cyan">payment_profiles</span></h3>
+      <p>Purpose: Secured token configurations for processing consumer billing payments.</p>
+      <table class="nexus-table">
+        <thead>
+          <tr>
+            <th>Column Name</th>
+            <th>Data Type</th>
+            <th>Len/Prec</th>
+            <th>Null?</th>
+            <th>PK?</th>
+            <th>FK?</th>
+            <th>Default</th>
+            <th>Uniq?</th>
+            <th>Idx?</th>
+            <th>Description / Constraints</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>payment_profile_id</strong></td>
+            <td>UUID</td>
+            <td>-</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>gen_random_uuid()</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Unique identifier for payment vector.</td>
+          </tr>
+          <tr>
+            <td><strong>account_id</strong></td>
+            <td>UUID</td>
+            <td>-</td>
+            <td>No</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>None</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>References billing_accounts(account_id).</td>
+          </tr>
+          <tr>
+            <td><strong>gateway_token</strong></td>
+            <td>VARCHAR</td>
+            <td>255</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>None</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>Secure PCI token from payment gateway (Stripe/Adyen).</td>
+          </tr>
+          <tr>
+            <td><strong>payment_method_type</strong></td>
+            <td>VARCHAR</td>
+            <td>32</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>None</td>
+            <td>No</td>
+            <td>No</td>
+            <td>CREDIT_CARD, DEBIT_CARD, ACH, APPLE_PAY, GOOGLE_PAY.</td>
+          </tr>
+          <tr>
+            <td><strong>masked_identifier</strong></td>
+            <td>VARCHAR</td>
+            <td>32</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>None</td>
+            <td>No</td>
+            <td>No</td>
+            <td>Truncated display helper (e.g. "Visa ************4242").</td>
+          </tr>
+          <tr>
+            <td><strong>is_default</strong></td>
+            <td>BOOLEAN</td>
+            <td>-</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>false</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>Indicates if this payment vector is the primary autobill target.</td>
+          </tr>
+          <tr>
+            <td><strong>expiration_date</strong></td>
+            <td>DATE</td>
+            <td>-</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>No</td>
+            <td>NULL</td>
+            <td>No</td>
+            <td>No</td>
+            <td>Card or credential expiration, warning triggering date.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Table 4: invoices -->
+      <h3 class="text-indigo">4.4 Table Name: <span class="text-cyan">invoices</span></h3>
+      <p>Purpose: Self-service statements detailing outstanding charges and billing parameters.</p>
+      <table class="nexus-table">
+        <thead>
+          <tr>
+            <th>Column Name</th>
+            <th>Data Type</th>
+            <th>Len/Prec</th>
+            <th>Null?</th>
+            <th>PK?</th>
+            <th>FK?</th>
+            <th>Default</th>
+            <th>Uniq?</th>
+            <th>Idx?</th>
+            <th>Description / Constraints</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>invoice_id</strong></td>
+            <td>UUID</td>
+            <td>-</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>gen_random_uuid()</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Unique system generated invoice ID.</td>
+          </tr>
+          <tr>
+            <td><strong>account_id</strong></td>
+            <td>UUID</td>
+            <td>-</td>
+            <td>No</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>None</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>References billing_accounts(account_id).</td>
+          </tr>
+          <tr>
+            <td><strong>invoice_number</strong></td>
+            <td>VARCHAR</td>
+            <td>64</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>None</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Consumer visible identifier (e.g., INV-2024-00918).</td>
+          </tr>
+          <tr>
+            <td><strong>amount_due</strong></td>
+            <td>NUMERIC</td>
+            <td>12,2</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>None</td>
+            <td>No</td>
+            <td>No</td>
+            <td>Total billing statement cost. Must be >= 0.00.</td>
+          </tr>
+          <tr>
+            <td><strong>amount_paid</strong></td>
+            <td>NUMERIC</td>
+            <td>12,2</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>0.00</td>
+            <td>No</td>
+            <td>No</td>
+            <td>Total offset payment amount received.</td>
+          </tr>
+          <tr>
+            <td><strong>status</strong></td>
+            <td>VARCHAR</td>
+            <td>32</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>'UNPAID'</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>Allowed values: DRAFT, UNPAID, PARTIALLY_PAID, PAID, VOID.</td>
+          </tr>
+          <tr>
+            <td><strong>due_date</strong></td>
+            <td>DATE</td>
+            <td>-</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>None</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>The due date before delinquency escalations start.</td>
+          </tr>
+          <tr>
+            <td><strong>issued_at</strong></td>
+            <td>TIMESTAMPTZ</td>
+            <td>-</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>CURRENT_TIMESTAMP</td>
+            <td>No</td>
+            <td>No</td>
+            <td>Timestamp when statement was published.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Table 5: transactions_log -->
+      <h3 class="text-indigo">4.5 Table Name: <span class="text-cyan">transactions_log</span></h3>
+      <p>Purpose: Core analytical ledger storing payment processing operations and gateway events. Direct technical target specified.</p>
+      <table class="nexus-table">
+        <thead>
+          <tr>
+            <th>Column Name</th>
+            <th>Data Type</th>
+            <th>Len/Prec</th>
+            <th>Null?</th>
+            <th>PK?</th>
+            <th>FK?</th>
+            <th>Default</th>
+            <th>Uniq?</th>
+            <th>Idx?</th>
+            <th>Description / Constraints</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>transaction_id</strong></td>
+            <td>UUID</td>
+            <td>-</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>gen_random_uuid()</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Primary key. Fast lookup system-wide UUID.</td>
+          </tr>
+          <tr>
+            <td><strong>account_id</strong></td>
+            <td>UUID</td>
+            <td>-</td>
+            <td>No</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>None</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>References billing_accounts(account_id).</td>
+          </tr>
+          <tr>
+            <td><strong>invoice_id</strong></td>
+            <td>UUID</td>
+            <td>-</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>NULL</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>References invoices(invoice_id). Null if standalone deposit.</td>
+          </tr>
+          <tr>
+            <td><strong>payment_profile_id</strong></td>
+            <td>UUID</td>
+            <td>-</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>NULL</td>
+            <td>No</td>
+            <td>No</td>
+            <td>References payment_profiles(payment_profile_id). Null if external transfer.</td>
+          </tr>
+          <tr>
+            <td><strong>amount</strong></td>
+            <td>NUMERIC</td>
+            <td>12,2</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>None</td>
+            <td>No</td>
+            <td>No</td>
+            <td>The monetary volume of this operation. Must be non-zero.</td>
+          </tr>
+          <tr>
+            <td><strong>transaction_type</strong></td>
+            <td>VARCHAR</td>
+            <td>32</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>None</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>Values: CHARGE, REFUND, CHARGEBACK, REVERSAL.</td>
+          </tr>
+          <tr>
+            <td><strong>status</strong></td>
+            <td>VARCHAR</td>
+            <td>32</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>'PENDING'</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>Values: PENDING, SUCCESS, FAILED, DECLINED.</td>
+          </tr>
+          <tr>
+            <td><strong>gateway_reference</strong></td>
+            <td>VARCHAR</td>
+            <td>128</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>No</td>
+            <td>NULL</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>The unique token issued by payment provider (e.g., Stripe ch_xxx).</td>
+          </tr>
+          <tr>
+            <td><strong>gateway_response_payload</strong></td>
+            <td>JSONB</td>
+            <td>-</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>No</td>
+            <td>NULL</td>
+            <td>No</td>
+            <td>No</td>
+            <td>Unstructured raw payload details for comprehensive debugging.</td>
+          </tr>
+          <tr>
+            <td><strong>error_code</strong></td>
+            <td>VARCHAR</td>
+            <td>64</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>No</td>
+            <td>NULL</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>Standardized error classification (e.g. INSUFFICIENT_FUNDS).</td>
+          </tr>
+          <tr>
+            <td><strong>created_at</strong></td>
+            <td>TIMESTAMPTZ</td>
+            <td>-</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+            <td>CURRENT_TIMESTAMP</td>
+            <td>No</td>
+            <td>Yes</td>
+            <td>Timestamp of execution. Used as partitioning dimension.</td>
+          </tr>
+          <tr>
+            <td><strong>client_ip</strong></td>
+            <td>INET</td>
+            <td>-</td>
+            <td>Yes</td>
+            <td>No</td>
+            <td>No</td>
+            <td>NULL</td>
+            <td>No</td>
+            <td>No</td>
+            <td>IP address captured for geographic and risk analytics.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 5. RELATIONSHIPS -->
+    <section id="section-5" class="nexus-card">
+      <h2>5. Relationships</h2>
+      <p>Referential integrity is strictly governed by strategic foreign key mappings, minimizing orphan states while optimizing update and delete cascading pathways for speed.</p>
+      <table class="nexus-table">
+        <thead>
+          <tr>
+            <th style="width: 25%;">Parent Table</th>
+            <th style="width: 25%;">Child Table</th>
+            <th style="width: 20%;">Join Key Relationship</th>
+            <th style="width: 15%;">Cardinality</th>
+            <th style="width: 15%;">Cascade Rules</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>users</strong></td>
+            <td><strong>billing_accounts</strong></td>
+            <td>user_id</td>
+            <td>1-to-1</td>
+            <td>ON DELETE RESTRICT<br>ON UPDATE CASCADE</td>
+          </tr>
+          <tr>
+            <td><strong>billing_accounts</strong></td>
+            <td><strong>payment_profiles</strong></td>
+            <td>account_id</td>
+            <td>1-to-Many</td>
+            <td>ON DELETE CASCADE<br>ON UPDATE CASCADE</td>
+          </tr>
+          <tr>
+            <td><strong>billing_accounts</strong></td>
+            <td><strong>invoices</strong></td>
+            <td>account_id</td>
+            <td>1-to-Many</td>
+            <td>ON DELETE RESTRICT<br>ON UPDATE CASCADE</td>
+          </tr>
+          <tr>
+            <td><strong>billing_accounts</strong></td>
+            <td><strong>transactions_log</strong></td>
+            <td>account_id</td>
+            <td>1-to-Many</td>
+            <td>ON DELETE RESTRICT<br>ON UPDATE CASCADE</td>
+          </tr>
+          <tr>
+            <td><strong>invoices</strong></td>
+            <td><strong>transactions_log</strong></td>
+            <td>invoice_id</td>
+            <td>1-to-Many</td>
+            <td>ON DELETE SET NULL<br>ON UPDATE CASCADE</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 6. CONSTRAINTS -->
+    <section id="section-6" class="nexus-card">
+      <h2>6. Constraints</h2>
+      <p>Database enforcement rules are integrated natively within Project Nexus schema structures to optimize transactions at the engine level.</p>
+      
+      <h3 class="text-indigo">6.1 Primary Key Constraints</h3>
+      <ul>
+        <li><code>pk_users</code>: Primary Key on <code>users(user_id)</code></li>
+        <li><code>pk_billing_accounts</code>: Primary Key on <code>billing_accounts(account_id)</code></li>
+        <li><code>pk_payment_profiles</code>: Primary Key on <code>payment_profiles(payment_profile_id)</code></li>
+        <li><code>pk_invoices</code>: Primary Key on <code>invoices(invoice_id)</code></li>
+        <li><code>pk_transactions_log</code>: Composite Primary Key on <code>transactions_log(transaction_id, created_at)</code> (configured specifically for physical table partitioning compatibility).</li>
+      </ul>
+
+      <h3 class="text-indigo">6.2 Unique and Domain Constraints</h3>
+      <table class="nexus-table">
+        <thead>
+          <tr>
+            <th style="width: 25%;">Table</th>
+            <th style="width: 30%;">Constraint Name</th>
+            <th style="width: 20%;">Target Columns</th>
+            <th style="width: 25%;">Domain Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>users</strong></td>
+            <td><code>uq_users_email</code></td>
+            <td>email</td>
+            <td>Blocks registration of duplicate accounts.</td>
+          </tr>
+          <tr>
+            <td><strong>invoices</strong></td>
+            <td><code>uq_invoice_number</code></td>
+            <td>invoice_number</td>
+            <td>Guarantees human-readable statements remain globally unique.</td>
+          </tr>
+          <tr>
+            <td><strong>transactions_log</strong></td>
+            <td><code>uq_gateway_reference</code></td>
+            <td>gateway_reference</td>
+            <td>Guarantees duplicate gateway charge operations are never processed twice.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="text-indigo">6.3 Check Constraints</h3>
+      <table class="nexus-table">
+        <thead>
+          <tr>
+            <th style="width: 25%;">Table</th>
+            <th style="width: 30%;">Constraint Name</th>
+            <th style="width: 20%;">Definition Rule</th>
+            <th style="width: 25%;">Business Verification</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>users</strong></td>
+            <td><code>chk_email_format</code></td>
+            <td><code>email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$'</code></td>
+            <td>Enforces valid email address formatting prior to user insertion.</td>
+          </tr>
+          <tr>
+            <td><strong>billing_accounts</strong></td>
+            <td><code>chk_status_values</code></td>
+            <td><code>account_status IN ('ACTIVE', 'DELINQUENT', 'SUSPENDED', 'TERMINATED')</code></td>
+            <td>Permits only pre-authorized billing lifecycle states.</td>
+          </tr>
+          <tr>
+            <td><strong>invoices</strong></td>
+            <td><code>chk_invoice_amounts</code></td>
+            <td><code>amount_due &gt;= 0.00 AND amount_paid &gt;= 0.00</code></td>
+            <td>Ensures statement charges cannot represent invalid negative liabilities.</td>
+          </tr>
+          <tr>
+            <td><strong>transactions_log</strong></td>
+            <td><code>chk_transaction_amount</code></td>
+            <td><code>amount &lt;&gt; 0.00</code></td>
+            <td>Rejects non-monetary system ledger entries.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 7. INDEX STRATEGY -->
+    <section id="section-7" class="nexus-card">
+      <h2>7. Index Strategy</h2>
+      <p>Achieving sub-50ms query processing speeds requires a rigorous indexing scheme designed to balance read-heavy profile lookups and high-velocity transactional audit logging.</p>
+      
+      <table class="nexus-table">
+        <thead>
+          <tr>
+            <th style="width: 20%;">Table Target</th>
+            <th style="width: 25%;">Index Name</th>
+            <th style="width: 25%;">Indexed Columns</th>
+            <th style="width: 30%;">Architectural Purpose / Target Queries</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>users</strong></td>
+            <td><code>idx_users_last_login</code></td>
+            <td><code>last_login_at DESC</code></td>
+            <td>Optimizes the mobile-experience dashboard targeting inactive users (retention campaign tracking).</td>
+          </tr>
+          <tr>
+            <td><strong>billing_accounts</strong></td>
+            <td><code>idx_billing_user_id</code></td>
+            <td><code>user_id</code></td>
+            <td>Speeds up portal loads by quickly retrieving account balances for a user.</td>
+          </tr>
+          <tr>
+            <td><strong>payment_profiles</strong></td>
+            <td><code>idx_pay_profile_lookup</code></td>
+            <td><code>account_id, is_default</code></td>
+            <td>Speeds up recurring checkout runs by identifying preferred payment methods.</td>
+          </tr>
+          <tr>
+            <td><strong>invoices</strong></td>
+            <td><code>idx_inv_acc_due</code></td>
+            <td><code>account_id, status</code></td>
+            <td>Speeds up outstanding balance calculations and un-paid invoice listings.</td>
+          </tr>
+          <tr>
+            <td><strong>transactions_log</strong></td>
+            <td><code>idx_tx_query_pattern</code></td>
+            <td><code>account_id, created_at DESC</code></td>
+            <td>Speeds up ledger display times inside self-service mobile portals.</td>
+          </tr>
+          <tr>
+            <td><strong>transactions_log</strong></td>
+            <td><code>idx_tx_err_analysis</code></td>
+            <td><code>error_code, status</code></td>
+            <td>Optimizes internal monitoring dashboards targeting transaction failure metrics.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 8. VIEWS -->
+    <section id="section-8" class="nexus-card">
+      <h2>8. Views</h2>
+      <p>For secure abstraction and reporting efficiency, view layers aggregate operational billing metrics and customer performance insights.</p>
+      
+      <h3 class="text-indigo">8.1 View Name: <span class="text-cyan">vw_customer_retention_risk</span></h3>
+      <p><strong>Purpose:</strong> Identifies at-risk customers by isolating profiles without active logins in over 30 days combined with delinquent account configurations.</p>
+      <div class="code-block">
+CREATE OR REPLACE VIEW vw_customer_retention_risk AS
+SELECT 
+    u.user_id,
+    u.full_name,
+    u.email,
+    u.last_login_at,
+    ba.account_id,
+    ba.account_status,
+    ba.current_balance,
+    EXTRACT(DAY FROM (CURRENT_TIMESTAMP - u.last_login_at)) AS days_inactive
+FROM users u
+JOIN billing_accounts ba ON u.user_id = ba.user_id
+WHERE u.last_login_at &lt; CURRENT_TIMESTAMP - INTERVAL '30 days'
+   OR ba.account_status = 'DELINQUENT';
+      </div>
+
+      <h3 class="text-indigo">8.2 View Name: <span class="text-cyan">vw_billing_performance_metrics</span></h3>
+      <p><strong>Purpose:</strong> Used by analytical dashboard modules to audit processing success levels across payment vectors without exposing customer details.</p>
+      <div class="code-block">
+CREATE OR REPLACE VIEW vw_billing_performance_metrics AS
+SELECT 
+    payment_method_type,
+    status AS transaction_status,
+    COUNT(transaction_id) AS volume_count,
+    SUM(amount) AS total_processed_volume,
+    COUNT(CASE WHEN status = 'FAILED' OR status = 'DECLINED' THEN 1 END) AS error_count,
+    ROUND((COUNT(CASE WHEN status = 'SUCCESS' THEN 1 END)::NUMERIC / COUNT(*)::NUMERIC) * 100, 2) AS payment_success_rate
+FROM transactions_log tx
+LEFT JOIN payment_profiles pp ON tx.payment_profile_id = pp.payment_profile_id
+GROUP BY payment_method_type, status;
+      </div>
+    </section>
+
+    <!-- 9. STORED PROCEDURES -->
+    <section id="section-9" class="nexus-card">
+      <h2>9. Stored Procedures</h2>
+      <p>Encapsulated logic layers manage sensitive operational sequences to maintain ledger safety and guarantee concurrency handling.</p>
+      
+      <h3 class="text-indigo">9.1 Procedure Name: <span class="text-cyan">sp_execute_self_service_payment</span></h3>
+      <p><strong>Purpose:</strong> Fully atomic safe execution script that coordinates payments against outstanding customer statements, balancing ledger logs and invoice registers.</p>
+      <div class="code-block">
+CREATE OR REPLACE PROCEDURE sp_execute_self_service_payment(
+    p_account_id UUID,
+    p_invoice_id UUID,
+    p_payment_profile_id UUID,
+    p_payment_amount NUMERIC(12,2),
+    p_gateway_ref VARCHAR(128),
+    OUT r_transaction_id UUID,
+    OUT r_success BOOLEAN
+)
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_current_due NUMERIC(12,2);
+    v_tx_id UUID;
+BEGIN
+    -- Initialize variables
+    r_success := FALSE;
+    v_tx_id := gen_random_uuid();
+    
+    -- Check invoice balance
+    SELECT (amount_due - amount_paid) INTO v_current_due 
+    FROM invoices 
+    WHERE invoice_id = p_invoice_id AND account_id = p_account_id
+    FOR UPDATE;
+    
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Target invoice record not identified.';
+    END IF;
+
+    IF p_payment_amount &lt;= 0.00 THEN
+        RAISE EXCEPTION 'Payment parameter must evaluate positive.';
+    END IF;
+
+    -- Create Ledger Transaction entry
+    INSERT INTO transactions_log (
+        transaction_id, account_id, invoice_id, payment_profile_id, 
+        amount, transaction_type, status, gateway_reference, created_at
+    ) VALUES (
+        v_tx_id, p_account_id, p_invoice_id, p_payment_profile_id, 
+        p_payment_amount, 'CHARGE', 'SUCCESS', p_gateway_ref, CURRENT_TIMESTAMP
+    );
+
+    -- Adjust invoice registers
+    UPDATE invoices 
+    SET 
+        amount_paid = amount_paid + p_payment_amount,
+        status = CASE 
+            WHEN (amount_paid + p_payment_amount) &gt;= amount_due THEN 'PAID'
+            ELSE 'PARTIALLY_PAID'
+        END
+    WHERE invoice_id = p_invoice_id;
+
+    -- Adjust Customer Balance profile
+    UPDATE billing_accounts 
+    SET 
+        current_balance = current_balance - p_payment_amount,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE account_id = p_account_id;
+
+    r_transaction_id := v_tx_id;
+    r_success := TRUE;
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Rollback logic automatically executed by postgres engine
+        r_success := FALSE;
+        RAISE;
+END;
+$$;
+      </div>
+    </section>
+
+    <!-- 10. TRIGGERS -->
+    <section id="section-10" class="nexus-card">
+      <h2>10. Triggers</h2>
+      <p>Automated database behaviors prevent bad states from leaking into the system and handle real-time calculation tasks.</p>
+      
+      <h3 class="text-indigo">10.1 Trigger Name: <span class="text-cyan">trg_sync_account_delinquency</span></h3>
+      <p><strong>Event:</strong> <code>AFTER UPDATE</code> on <code>billing_accounts</code></p>
+      <p><strong>Purpose:</strong> Tracks status adjustments to trigger real-time communications to customers, preventing customer churn and keeping user accounts active.</p>
+      <div class="code-block">
+CREATE OR REPLACE FUNCTION fn_evaluate_delinquency()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.current_balance &gt; 100.00 AND NEW.account_status = 'ACTIVE' THEN
+        -- Set account status to delinquent
+        UPDATE billing_accounts 
+        SET account_status = 'DELINQUENT', updated_at = CURRENT_TIMESTAMP
+        WHERE account_id = NEW.account_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_sync_account_delinquency
+    AFTER UPDATE OF current_balance ON billing_accounts
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_evaluate_delinquency();
+      </div>
+    </section>
+
+    <!-- 11. SEQUENCES / IDENTITY COLUMNS -->
+    <section id="section-11" class="nexus-card">
+      <h2>11. Sequences &amp; Identity Columns</h2>
+      <p>To ensure horizontal scaling across nodes and low-latency client creation cycles, standard continuous integer sequences are excluded from primary key designs.</p>
+      <ul>
+        <li><strong>UUID Key Strategy:</strong> All physical records across <code>users</code>, <code>billing_accounts</code>, <code>payment_profiles</code>, and <code>invoices</code> leverage random UUID generators (<code>UUIDv4</code>) via the native <code>gen_random_uuid()</code> engine component.</li>
+        <li><strong>Invoice Number Sequence:</strong> A localized sequence handles the creation of chronological invoice numbers for customer communication.</li>
+      </ul>
+      <div class="code-block">
+CREATE SEQUENCE seq_invoice_numbers
+    START WITH 100001
+    INCREMENT BY 1
+    NO MAXVALUE
+    CACHE 10;
+      </div>
+    </section>
+
+    <!-- 12. DATA DICTIONARY -->
+    <section id="section-12" class="nexus-card">
+      <h2>12. Data Dictionary</h2>
+      <p>This section lists core fields in the system, providing business definitions and mapping constraints to keep development and operations aligned.</p>
+      <table class="nexus-table">
+        <thead>
+          <tr>
+            <th>Business Name</th>
+            <th>Physical Name</th>
+            <th>Data Type</th>
+            <th>Detailed Business Definition</th>
+            <th>Allowed Domains / Ranges</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>User E-mail</strong></td>
+            <td><code>users.email</code></td>
+            <td>VARCHAR(255)</td>
+            <td>Unique customer contact address used for portal authentication.</td>
+            <td>Must match RFC 5322 format rules.</td>
+          </tr>
+          <tr>
+            <td><strong>Account Status</strong></td>
+            <td><code>billing_accounts.account_status</code></td>
+            <td>VARCHAR(32)</td>
+            <td>Current billing operational lifecycle phase.</td>
+            <td>'ACTIVE', 'DELINQUENT', 'SUSPENDED', 'TERMINATED'</td>
+          </tr>
+          <tr>
+            <td><strong>Gateway Auth Token</strong></td>
+            <td><code>payment_profiles.gateway_token</code></td>
+            <td>VARCHAR(255)</td>
+            <td>Non-reversible vault key issued by our processing processor.</td>
+            <td>Alphanumeric tokens.</td>
+          </tr>
+          <tr>
+            <td><strong>Payment Amount</strong></td>
+            <td><code>transactions_log.amount</code></td>
+            <td>NUMERIC(12,2)</td>
+            <td>Gross currency volume parsed for a given ledger record.</td>
+            <td>Any value except 0.00.</td>
+          </tr>
+          <tr>
+            <td><strong>Error Code Identifier</strong></td>
+            <td><code>transactions_log.error_code</code></td>
+            <td>VARCHAR(64)</td>
+            <td>Internal tracking code mapping payment failure reasons.</td>
+            <td>'INSUFFICIENT_FUNDS', 'EXPIRED_CARD', 'RESTRICTED', etc.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 13. NORMALIZATION -->
+    <section id="section-13" class="nexus-card">
+      <h2>13. Normalization</h2>
+      <p>The core schema has been structured to meet standard normalization models while applying strategic modifications to ensure high performance.</p>
+      <ul>
+        <li><strong>First Normal Form (1NF):</strong> Enforced. All table cells contain single atomic attributes, and unique identifier mechanisms govern every operational table.</li>
+        <li><strong>Second Normal Form (2NF):</strong> Enforced. No partial-key functional dependencies exist across the persistence landscape. Non-prime fields map directly to their full primary structures.</li>
+        <li><strong>Third Normal Form (3NF):</strong> Enforced. No transitive dependencies are present. Field updates remain isolated, preventing updates from cascading across unrelated tables.</li>
+        <li><strong>Deliberate Denormalization Strategy:</strong> The table <code>transactions_log</code> deviates from third normal form by storing a <code>JSONB</code> object: <code>gateway_response_payload</code>. Storing this unstructured data in <code>JSONB</code> prevents database locking delays and avoids complex child tables, ensuring fast transaction logging during peak checkout activity.</li>
+      </ul>
+    </section>
+
+    <!-- 14. SECURITY -->
+    <section id="section-14" class="nexus-card">
+      <h2>14. Security</h2>
+      <p>Protecting customer financial data and portal identity values is core to the database design of Project Nexus.</p>
+      
+      <h3 class="text-indigo">14.1 Encryption at Rest &amp; Transit</h3>
+      <p>All tables are encrypted at rest using industry-standard AES-256 keys, managed automatically via AWS Key Management Service (KMS). In-transit connections enforce TLS 1.3 protocol requirements, rejecting unencrypted HTTP/TCP requests.</p>
+      
+      <h3 class="text-indigo">14.2 Data Masking &amp; PCI-DSS Compliance</h3>
+      <p>Raw credit card primary account numbers (PAN) or security codes (CVV) are never saved to our database. Payment data is securely sent to third-party processors, which return reference tokens saved in <code>payment_profiles.gateway_token</code>. Secondary identifiers utilize irreversible masking patterns (e.g. <code>payment_profiles.masked_identifier</code> displays only trailing digits: <code>************4242</code>).</p>
+
+      <h3 class="text-indigo">14.3 PII and GDPR Compliance</h3>
+      <table class="nexus-table">
+        <thead>
+          <tr>
+            <th>Table Name</th>
+            <th>PII Column</th>
+            <th>Classification Class</th>
+            <th>GDPR / Right to Erasure Masking Protocol</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>users</strong></td>
+            <td><code>email</code></td>
+            <td>High Sensitivity</td>
+            <td>Anonymized during profile termination via hash processing (e.g., <code>anon_user_872@nexus.internal</code>).</td>
+          </tr>
+          <tr>
+            <td><strong>users</strong></td>
+            <td><code>full_name</code></td>
+            <td>Medium Sensitivity</td>
+            <td>Replaced with generic identifier (<code>"Active Citizen Profile"</code>).</td>
+          </tr>
+          <tr>
+            <td><strong>transactions_log</strong></td>
+            <td><code>client_ip</code></td>
+            <td>Low/Medium Sensitivity</td>
+            <td>IP address fields zeroed out (e.g., converted to <code>0.0.0.0</code>) after 180 days of logging retention.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 15. DATA RETENTION -->
+    <section id="section-15" class="nexus-card">
+      <h2>15. Data Retention</h2>
+      <p>An organized lifecycle policy ensures our primary database remains fast and clean, preventing slow portal load times from old database records.</p>
+      <table class="nexus-table">
+        <thead>
+          <tr>
+            <th>Target Dataset</th>
+            <th>Active Table Lifetime</th>
+            <th>Archival Frequency</th>
+            <th>Storage Location Target</th>
+            <th>Purge Strategy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Portal User Profile &amp; Balance Data</strong></td>
+            <td>Indefinite (Until customer closes account)</td>
+            <td>Bi-weekly check run for terminated profiles</td>
+            <td>Cold storage vault bucket (S3)</td>
+            <td>Physically removed from active engine 90 days after account termination.</td>
+          </tr>
+          <tr>
+            <td><strong>Invoice PDFs &amp; Metrics Statements</strong></td>
+            <td>3 Years</td>
+            <td>Monthly scheduled job</td>
+            <td>S3 Glacier archival tier</td>
+            <td>Metadata retained. Raw file stores pruned after 7 years of regulatory compliance.</td>
+          </tr>
+          <tr>
+            <td><strong>transactions_log</strong></td>
+            <td>1 Year</td>
+            <td>Quarterly batch partition export</td>
+            <td>Secured archival bucket (S3)</td>
+            <td>Active partition detached and dropped after 365 days of capture.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 16. PERFORMANCE OPTIMIZATION -->
+    <section id="section-16" class="nexus-card">
+      <h2>16. Performance Optimization</h2>
+      <p>This section details the performance design built directly into the database engine to maintain fast, responsive connections across both mobile and desktop platforms.</p>
+      
+      <h3 class="text-indigo">16.1 Table Partitioning (transactions_log)</h3>
+      <p>Because the <code>transactions_log</code> table processes high-volume writes, it is partitioned by month based on the <code>created_at</code> timestamp. This prevents index bloat and ensures queries only scan relevant monthly partitions instead of the entire dataset.</p>
+      <div class="code-block">
+-- Partitioning transaction log definitions
+CREATE TABLE transactions_log (
+    transaction_id UUID NOT NULL,
+    account_id UUID NOT NULL,
+    invoice_id UUID,
+    payment_profile_id UUID,
+    amount NUMERIC(12,2) NOT NULL,
+    transaction_type VARCHAR(32) NOT NULL,
+    status VARCHAR(32) NOT NULL,
+    gateway_reference VARCHAR(128),
+    gateway_response_payload JSONB,
+    error_code VARCHAR(64),
+    created_at TIMESTAMPTZ NOT NULL,
+    client_ip INET,
+    PRIMARY KEY (transaction_id, created_at)
+) PARTITION BY RANGE (created_at);
+
+-- Sample Partition creation
+CREATE TABLE transactions_log_y2024_m04 PARTITION OF transactions_log
+    FOR VALUES FROM ('2024-04-01 00:00:00+00') TO ('2024-05-01 00:00:00+00');
+      </div>
+
+      <h3 class="text-indigo">16.2 Database Statistics Updates</h3>
+      <p>To ensure our query planner chooses the most efficient execution paths, the database relies on automatic engine analysis combined with targeted maintenance window optimizations:</p>
+      <ul>
+        <li>Autovacuum is configured to target highly modified tables (such as <code>transactions_log</code>) when more than 10% of their records change.</li>
+        <li>An optimized maintenance job runs weekly on Sunday at 02:00 UTC, triggering a full <code>ANALYZE</code> run to update system statistics and prevent slow queries.</li>
+      </ul>
+    </section>
+
+    <!-- 17. BACKUP STRATEGY -->
+    <section id="section-17" class="nexus-card">
+      <h2>17. Backup Strategy</h2>
+      <p>The backup strategy is designed to ensure maximum availability and protect our system from unexpected outages or data corruption.</p>
+      <table class="nexus-table">
+        <thead>
+          <tr>
+            <th>Backup Type</th>
+            <th>Execution Window / Interval</th>
+            <th>Retention Period</th>
+            <th>Expected RPO / RTO Metrics</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Continuous Transaction Log (PITR)</strong></td>
+            <td>Continuous streaming capture (WAL increments saved to S3 every 5 minutes).</td>
+            <td>35 Days (Continuous restoration option window).</td>
+            <td><strong>RPO:</strong> &lt; 5 Minutes<br><strong>RTO:</strong> &lt; 15 Minutes</td>
+          </tr>
+          <tr>
+            <td><strong>Automated Full Cluster Snapshot</strong></td>
+            <td>Daily at 01:00 UTC (automated snapshot of database nodes).</td>
+            <td>35 Days (Kept across our active zones).</td>
+            <td><strong>RPO:</strong> &lt; 24 Hours<br><strong>RTO:</strong> &lt; 1 Hour</td>
+          </tr>
+          <tr>
+            <td><strong>Long-Term Cold Compliance Snapshot</strong></td>
+            <td>Monthly (Executed on the 1st of each month).</td>
+            <td>7 Years (Required for regulatory and financial reporting compliance).</td>
+            <td><strong>RPO:</strong> &lt; 30 Days<br><strong>RTO:</strong> &lt; 24 Hours</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 18. MIGRATION STRATEGY -->
+    <section id="section-18" class="nexus-card">
+      <h2>18. Migration Strategy</h2>
+      <p>This section outlines the steps to safely migrate production traffic from our legacy system to the modernized Project Nexus infrastructure with minimal downtime.</p>
+      
+      <h3 class="text-indigo">18.1 Schema Versioning &amp; Deployments</h3>
+      <p>All database structure changes are written in SQL and managed using Liquibase. Every change is tracked as a version-controlled migration script, and these scripts are applied automatically during deployment pipeline updates.</p>
+
+      <h3 class="text-indigo">18.2 Zero-Downtime Blue-Green Cutover Pattern</h3>
+      <p>To protect our systems during deployment, we use a Blue-Green deployment pattern to cut over active web and mobile traffic:</p>
+      <ol>
+        <li><strong>Database Replication:</strong> We set up a new production database instance (Green) running the updated Project Nexus schema, and replicate data from the active production database (Blue) in real time using AWS Database Migration Service (DMS).</li>
+        <li><strong>Verification Phase:</strong> We run validation queries on the Green instance to ensure all data is consistent and accurate.</li>
+        <li><strong>Traffic Redirection:</strong> Once validated, we update route controls to safely point consumer-facing applications to the Green instance.</li>
+        <li><strong>Fallback Option:</strong> We keep the old Blue database online and synchronized for 48 hours, allowing us to roll back immediately if any unexpected issues occur.</li>
+      </ol>
+    </section>
+
+  </div>
+</div>

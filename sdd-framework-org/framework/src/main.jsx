@@ -25,6 +25,7 @@ import ChatbotWidget from './components/ChatbotWidget';
 
 import Login from './pages/Login';
 import AdminLayout from './components/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminPersonas from './pages/admin/AdminPersonas';
 import AdminAgents from './pages/admin/AdminAgents';
 import AdminAgentMapping from './pages/admin/AdminAgentMapping';
@@ -189,65 +190,7 @@ function Layout({ children }) {
             )}
           </Link>
 
-          {/* Project Mode Toggle Switch (Above Navigation) */}
-          {!isSidebarCollapsed ? (
-            <div class="px-3 py-2.5 border-b border-slate-800/80 bg-slate-950/40">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                  <i class={`fas ${projectMode === 'brownfield' ? 'fa-cubes text-amber-400' : 'fa-seedling text-emerald-400'} text-xs`}></i>
-                  <span class="text-[10px] font-black uppercase tracking-wider text-slate-300">
-                    {projectMode === 'brownfield' ? 'Brown Field' : 'Green Field'}
-                  </span>
-                </div>
 
-                {/* Single Toggle Switch */}
-                <button
-                  type="button"
-                  onClick={() => handleModeToggle(projectMode === 'greenfield' ? 'brownfield' : 'greenfield')}
-                  class={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    projectMode === 'brownfield' ? 'bg-amber-500 shadow-md shadow-amber-500/30' : 'bg-emerald-600 shadow-md shadow-emerald-500/30'
-                  }`}
-                  title={`Mode: ${projectMode.toUpperCase()}. Click to switch to ${projectMode === 'greenfield' ? 'Brown Field' : 'Green Field'}`}
-                >
-                  <span
-                    class={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                      projectMode === 'brownfield' ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {projectMode === 'brownfield' && (
-                <Link
-                  to="/brownfield-context"
-                  class={`mt-2 flex items-center justify-between px-3 py-1.5 rounded-xl border text-[10px] font-bold transition ${
-                    location.pathname === '/brownfield-context'
-                      ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-                      : 'bg-amber-950/20 border-amber-500/30 text-amber-400 hover:bg-amber-950/40'
-                  }`}
-                >
-                  <div class="flex items-center space-x-2">
-                    <i class="fas fa-folder-plus text-xs"></i>
-                    <span>Attach Project Context</span>
-                  </div>
-                  <i class="fas fa-chevron-right text-[9px]"></i>
-                </Link>
-              )}
-            </div>
-          ) : (
-            <div class="p-2 border-b border-slate-800 flex justify-center">
-              <button
-                type="button"
-                onClick={() => handleModeToggle(projectMode === 'greenfield' ? 'brownfield' : 'greenfield')}
-                class={`w-10 h-10 rounded-xl border flex items-center justify-center transition cursor-pointer ${
-                  projectMode === 'brownfield' ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
-                }`}
-                title={`Current: ${projectMode.toUpperCase()} Mode. Click to toggle.`}
-              >
-                <i class={`fas ${projectMode === 'brownfield' ? 'fa-cubes' : 'fa-seedling'} text-sm`}></i>
-              </button>
-            </div>
-          )}
 
 
           {/* Dynamic Navigation Links List */}
@@ -484,6 +427,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/login" element={<Login />} />
           
           <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="projects" element={<AdminProjects />} />
             <Route path="personas" element={<AdminPersonas />} />

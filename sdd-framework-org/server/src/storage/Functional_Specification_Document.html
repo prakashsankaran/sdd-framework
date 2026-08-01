@@ -1,91 +1,511 @@
-<article style="background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; line-height: 1.6;">
+<article style="background-color: #0f172a; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px; line-height: 1.6;">
 
-<header style="border-bottom: 2px solid #6366f1; margin-bottom: 30px;">
-    <h1 style="color: #6366f1; margin-bottom: 5px;">Visitor Management System (VMS)</h1>
-    <h2 style="font-size: 1.2rem; color: #22d3ee; margin-top: 0;">Functional Specification Document (FSD)</h2>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; font-size: 0.9rem;">
-        <p><strong>Version:</strong> 1.0.0 | <strong>Status:</strong> Draft | <strong>Author:</strong> Principal BA</p>
-        <p><strong>Distribution:</strong> Engineering, Product, QA, Security Compliance</p>
-    </div>
-</header>
+    <!-- HEADER / DOCUMENT INFORMATION -->
+    <header style="background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 30px; margin-bottom: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+        <div style="background-color: #22d3ee; color: #0f172a; font-size: 12px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px;">Functional Specification Document</div>
+        <h1 style="color: #6366f1; font-size: 32px; margin: 0 0 10px 0;">MEETING MANAGER</h1>
+        <p style="color: #94a3b8; font-size: 16px; margin: 0 0 20px 0;">Enterprise Meeting Management &amp; Collaboration Platform</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; border-top: 1px solid #334155; padding-top: 20px; font-size: 14px;">
+            <div><strong style="color: #94a3b8;">Document Title:</strong> Functional Specification</div>
+            <div><strong style="color: #94a3b8;">Project Name:</strong> Meeting Manager</div>
+            <div><strong style="color: #94a3b8;">Version:</strong> 1.0.0</div>
+            <div><strong style="color: #94a3b8;">Status:</strong> Draft / Ready for Review</div>
+            <div><strong style="color: #94a3b8;">Author:</strong> Principal Business Analyst &amp; Senior Technical Writer</div>
+            <div><strong style="color: #94a3b8;">Reviewers:</strong> Solutions Architect, Product Manager</div>
+            <div><strong style="color: #94a3b8;">Approvers:</strong> Director of Engineering, Head of Product</div>
+        </div>
 
-<section>
-    <h2 style="color: #22d3ee;">Table of Contents</h2>
-    <ol>
-        <li><a href="#intro" style="color: #6366f1; text-decoration: none;">Introduction</a></li>
-        <li><a href="#biz-context" style="color: #6366f1; text-decoration: none;">Business Context</a></li>
-        <li><a href="#roles" style="color: #6366f1; text-decoration: none;">User Roles</a></li>
-        <li><a href="#func-reqs" style="color: #6366f1; text-decoration: none;">Functional Requirements</a></li>
-        <li><a href="#business-rules" style="color: #6366f1; text-decoration: none;">Business Rules</a></li>
-        <li><a href="#notifications" style="color: #6366f1; text-decoration: none;">Notifications</a></li>
-        <li><a href="#nfrs" style="color: #6366f1; text-decoration: none;">Non-Functional Requirements</a></li>
-    </ol>
-</section>
+        <div style="margin-top: 20px; border-top: 1px solid #334155; padding-top: 15px;">
+            <h4 style="color: #6366f1; font-size: 14px; margin: 0 0 8px 0;">Revision Log</h4>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead>
+                    <tr style="border-bottom: 1px solid #334155; text-align: left; color: #94a3b8;">
+                        <th style="padding: 6px;">Version</th>
+                        <th style="padding: 6px;">Date</th>
+                        <th style="padding: 6px;">Author</th>
+                        <th style="padding: 6px;">Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 6px; border-bottom: 1px solid #334155;">1.0.0</td>
+                        <td style="padding: 6px; border-bottom: 1px solid #334155;">2023-10-25</td>
+                        <td style="padding: 6px; border-bottom: 1px solid #334155;">Principal BA</td>
+                        <td style="padding: 6px; border-bottom: 1px solid #334155;">Initial draft generated from core system specifications.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </header>
 
-<section id="intro">
-    <h2 style="color: #22d3ee;">1. Introduction</h2>
-    <p><strong>1.1 Purpose:</strong> To define the technical and functional requirements for the VMS to ensure secure, digitized visitor tracking.</p>
-    <p><strong>1.2 Scope:</strong> Web-based reception logging, photo capture, employee notification, and visitor reporting.</p>
-    <p><strong>1.3 Objectives:</strong> Error reduction, 100% audit compliance, and automated PII anonymization.</p>
-</section>
+    <!-- TABLE OF CONTENTS -->
+    <nav style="background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 30px; margin-bottom: 40px;">
+        <span style="background-color: #22d3ee; color: #0f172a; font-size: 12px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px;">Navigation</span>
+        <h2 style="color: #6366f1; font-size: 22px; margin-top: 0;">Table of Contents</h2>
+        <ul style="list-style-type: none; padding-left: 0; columns: 2; font-size: 14px;">
+            <li style="margin-bottom: 8px;"><a href="#section-1" style="color: #22d3ee; text-decoration: none;">1. Introduction</a></li>
+            <li style="margin-bottom: 8px;"><a href="#section-2" style="color: #22d3ee; text-decoration: none;">2. Business Context</a></li>
+            <li style="margin-bottom: 8px;"><a href="#section-3" style="color: #22d3ee; text-decoration: none;">3. Functional Overview</a></li>
+            <li style="margin-bottom: 8px;"><a href="#section-4" style="color: #22d3ee; text-decoration: none;">4. User Roles</a></li>
+            <li style="margin-bottom: 8px;"><a href="#section-5" style="color: #22d3ee; text-decoration: none;">5. Functional Requirements</a></li>
+            <li style="margin-bottom: 8px;"><a href="#section-6" style="color: #22d3ee; text-decoration: none;">6. Business Rules</a></li>
+            <li style="margin-bottom: 8px;"><a href="#section-7" style="color: #22d3ee; text-decoration: none;">7. UI Specification</a></li>
+            <li style="margin-bottom: 8px;"><a href="#section-8" style="color: #22d3ee; text-decoration: none;">8. Field Specifications</a></li>
+            <li style="margin-bottom: 8px;"><a href="#section-13" style="color: #22d3ee; text-decoration: none;">9. Error Handling</a></li>
+            <li style="margin-bottom: 8px;"><a href="#section-14" style="color: #22d3ee; text-decoration: none;">10. Non-Functional Requirements</a></li>
+            <li style="margin-bottom: 8px;"><a href="#section-15" style="color: #22d3ee; text-decoration: none;">11. Assumptions &amp; Risks</a></li>
+            <li style="margin-bottom: 8px;"><a href="#section-18" style="color: #22d3ee; text-decoration: none;">12. Appendix</a></li>
+        </ul>
+    </nav>
 
-<section id="biz-context">
-    <h2 style="color: #22d3ee;">2. Business Context</h2>
-    <p><strong>Current Process:</strong> Manual paper registers, prone to illegibility and lack of real-time employee notification.</p>
-    <p><strong>Future Process:</strong> Digitized registration with direct-to-S3 photo storage, RLS-enforced data isolation, and automated anonymization.</p>
-</section>
+    <!-- SECTION 1 -->
+    <section id="section-1" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
+        <span style="background-color: #22d3ee; color: #0f172a; font-size: 12px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px;">Section 1</span>
+        <h2 style="color: #6366f1; font-size: 24px; margin-top: 0;">1. Introduction</h2>
+        
+        <h3 style="color: #e2e8f0; font-size: 18px;">1.1 Purpose</h3>
+        <p>This Functional Specification Document (FSD) defines the comprehensive behavior, data models, workflows, and user interface layouts for the Meeting Manager platform. It acts as the definitive baseline for software engineers, quality assurance testers, and project stakeholders to design, implement, and validate the system.</p>
 
-<section id="roles">
-    <h2 style="color: #22d3ee;">4. User Roles</h2>
-    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-        <thead><tr style="background: #1e293b; color: #22d3ee;"><th style="padding: 10px;">Role</th><th>Responsibilities</th></tr></thead>
-        <tbody>
-            <tr><td style="padding: 10px; border-bottom: 1px solid #334155;">Receptionist</td><td style="padding: 10px; border-bottom: 1px solid #334155;">Visitor registration, Check-in/out, Photo handling.</td></tr>
-            <tr><td style="padding: 10px; border-bottom: 1px solid #334155;">Employee</td><td style="padding: 10px; border-bottom: 1px solid #334155;">Viewing personal visitor history.</td></tr>
-            <tr><td style="padding: 10px;">Administrator</td><td style="padding: 10px;">System config, Employee management, Reporting.</td></tr>
-        </tbody>
-    </table>
-</section>
+        <h3 style="color: #e2e8f0; font-size: 18px;">1.2 Scope</h3>
+        <p>The Meeting Manager system encompasses end-to-end meeting lifecycle operations, including user authentication, meeting creation and scheduling, role assignments (hosts, participants), agenda management, real-time tracking, and administrative controls. Out-of-scope modules include custom telephony integrations and third-party accounting systems.</p>
 
-<section id="func-reqs">
-    <h2 style="color: #22d3ee;">5. Functional Requirements</h2>
-    <div style="background: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-        <h3 style="color: #6366f1;">FR-001: Registration & Check-In</h3>
-        <p><strong>Description:</strong> Capture visitor data and store photo via S3.</p>
-        <p><strong>Logic:</strong> BR-001 (Unique mobile check), BR-005 (Async notification).</p>
-        <p><strong>Acceptance Criteria:</strong> Success message upon ID generation; Photo URL mapped to record.</p>
-        <p><strong>Related API:</strong> POST /api/visitors/check-in</p>
-    </div>
-</section>
+        <h3 style="color: #e2e8f0; font-size: 18px;">1.3 Objectives</h3>
+        <ul>
+            <li>Streamline corporate meeting scheduling and resource allocation.</li>
+            <li>Enforce structural agenda adherence and tracking.</li>
+            <li>Provide clear, role-based access control for administrative oversight.</li>
+        </ul>
 
-<section id="business-rules">
-    <h2 style="color: #22d3ee;">6. Business Rules</h2>
-    <ul style="list-style: none;">
-        <li><strong>BR-001:</strong> Partial Unique Index on mobile for active visits (Enforcement: DB Trigger).</li>
-        <li><strong>BR-002:</strong> Chronology constraint (check_out > check_in) (Enforcement: Table Constraint).</li>
-        <li><strong>BR-005:</strong> Non-blocking async dispatch for notifications (Enforcement: Application Logic).</li>
-    </ul>
-</section>
+        <h3 style="color: #e2e8f0; font-size: 18px;">1.4 Intended Audience</h3>
+        <p>This document is intended for Product Owners, Software Developers, QA Engineers, Enterprise Architects, and Business Stakeholders.</p>
 
-<section id="notifications">
-    <h2 style="color: #22d3ee;">10. Notifications</h2>
-    <table style="width: 100%; border-collapse: collapse;">
-        <thead><tr style="background: #1e293b; color: #22d3ee;"><th style="padding: 10px;">Channel</th><th>Trigger</th><th>Recipient</th></tr></thead>
-        <tbody><tr><td style="padding: 10px;">Email</td><td>Visitor Check-in</td><td>Host Employee</td></tr></tbody>
-    </table>
-</section>
+        <h3 style="color: #e2e8f0; font-size: 18px;">1.5 References</h3>
+        <ul>
+            <li>Business Requirements Document (BRD) - Meeting Manager v1.0</li>
+            <li>UI Wireframe Repository - Figma Project #MM-2023</li>
+            <li>Enterprise Security and Compliance Guidelines v4.2</li>
+        </ul>
+    </section>
 
-<section id="nfrs">
-    <h2 style="color: #22d3ee;">14. Non-Functional Requirements</h2>
-    <ul>
-        <li><strong>Security:</strong> Double-token pattern (15m JWT expiry); RLS enabled on all queries.</li>
-        <li><strong>Performance:</strong> API response time < 2s; S3 lifecycle policy purging at 14 days.</li>
-        <li><strong>Privacy:</strong> Async anonymization of PII for records > 30 days old.</li>
-    </ul>
-</section>
+    <!-- SECTION 2 -->
+    <section id="section-2" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
+        <span style="background-color: #22d3ee; color: #0f172a; font-size: 12px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px;">Section 2</span>
+        <h2 style="color: #6366f1; font-size: 24px; margin-top: 0;">2. Business Context</h2>
+        
+        <h3 style="color: #e2e8f0; font-size: 18px;">Current Process (As-Is)</h3>
+        <p>Meetings are currently scheduled via fragmented calendar tools with manual email threads for agendas, leading to unstructured discussions, missing notes, and zero systemic enforcement of meeting objectives.</p>
 
-<footer style="margin-top: 50px; border-top: 1px solid #334155; padding-top: 20px; font-size: 0.8rem; color: #94a3b8;">
-    <p>Document generated for enterprise audit purposes. Unauthorized distribution is prohibited.</p>
-</footer>
+        <h3 style="color: #e2e8f0; font-size: 18px;">Problems &amp; Pain Points</h3>
+        <ul>
+            <li>Lack of centralized meeting agendas and structured tracking.</li>
+            <li>Confusion regarding roles (who is hosting vs. participating).</li>
+            <li>Time wastage due to unorganized discussion flows.</li>
+        </ul>
+
+        <h3 style="color: #e2e8f0; font-size: 18px;">Future Process (To-Be)</h3>
+        <p>A centralized platform enforcing strict scheduling parameters, structured agenda itemization, clear role assignments, and robust session management.</p>
+
+        <h3 style="color: #e2e8f0; font-size: 18px;">Business Benefits</h3>
+        <ul>
+            <li>Increased operational efficiency and shorter meeting durations.</li>
+            <li>Improved accountability through strict task and agenda tracking.</li>
+            <li>Standardized access management across organizational units.</li>
+        </ul>
+
+        <h3 style="color: #e2e8f0; font-size: 18px;">Assumptions, Dependencies &amp; Constraints</h3>
+        <ul>
+            <li><strong>Assumptions:</strong> Users have modern web browsers with active internet connectivity.</li>
+            <li><strong>Dependencies:</strong> Identity Provider (IdP) for Single Sign-On (SSO).</li>
+            <li><strong>Constraints:</strong> System must comply with enterprise data retention policies.</li>
+        </ul>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section id="section-3" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
+        <span style="background-color: #22d3ee; color: #0f172a; font-size: 12px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px;">Section 3</span>
+        <h2 style="color: #6366f1; font-size: 24px; margin-top: 0;">3. Functional Overview</h2>
+        <p>The Meeting Manager system comprises the following primary modules:</p>
+        <ul>
+            <li><strong>Authentication &amp; User Management:</strong> Role assignments, credential validation, and profile management.</li>
+            <li><strong>Meeting Scheduling Module:</strong> Creation, updating, and cancellation of meetings, including date/time and agenda setup.</li>
+            <li><strong>Participant Management:</strong> Adding, removing, and updating participant roles within a meeting.</li>
+            <li><strong>Session &amp; Dashboard Control:</strong> Real-time overview of active, upcoming, and past meetings.</li>
+        </ul>
+    </section>
+
+    <!-- SECTION 4 -->
+    <section id="section-4" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
+        <span style="background-color: #22d3ee; color: #0f172a; font-size: 12px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px;">Section 4</span>
+        <h2 style="color: #6366f1; font-size: 24px; margin-top: 0;">4. User Roles &amp; Access Matrix</h2>
+        
+        <h3 style="color: #e2e8f0; font-size: 18px;">Role Definitions</h3>
+        <ul>
+            <li><strong>Administrator:</strong> Manages global system configurations, user access profiles, and system logs.</li>
+            <li><strong>Host:</strong> Creates meetings, defines agendas, invites participants, and moderates the live session.</li>
+            <li><strong>Participant:</strong> Attends meetings, views agendas, and contributes to discussions.</li>
+        </ul>
+
+        <h3 style="color: #e2e8f0; font-size: 18px;">Access Control Matrix</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px;">
+            <thead>
+                <tr style="border-bottom: 1px solid #334155; text-align: left; color: #94a3b8;">
+                    <th style="padding: 10px;">Module / Feature</th>
+                    <th style="padding: 10px;">Administrator</th>
+                    <th style="padding: 10px;">Host</th>
+                    <th style="padding: 10px;">Participant</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 10px;">User Management</td>
+                    <td style="padding: 10px; color: #22d3ee;">Allowed</td>
+                    <td style="padding: 10px; color: #f43f5e;">Denied</td>
+                    <td style="padding: 10px; color: #f43f5e;">Denied</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 10px;">Create Meeting</td>
+                    <td style="padding: 10px; color: #22d3ee;">Allowed</td>
+                    <td style="padding: 10px; color: #22d3ee;">Allowed</td>
+                    <td style="padding: 10px; color: #f43f5e;">Denied</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 10px;">View Meeting Agenda</td>
+                    <td style="padding: 10px; color: #22d3ee;">Allowed</td>
+                    <td style="padding: 10px; color: #22d3ee;">Allowed</td>
+                    <td style="padding: 10px; color: #22d3ee;">Allowed</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 10px;">System Global Configuration</td>
+                    <td style="padding: 10px; color: #22d3ee;">Allowed</td>
+                    <td style="padding: 10px; color: #f43f5e;">Denied</td>
+                    <td style="padding: 10px; color: #f43f5e;">Denied</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- SECTION 5 -->
+    <section id="section-5" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
+        <span style="background-color: #22d3ee; color: #0f172a; font-size: 12px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px;">Section 5</span>
+        <h2 style="color: #6366f1; font-size: 24px; margin-top: 0;">5. Functional Requirements</h2>
+
+        <!-- FR-001 -->
+        <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 20px; margin-bottom: 20px;">
+            <h3 style="color: #22d3ee; margin-top: 0;">FR-001: Meeting Creation</h3>
+            <p><strong>Description:</strong> Allows authorized users (Hosts and Administrators) to schedule and create new meetings within the system.</p>
+            <ul style="list-style-type: none; padding-left: 0; font-size: 14px; color: #94a3b8;">
+                <li><strong style="color: #e2e8f0;">Priority:</strong> Critical</li>
+                <li><strong style="color: #e2e8f0;">Actor:</strong> Host, Administrator</li>
+                <li><strong style="color: #e2e8f0;">Trigger:</strong> User clicks the "Create Meeting" button on the main dashboard.</li>
+                <li><strong style="color: #e2e8f0;">Preconditions:</strong> User must be authenticated and possess Host or Administrator privileges.</li>
+            </ul>
+            <h4 style="color: #6366f1; font-size: 15px; margin-bottom: 5px;">Main Flow:</h4>
+            <ol style="margin-top: 0; font-size: 14px;">
+                <li>User navigates to the Dashboard and selects "Create Meeting".</li>
+                <li>System presents the Meeting Creation Form.</li>
+                <li>User inputs meeting title, start date, end date, and description.</li>
+                <li>User clicks "Save and Continue".</li>
+                <li>System validates inputs against Business Rules (BR-001).</li>
+                <li>System persists meeting record to database and displays success confirmation.</li>
+            </ol>
+            <h4 style="color: #6366f1; font-size: 15px; margin-bottom: 5px;">Alternative / Exception Flow:</h4>
+            <p style="font-size: 14px; margin-top: 0;">If validation fails, system highlights invalid fields and prompts the user to correct errors without losing entered data.</p>
+            <p style="font-size: 14px;"><strong style="color: #e2e8f0;">Acceptance Criteria:</strong> System successfully creates a meeting record when all mandatory fields are provided with valid formats. Meeting appears immediately on the user's dashboard calendar view.</p>
+            <div style="font-size: 12px; color: #94a3b8; border-top: 1px solid #334155; padding-top: 10px; margin-top: 10px;">
+                <span>Business Rules: BR-001</span> | 
+                <span>Related Screens: SCR-002</span> | 
+                <span>Related APIs: POST /api/v1/meetings</span> | 
+                <span>DB Tables: meetings</span>
+            </div>
+        </div>
+
+        <!-- FR-002 -->
+        <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 20px; margin-bottom: 20px;">
+            <h3 style="color: #22d3ee; margin-top: 0;">FR-002: Add Meeting Agenda</h3>
+            <p><strong>Description:</strong> Enables hosts to append structured agenda items to an existing meeting.</p>
+            <ul style="list-style-type: none; padding-left: 0; font-size: 14px; color: #94a3b8;">
+                <li><strong style="color: #e2e8f0;">Priority:</strong> High</li>
+                <li><strong style="color: #e2e8f0;">Actor:</strong> Host, Administrator</li>
+                <li><strong style="color: #e2e8f0;">Trigger:</strong> User selects an existing meeting and clicks "Add Agenda Item".</li>
+                <li><strong style="color: #e2e8f0;">Preconditions:</strong> Meeting must be in "Scheduled" status.</li>
+            </ul>
+            <h4 style="color: #6366f1; font-size: 15px; margin-bottom: 5px;">Main Flow:</h4>
+            <ol style="margin-top: 0; font-size: 14px;">
+                <li>User accesses meeting details view.</li>
+                <li>User clicks "Add Agenda Item".</li>
+                <li>User enters agenda title, description, and allocated duration in minutes.</li>
+                <li>User clicks "Save Item".</li>
+                <li>System validates duration against total meeting length (BR-002).</li>
+                <li>System adds agenda item to the meeting agenda list.</li>
+            </ol>
+            <p style="font-size: 14px;"><strong style="color: #e2e8f0;">Acceptance Criteria:</strong> Agenda items are cleanly displayed in sequential order with cumulative duration indicators.</p>
+            <div style="font-size: 12px; color: #94a3b8; border-top: 1px solid #334155; padding-top: 10px; margin-top: 10px;">
+                <span>Business Rules: BR-002</span> | 
+                <span>Related Screens: SCR-003</span> | 
+                <span>Related APIs: POST /api/v1/meetings/{id}/agenda</span> | 
+                <span>DB Tables: meeting_agendas</span>
+            </div>
+        </div>
+
+        <!-- FR-003 -->
+        <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 20px; margin-bottom: 20px;">
+            <h3 style="color: #22d3ee; margin-top: 0;">FR-003: Participant Management</h3>
+            <p><strong>Description:</strong> Allows hosts to add or remove participants from a scheduled meeting.</p>
+            <ul style="list-style-type: none; padding-left: 0; font-size: 14px; color: #94a3b8;">
+                <li><strong style="color: #e2e8f0;">Priority:</strong> High</li>
+                <li><strong style="color: #e2e8f0;">Actor:</strong> Host, Administrator</li>
+                <li><strong style="color: #e2e8f0;">Trigger:</strong> User navigates to the "Participants" tab within meeting settings.</li>
+                <li><strong style="color: #e2e8f0;">Preconditions:</strong> Meeting must exist and be editable.</li>
+            </ul>
+            <h4 style="color: #6366f1; font-size: 15px; margin-bottom: 5px;">Main Flow:</h4>
+            <ol style="margin-top: 0; font-size: 14px;">
+                <li>User searches for user by email or name.</li>
+                <li>User selects user from directory and clicks "Add to Meeting".</li>
+                <li>System links user account as meeting participant.</li>
+            </ol>
+            <p style="font-size: 14px;"><strong style="color: #e2e8f0;">Acceptance Criteria:</strong> Added participants immediately appear in the participant roster table.</p>
+            <div style="font-size: 12px; color: #94a3b8; border-top: 1px solid #334155; padding-top: 10px; margin-top: 10px;">
+                <span>Business Rules: BR-003</span> | 
+                <span>Related Screens: SCR-004</span> | 
+                <span>Related APIs: POST /api/v1/meetings/{id}/participants</span> | 
+                <span>DB Tables: meeting_participants</span>
+            </div>
+        </div>
+
+        <!-- FR-004 -->
+        <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 20px;">
+            <h3 style="color: #22d3ee; margin-top: 0;">FR-004: Meeting Cancellation</h3>
+            <p><strong>Description:</strong> Allows hosts to cancel an upcoming meeting.</p>
+            <ul style="list-style-type: none; padding-left: 0; font-size: 14px; color: #94a3b8;">
+                <li><strong style="color: #e2e8f0;">Priority:</strong> Medium</li>
+                <li><strong style="color: #e2e8f0;">Actor:</strong> Host, Administrator</li>
+                <li><strong style="color: #e2e8f0;">Trigger:</strong> User clicks "Cancel Meeting" action button.</li>
+                <li><strong style="color: #e2e8f0;">Preconditions:</strong> Meeting status is "Scheduled".</li>
+            </ul>
+            <h4 style="color: #6366f1; font-size: 15px; margin-bottom: 5px;">Main Flow:</h4>
+            <ol style="margin-top: 0; font-size: 14px;">
+                <li>User clicks "Cancel Meeting".</li>
+                <li>System prompts for cancellation confirmation and optional reason.</li>
+                <li>User confirms cancellation.</li>
+                <li>System updates meeting status to "Cancelled".</li>
+            </ol>
+            <p style="font-size: 14px;"><strong style="color: #e2e8f0;">Acceptance Criteria:</strong> Cancelled meetings are locked against further edits and updated across participant views.</p>
+            <div style="font-size: 12px; color: #94a3b8; border-top: 1px solid #334155; padding-top: 10px; margin-top: 10px;">
+                <span>Business Rules: BR-004</span> | 
+                <span>Related Screens: SCR-002</span> | 
+                <span>Related APIs: PATCH /api/v1/meetings/{id}/cancel</span> | 
+                <span>DB Tables: meetings</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 6 -->
+    <section id="section-6" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
+        <span style="background-color: #22d3ee; color: #0f172a; font-size: 12px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px;">Section 6</span>
+        <h2 style="color: #6366f1; font-size: 24px; margin-top: 0;">6. Business Rules</h2>
+        
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <thead>
+                <tr style="border-bottom: 1px solid #334155; text-align: left; color: #94a3b8;">
+                    <th style="padding: 10px;">Rule ID</th>
+                    <th style="padding: 10px;">Title</th>
+                    <th style="padding: 10px;">Description</th>
+                    <th style="padding: 10px;">Enforcement Point</th>
+                    <th style="padding: 10px;">Priority</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 10px; font-weight: bold; color: #22d3ee;">BR-001</td>
+                    <td style="padding: 10px;">Future Meeting Scheduling</td>
+                    <td style="padding: 10px;">Meeting start date and time must be set in the future relative to server time. Past dates are rejected.</td>
+                    <td style="padding: 10px;">API / UI Validation</td>
+                    <td style="padding: 10px;">Critical</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 10px; font-weight: bold; color: #22d3ee;">BR-002</td>
+                    <td style="padding: 10px;">Agenda Duration Limit</td>
+                    <td style="padding: 10px;">The sum of all agenda item durations cannot exceed the total scheduled duration of the meeting.</td>
+                    <td style="padding: 10px;">API Service Layer</td>
+                    <td style="padding: 10px;">High</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 10px; font-weight: bold; color: #22d3ee;">BR-003</td>
+                    <td style="padding: 10px;">Host Modification Rights</td>
+                    <td style="padding: 10px;">Only the designated meeting Host or an Administrator can modify meeting details or agenda items.</td>
+                    <td style="padding: 10px;">Authorization Middleware</td>
+                    <td style="padding: 10px;">Critical</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 10px; font-weight: bold; color: #22d3ee;">BR-004</td>
+                    <td style="padding: 10px;">Cancellation Lock</td>
+                    <td style="padding: 10px;">Once a meeting is marked as Cancelled or Completed, no further edits to agenda or participant lists are permitted.</td>
+                    <td style="padding: 10px;">Database Constraint / Service</td>
+                    <td style="padding: 10px;">Medium</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- SECTION 7 -->
+    <section id="section-7" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
+        <span style="background-color: #22d3ee; color: #0f172a; font-size: 12px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px;">Section 7</span>
+        <h2 style="color: #6366f1; font-size: 24px; margin-top: 0;">7. UI Specification</h2>
+        
+        <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 20px; margin-bottom: 20px;">
+            <h3 style="color: #22d3ee; margin-top: 0;">SCR-002: Meeting Creation Screen</h3>
+            <p><strong>Purpose:</strong> Provides interface inputs for scheduling a new meeting.</p>
+            <p><strong>Navigation Path:</strong> Dashboard &gt; Click "Create Meeting"</p>
+            <p><strong>Buttons / Actions:</strong> [Save and Continue], [Cancel]</p>
+            <p><strong>Validation Rules:</strong> Title is required (max 150 chars). Start Date must be &gt; current timestamp.</p>
+            <p><strong>Responsive Behaviour:</strong> Form fields stack vertically on mobile screens and display in a two-column grid on desktop.</p>
+            <p><strong>Accessibility Notes:</strong> All input fields feature explicit ARIA labels and keyboard tab navigation support.</p>
+        </div>
+    </section>
+
+    <!-- SECTION 8 -->
+    <section id="section-8" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
+        <span style="background-color: #22d3ee; color: #0f172a; font-size: 12px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px;">Section 8</span>
+        <h2 style="color: #6366f1; font-size: 24px; margin-top: 0;">8. Field Specifications</h2>
+        
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+                <tr style="border-bottom: 1px solid #334155; text-align: left; color: #94a3b8;">
+                    <th style="padding: 8px;">Field Name</th>
+                    <th style="padding: 8px;">Type</th>
+                    <th style="padding: 8px;">Mandatory</th>
+                    <th style="padding: 8px;">Validation</th>
+                    <th style="padding: 8px;">Editable</th>
+                    <th style="padding: 8px;">Default</th>
+                    <th style="padding: 8px;">Max Length</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 8px; font-weight: bold;">meeting_title</td>
+                    <td style="padding: 8px;">String</td>
+                    <td style="padding: 8px; color: #22d3ee;">Yes</td>
+                    <td style="padding: 8px;">Alphanumeric &amp; spaces</td>
+                    <td style="padding: 8px;">Yes</td>
+                    <td style="padding: 8px;">None</td>
+                    <td style="padding: 8px;">150</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 8px; font-weight: bold;">start_datetime</td>
+                    <td style="padding: 8px;">DateTime</td>
+                    <td style="padding: 8px; color: #22d3ee;">Yes</td>
+                    <td style="padding: 8px;">Must be &gt; now (BR-001)</td>
+                    <td style="padding: 8px;">Yes</td>
+                    <td style="padding: 8px;">None</td>
+                    <td style="padding: 8px;">-</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 8px; font-weight: bold;">agenda_duration</td>
+                    <td style="padding: 8px;">Integer</td>
+                    <td style="padding: 8px; color: #22d3ee;">Yes</td>
+                    <td style="padding: 8px;">Positive integer (&gt; 0)</td>
+                    <td style="padding: 8px;">Yes</td>
+                    <td style="padding: 8px;">15</td>
+                    <td style="padding: 8px;">4 digits</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- SECTION 13 -->
+    <section id="section-13" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
+        <span style="background-color: #22d3ee; color: #0f172a; font-size: 12px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px;">Section 9</span>
+        <h2 style="color: #6366f1; font-size: 24px; margin-top: 0;">13. Error Handling</h2>
+        
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <thead>
+                <tr style="border-bottom: 1px solid #334155; text-align: left; color: #94a3b8;">
+                    <th style="padding: 10px;">Error Code</th>
+                    <th style="padding: 10px;">Error Type</th>
+                    <th style="padding: 10px;">Trigger Condition</th>
+                    <th style="padding: 10px;">User Message</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 10px; font-weight: bold; color: #f43f5e;">ERR-VAL-001</td>
+                    <td style="padding: 10px;">Validation Error</td>
+                    <td style="padding: 10px;">Meeting date set in the past.</td>
+                    <td style="padding: 10px;">Meeting start time must be scheduled in the future.</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 10px; font-weight: bold; color: #f43f5e;">ERR-AUTH-003</td>
+                    <td style="padding: 10px;">Authorization Error</td>
+                    <td style="padding: 10px;">Participant attempts to edit meeting details.</td>
+                    <td style="padding: 10px;">You do not have permission to modify this meeting.</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- SECTION 14 -->
+    <section id="section-14" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
+        <span style="background-color: #22d3ee; color: #0f172a; font-size: 12px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px;">Section 10</span>
+        <h2 style="color: #6366f1; font-size: 24px; margin-top: 0;">14. Non-Functional Requirements</h2>
+        <ul>
+            <li><strong>Performance:</strong> API response times for meeting creation and retrieval must not exceed 500ms under normal load.</li>
+            <li><strong>Availability:</strong> System uptime target of 99.9% during core business hours.</li>
+            <li><strong>Security:</strong> All communication must be encrypted via TLS 1.3 in transit and AES-256 at rest. Role-based access enforced via JWT claims.</li>
+            <li><strong>Browser Support:</strong> Fully compatible with the latest two stable versions of Chrome, Firefox, Safari, and Edge.</li>
+        </ul>
+    </section>
+
+    <!-- SECTION 15 & 16 -->
+    <section id="section-15" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 30px; margin-bottom: 30px;">
+        <span style="background-color: #22d3ee; color: #0f172a; font-size: 12px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px;">Section 11</span>
+        <h2 style="color: #6366f1; font-size: 24px; margin-top: 0;">15. Assumptions &amp; 16. Risks</h2>
+        
+        <h3 style="color: #e2e8f0; font-size: 18px;">Assumptions</h3>
+        <ul>
+            <li>Enterprise users have active corporate directory entries for SSO integration.</li>
+        </ul>
+
+        <h3 style="color: #e2e8f0; font-size: 18px;">Risks &amp; Mitigations</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px;">
+            <thead>
+                <tr style="border-bottom: 1px solid #334155; text-align: left; color: #94a3b8;">
+                    <th style="padding: 10px;">Risk Description</th>
+                    <th style="padding: 10px;">Likelihood</th>
+                    <th style="padding: 10px;">Impact</th>
+                    <th style="padding: 10px;">Mitigation Strategy</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 10px;">IdP downtime prevents user logins.</td>
+                    <td style="padding: 10px;">Low</td>
+                    <td style="padding: 10px;">High</td>
+                    <td style="padding: 10px;">Implement fallback token authentication caching for active sessions.</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- SECTION 18 -->
+    <section id="section-18" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 30px;">
+        <span style="background-color: #22d3ee; color: #0f172a; font-size: 12px; font-weight: bold; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px;">Section 12</span>
+        <h2 style="color: #6366f1; font-size: 24px; margin-top: 0;">18. Appendix</h2>
+        
+        <h3 style="color: #e2e8f0; font-size: 18px;">Glossary &amp; Abbreviations</h3>
+        <dl style="font-size: 14px;">
+            <dt style="font-weight: bold; color: #22d3ee;">FSD</dt>
+            <dd style="margin-left: 20px; margin-bottom: 10px;">Functional Specification Document</dd>
+            
+            <dt style="font-weight: bold; color: #22d3ee;">BRD</dt>
+            <dd style="margin-left: 20px; margin-bottom: 10px;">Business Requirements Document</dd>
+            
+            <dt style="font-weight: bold; color: #22d3ee;">SSO</dt>
+            <dd style="margin-left: 20px; margin-bottom: 10px;">Single Sign-On</dd>
+
+            <dt style="font-weight: bold; color: #22d3ee;">JWT</dt>
+            <dd style="margin-left: 20px; margin-bottom: 10px;">JSON Web Token</dd>
+        </dl>
+    </section>
 
 </article>

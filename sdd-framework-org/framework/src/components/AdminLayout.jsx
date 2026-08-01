@@ -7,9 +7,10 @@ export default function AdminLayout() {
   const navigate = useNavigate();
 
   const navigationItems = [
-    { path: '/admin/users', label: 'User Management', icon: 'fas fa-user-shield', desc: 'Provision Users' },
+    { path: '/admin/dashboard', label: 'Dashboard', icon: 'fas fa-tachometer-alt', desc: 'System Metrics' },
     { path: '/admin/personas', label: 'Persona Management', icon: 'fas fa-users-cog', desc: 'Manage Roles' },
     { path: '/admin/projects', label: 'Project Management', icon: 'fas fa-briefcase', desc: 'Manage Projects' },
+    { path: '/admin/users', label: 'User Management', icon: 'fas fa-user-shield', desc: 'Provision Users' },
     { path: '/admin/agents', label: 'Agent Definition', icon: 'fas fa-robot', desc: 'Configure Agents' },
     { path: '/admin/agent-mapping', label: 'Agent Mapping', icon: 'fas fa-project-diagram', desc: 'Map Agents' },
     { path: '/admin/workflows', label: 'Workflows', icon: 'fas fa-network-wired', desc: 'Pipeline Setup' },
@@ -126,7 +127,7 @@ export default function AdminLayout() {
               <i className={`fas ${isSidebarCollapsed ? 'fa-bars text-indigo-400' : 'fa-outdent'} text-xs`}></i>
             </button>
             <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest hidden lg:block shrink-0">
-              Admin Dashboard
+              Super Admin Dashboard
             </h2>
 
             <div className="h-5 w-px bg-slate-800 mx-3 hidden lg:block"></div>

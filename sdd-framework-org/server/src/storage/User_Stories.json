@@ -1,95 +1,19 @@
 {
   "stories": [
     {
-      "id": "US-VMS-01",
-      "title": "Visitor Registration and Check-In",
-      "asA": "Receptionist",
-      "iWantTo": "register a visitor and upload their photo via a secure S3 process",
-      "soThat": "we maintain an accurate digital log of all arrivals while ensuring photo storage compliance",
-      "criteria": [
-        "System validates mobile number against existing active visits to prevent duplicates",
-        "System generates a presigned S3 URL for secure photo upload",
-        "Record is created with 'Checked-In' status upon successful upload",
-        "Triggers async notification to the designated employee"
-      ],
-      "priority": "High",
-      "points": 8,
-      "techNotes": "Requires integration with S3 presigned URL API; implement RLS and DB trigger trg_verify_employee_active."
-    },
-    {
-      "id": "US-VMS-02",
-      "title": "Visitor Check-Out",
-      "asA": "Receptionist",
-      "iWantTo": "mark a visitor as checked-out",
-      "soThat": "the visit history is finalized and the record can be archived for compliance",
-      "criteria": [
-        "System records the precise end time",
-        "Ensures check_out time is chronologically after check_in time",
-        "Record is moved to archived state"
-      ],
-      "priority": "High",
-      "points": 3,
-      "techNotes": "Enforce CHECK (check_out > check_in) constraint at the database level."
-    },
-    {
-      "id": "US-VMS-03",
-      "title": "Employee Visitor Portal",
-      "asA": "Employee",
-      "iWantTo": "view my specific incoming visitor logs",
-      "soThat": "I can stay informed about my appointments while maintaining data privacy",
-      "criteria": [
-        "Must support JWT-based authentication",
-        "PII must be appropriately masked based on system configuration",
-        "Results are restricted to the logged-in user's own data only"
-      ],
-      "priority": "Medium",
-      "points": 5,
-      "techNotes": "Use PostgreSQL RLS with SET LOCAL app.current_user_id to ensure BOLA mitigation."
-    },
-    {
-      "id": "US-VMS-04",
-      "title": "Administrator User Management",
+      "id": "US-SYS-01",
+      "title": "Configure System Specification Document Workflows",
       "asA": "Administrator",
-      "iWantTo": "manage employee active status and visitor types",
-      "soThat": "the system reflects current organizational staff and registration categories",
+      "iWantTo": "initialize system settings",
+      "soThat": "I can start processing system operations",
       "criteria": [
-        "Admin can toggle is_active status for employees",
-        "Admin can update the Visitor Type dropdown labels",
-        "Changes are reflected immediately in registration flows"
+        "Given system validation is online",
+        "When settings are configured",
+        "Then display success message"
       ],
       "priority": "High",
       "points": 5,
-      "techNotes": "Restricted to Admin role via controller-level validation."
-    },
-    {
-      "id": "US-VMS-05",
-      "title": "Visitor Data Reporting",
-      "asA": "Administrator",
-      "iWantTo": "export visitor logs as a CSV file",
-      "soThat": "I can perform compliance auditing and department-specific reporting",
-      "criteria": [
-        "Support filtering by date range, visitor type, and employee",
-        "Download triggers a CSV file export",
-        "Requires secure authentication and authorization"
-      ],
-      "priority": "Medium",
-      "points": 5,
-      "techNotes": "Implement GET /api/reports/export with Content-Disposition headers."
-    },
-    {
-      "id": "US-VMS-06",
-      "title": "Data Privacy Lifecycle Maintenance",
-      "asA": "System",
-      "iWantTo": "automatically anonymize PII and purge old media",
-      "soThat": "the application remains compliant with data retention and privacy policies",
-      "criteria": [
-        "S3 files are purged after 14 days",
-        "PII for records older than 30 days is anonymized via background worker",
-        "Process runs nightly without interrupting system performance"
-      ],
-      "priority": "High",
-      "points": 8,
-      "techNotes": "Requires a cron-based background job. S3 lifecycle policies should be utilized for media."
+      "techNotes": "Base setup configuration."
     }
   ]
 }

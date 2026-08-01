@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 
 export default function AdminProjects() {
   const [projects, setProjects] = useState([
-    { id: 1, name: 'sdd-enterprise-dev', description: 'Enterprise platform core development', status: 'Active' },
-    { id: 2, name: 'mobile-app-v2', description: 'Next generation mobile application', status: 'In Progress' },
-    { id: 3, name: 'legacy-migration', description: 'Migration from legacy systems to cloud', status: 'Planning' },
+    { id: 1, name: 'sdd-enterprise-dev', description: 'Enterprise platform core development', type: 'Green Field', status: 'Active' },
+    { id: 2, name: 'mobile-app-v2', description: 'Next generation mobile application', type: 'Green Field', status: 'In Progress' },
+    { id: 3, name: 'legacy-migration', description: 'Migration from legacy systems to cloud', type: 'Brown Field', status: 'Planning' },
   ]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState(null);
-  const [newProject, setNewProject] = useState({ name: '', description: '', status: 'Active' });
+  const [newProject, setNewProject] = useState({ name: '', description: '', type: 'Green Field', status: 'Active' });
 
   return (
     <div className="text-white fade-in">
@@ -22,7 +22,7 @@ export default function AdminProjects() {
         <button 
           onClick={() => {
             setEditingProjectId(null);
-            setNewProject({ name: '', description: '', status: 'Active' });
+            setNewProject({ name: '', description: '', type: 'Green Field', status: 'Active' });
             setIsModalOpen(true);
           }}
           className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white font-semibold py-2.5 px-5 rounded-xl shadow-[0_4px_15px_rgba(99,102,241,0.3)] transition-all flex items-center space-x-2 text-[14px]"
@@ -78,6 +78,7 @@ export default function AdminProjects() {
               <tr className="bg-slate-900/40 border-b border-slate-800/80 text-[11px] uppercase tracking-wider text-slate-500 font-bold">
                 <th className="py-4 px-6 font-semibold">Project Name</th>
                 <th className="py-4 px-6 font-semibold">Description</th>
+                <th className="py-4 px-6 font-semibold">Type</th>
                 <th className="py-4 px-6 font-semibold">Status</th>
                 <th className="py-4 px-6 font-semibold text-right">Actions</th>
               </tr>
@@ -90,6 +91,16 @@ export default function AdminProjects() {
                   </td>
                   <td className="py-4 px-6 text-[13px] text-slate-400">
                     {project.description}
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide border ${
+                      project.type === 'Green Field' 
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                        : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                    }`}>
+                      <i className={`fas ${project.type === 'Green Field' ? 'fa-seedling' : 'fa-cubes'} mr-1.5`}></i>
+                      {project.type}
+                    </span>
                   </td>
                   <td className="py-4 px-6">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide border ${
@@ -155,6 +166,35 @@ export default function AdminProjects() {
                 />
               </div>
               <div>
+                <label className="block text-[13px] font-medium text-slate-400 mb-2">Project Type</label>
+                <div className="flex bg-[#060913]/70 border border-slate-800 rounded-lg p-1">
+                  <button
+                    type="button"
+                    onClick={() => setNewProject({...newProject, type: 'Green Field'})}
+                    className={`flex-1 flex items-center justify-center space-x-2 py-2 rounded-md text-[13px] font-semibold transition-colors ${
+                      newProject.type === 'Green Field' 
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm' 
+                        : 'text-slate-400 hover:text-slate-300 hover:bg-slate-800/50'
+                    }`}
+                  >
+                    <i className="fas fa-seedling"></i>
+                    <span>Green Field</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewProject({...newProject, type: 'Brown Field'})}
+                    className={`flex-1 flex items-center justify-center space-x-2 py-2 rounded-md text-[13px] font-semibold transition-colors ${
+                      newProject.type === 'Brown Field' 
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-sm' 
+                        : 'text-slate-400 hover:text-slate-300 hover:bg-slate-800/50'
+                    }`}
+                  >
+                    <i className="fas fa-cubes"></i>
+                    <span>Brown Field</span>
+                  </button>
+                </div>
+              </div>
+              <div>
                 <label className="block text-[13px] font-medium text-slate-400 mb-2">Initial Status</label>
                 <select
                   value={newProject.status}
@@ -186,7 +226,7 @@ export default function AdminProjects() {
                     } else {
                       setProjects([...projects, { ...newProject, id: Date.now() }]);
                     }
-                    setNewProject({ name: '', description: '', status: 'Active' });
+                    setNewProject({ name: '', description: '', type: 'Green Field', status: 'Active' });
                     setEditingProjectId(null);
                     setIsModalOpen(false);
                   }
