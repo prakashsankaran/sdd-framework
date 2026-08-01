@@ -32,6 +32,7 @@ import AdminAgentMapping from './pages/admin/AdminAgentMapping';
 import AdminWorkflows from './pages/admin/AdminWorkflows';
 import AdminProjects from './pages/admin/AdminProjects';
 import AdminUsers from './pages/admin/AdminUsers';
+import AdminDebateCircles from './pages/admin/AdminDebateCircles';
 import { Outlet } from 'react-router-dom';
 
 import HeaderTokenBadge from './components/HeaderTokenBadge';
@@ -560,6 +561,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="agents" element={<AdminAgents />} />
             <Route path="agent-mapping" element={<AdminAgentMapping />} />
             <Route path="workflows" element={<AdminWorkflows />} />
+            <Route path="debate-circles" element={<AdminDebateCircles />} />
           </Route>
 
           <Route element={<Layout><Outlet /></Layout>}>
