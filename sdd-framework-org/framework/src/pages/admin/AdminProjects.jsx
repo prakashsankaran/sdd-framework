@@ -1,11 +1,21 @@
 import React, { useState } from 'react';
 
 export default function AdminProjects() {
-  const [projects, setProjects] = useState([
-    { id: 1, name: 'sdd-enterprise-dev', description: 'Enterprise platform core development', type: 'Green Field', status: 'Active' },
-    { id: 2, name: 'mobile-app-v2', description: 'Next generation mobile application', type: 'Green Field', status: 'In Progress' },
-    { id: 3, name: 'legacy-migration', description: 'Migration from legacy systems to cloud', type: 'Brown Field', status: 'Planning' },
-  ]);
+  const [projects, setProjects] = useState(() => {
+    const saved = localStorage.getItem('sdd_projects');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+    }
+    return [
+      { id: 1, name: 'sdd-enterprise-dev', description: 'Enterprise platform core development', type: 'Green Field', status: 'Active' },
+      { id: 2, name: 'mobile-app-v2', description: 'Next generation mobile application', type: 'Green Field', status: 'In Progress' },
+      { id: 3, name: 'legacy-migration', description: 'Migration from legacy systems to cloud', type: 'Brown Field', status: 'Planning' },
+    ];
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem('sdd_projects', JSON.stringify(projects));
+  }, [projects]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState(null);

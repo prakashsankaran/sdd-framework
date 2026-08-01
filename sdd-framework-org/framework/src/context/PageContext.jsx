@@ -22,7 +22,27 @@ const keys = [
 ];
 
 export const PageProvider = ({ children }) => {
-  const [projectMode, setProjectModeState] = useState(() => localStorage.getItem('projectMode') || 'greenfield');
+  const [projectMode, setProjectModeState] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sdd_projects');
+      let projects;
+      if (saved) {
+        projects = JSON.parse(saved);
+      } else {
+        projects = [
+          { id: 1, name: 'sdd-enterprise-dev', type: 'Green Field' },
+          { id: 2, name: 'mobile-app-v2', type: 'Green Field' },
+          { id: 3, name: 'legacy-migration', type: 'Brown Field' },
+        ];
+      }
+      const active = projects.find(p => p.name === 'sdd-enterprise-dev');
+      if (active && active.type === 'Brown Field') return 'brownfield';
+      return 'greenfield';
+    } catch (e) {
+      console.error(e);
+    }
+    return 'greenfield';
+  });
   const [brownfieldContext, setBrownfieldContext] = useState({
     codeSnippets: [],
     dbSchema: '',
