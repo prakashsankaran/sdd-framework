@@ -33,10 +33,10 @@ export const api = {
   },
 
   // Enqueue agent generation job
-  generate: async (type, instructions = '') => {
+  generate: async (type, instructions = '', activeProject = '') => {
     return request(`/generate/${type}`, {
       method: 'POST',
-      body: JSON.stringify({ instructions })
+      body: JSON.stringify({ instructions, activeProject })
     });
   },
 

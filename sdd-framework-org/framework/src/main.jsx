@@ -20,6 +20,7 @@ import AgentOrchestrator from './pages/AgentOrchestrator';
 import BrownfieldContextView from './pages/BrownfieldContextView';
 import CodeToSpecView from './pages/CodeToSpecView';
 import ImpactAnalysisView from './pages/ImpactAnalysisView';
+import TraceabilityLogView from './pages/TraceabilityLogView';
 import WipPlaceholder from './components/WipPlaceholder';
 import ChatbotWidget from './components/ChatbotWidget';
 
@@ -139,6 +140,17 @@ function Layout({ children }) {
     } catch (e) {
       console.error('Failed to load agent mappings', e);
     }
+  }
+
+  // Inject Global Traceability view so it is always accessible regardless of persona mapping
+  if (!activeNavigationItems.find(item => item.path === '/global-traceability')) {
+    activeNavigationItems.push({
+      path: '/global-traceability',
+      label: 'Global Traceability',
+      icon: 'fas fa-history',
+      desc: 'Document generation logs',
+      badge: 'Global'
+    });
   }
 
   const [specs, setSpecs] = useState([]);
@@ -583,6 +595,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/brownfield-context" element={<BrownfieldContextView />} />
             <Route path="/code-to-spec" element={<CodeToSpecView />} />
             <Route path="/impact-analysis" element={<ImpactAnalysisView />} />
+            <Route path="/global-traceability" element={<TraceabilityLogView />} />
             <Route path="/repo" element={<Repository />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

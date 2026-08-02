@@ -1,0 +1,136 @@
+import React, { useState, useEffect } from 'react';
+import { usePageContext } from '../context/PageContext';
+
+const TraceabilityLogView = () => {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // We fetch activeProject from local storage or context if possible, 
+  // but let's assume we can rely on activeProject stored in localStorage.
+  const activeProject = localStorage.getItem('activeProject') || '';
+
+  useEffect(() => {
+    fetchLogs();
+  }, [activeProject]);
+
+  const fetchLogs = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`http://localhost:7001/api/traceability/logs?project=${encodeURIComponent(activeProject)}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch traceability logs');
+      }
+      const data = await response.json();
+      if (data.success) {
+        setLogs(data.logs);
+      } else {
+        throw new Error(data.error || 'Failed to load logs');
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="p-6 h-full flex flex-col">
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-white mb-2">
+            <i className="fas fa-history text-indigo-400 mr-3"></i>
+            Global Traceability Log
+          </h1>
+          <p className="text-slate-400">
+            Real-time audit trail of all documents generated across the <span className="font-mono text-indigo-300">{activeProject}</span> project.
+          </p>
+        </div>
+        <button
+          onClick={fetchLogs}
+          className="bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-600/40 hover:text-white px-4 py-2 rounded-lg transition-colors flex items-center shadow-lg"
+        >
+          <i className="fas fa-sync-alt mr-2"></i> Refresh
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-hidden bg-slate-900/50 border border-slate-800 rounded-xl flex flex-col shadow-xl">
+        {loading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="flex flex-col items-center text-slate-400">
+              <i className="fas fa-circle-notch fa-spin text-4xl mb-4 text-indigo-500"></i>
+              <p>Loading traceability logs...</p>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-6 rounded-xl flex items-center max-w-lg text-center">
+              <i className="fas fa-exclamation-triangle text-3xl mr-4"></i>
+              <div>
+                <h3 className="font-bold text-lg mb-1">Error Loading Logs</h3>
+                <p className="text-sm">{error}</p>
+              </div>
+            </div>
+          </div>
+        ) : logs.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-slate-500">
+            <div className="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center mb-4">
+              <i className="fas fa-clipboard-list text-2xl text-slate-400"></i>
+            </div>
+            <p>No document generation events recorded for this project yet.</p>
+          </div>
+        ) : (
+          <div className="overflow-auto flex-1 custom-scroll">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-slate-900/80 sticky top-0 z-10 shadow-md">
+                <tr>
+                  <th className="p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-700/50 w-48">Timestamp</th>
+                  <th className="p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-700/50">Agent / Persona</th>
+                  <th className="p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-700/50">Generated Document</th>
+                  <th className="p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-700/50 w-48">Spec Context</th>
+                  <th className="p-4 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-700/50 w-32">Format</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/50">
+                {logs.map((log) => (
+                  <tr key={log.id} className="hover:bg-slate-800/30 transition-colors group">
+                    <td className="p-4 whitespace-nowrap text-sm text-slate-400 font-mono">
+                      {new Date(log.timestamp).toLocaleString()}
+                    </td>
+                    <td className="p-4 text-sm font-medium text-slate-300">
+                      <div className="flex items-center">
+                        <div className="w-6 h-6 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mr-3 shrink-0">
+                          <i className="fas fa-robot text-xs"></i>
+                        </div>
+                        {log.agentId}
+                      </div>
+                    </td>
+                    <td className="p-4 text-sm text-slate-300">
+                      <div className="flex items-center">
+                        <i className={`fas fa-file-alt text-slate-500 mr-2 group-hover:text-amber-400 transition-colors`}></i>
+                        {log.filename}
+                      </div>
+                    </td>
+                    <td className="p-4 text-xs text-slate-400">
+                      <span className="truncate max-w-[150px] inline-block font-mono text-indigo-300">
+                        {log.activeSpec}
+                      </span>
+                    </td>
+                    <td className="p-4 text-xs text-slate-400">
+                      <span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 uppercase tracking-wider font-mono">
+                        {log.format}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default TraceabilityLogView;

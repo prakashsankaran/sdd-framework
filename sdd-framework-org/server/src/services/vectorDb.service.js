@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
 const { getModelsConfig } = require('../config/modelsHelper');
+const traceability = require('./traceability.service');
 
 const COLLECTION_NAME = 'agent_documents';
 const EMBEDDING_MODEL = 'gemini-embedding-001';
@@ -174,7 +175,7 @@ function writeLocalStore(data) {
 /**
  * Archives a generated document to physical disk storage and indexes its chunks into Qdrant or Local Store.
  */
-async function indexDocument(agentId, filename, format, rawContent, activeSpec) {
+async function indexDocument(agentId, filename, format, rawContent, activeSpec, activeProject = 'sdd-enterprise-dev') {
   try {
     // 1. Save document to backend disk storage
     const storageDir = path.join(__dirname, '../storage');
@@ -186,6 +187,9 @@ async function indexDocument(agentId, filename, format, rawContent, activeSpec) 
     const filePath = path.join(storageDir, filename);
     fs.writeFileSync(filePath, stringContent, 'utf8');
     console.log(`[Storage] Saved file to disk: ${filePath}`);
+
+    // Log traceability event
+    traceability.logGeneration(agentId, filename, format, activeSpec, activeProject);
 
     // NOTE: Agent-generated artifacts are NOT mirrored to the specs workspace folder.
     // The specs folder contains only core spec documents (spec.md, constitution.md, plan.md, tasks.md, research.md).

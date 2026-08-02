@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MEETING MANAGER - Enterprise Suite</title>
-    <!-- Tailwind CSS -->
+    <title>Project Nexus - Technical Control Center</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -14,15 +14,12 @@
                     colors: {
                         slate: {
                             950: '#020617',
-                        },
-                        brand: {
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            400: '#818cf8'
+                            900: '#0f172a',
+                            850: '#090d16',
                         }
                     },
                     fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
                     }
                 }
             }
@@ -30,18 +27,16 @@
     </script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .glass {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(12px);
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
-        .glass-card {
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        .glow-accent {
+            box-shadow: 0 0 25px -5px rgba(59, 130, 246, 0.25);
         }
         /* Custom scrollbar */
         ::-webkit-scrollbar {
@@ -60,210 +55,330 @@
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
 
-    <!-- Top Navigation Bar -->
-    <header class="h-16 border-b border-slate-800/80 glass sticky top-0 z-40 px-6 flex items-center justify-between">
-        <div class="flex items-center space-x-4">
-            <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
-                <i class="fa-solid fa-handshake-angle text-white text-lg"></i>
-            </div>
-            <div>
-                <h1 class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">MEETING MANAGER</h1>
-                <p class="text-xs text-slate-400 flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span> API: /api/v1/meetings</p>
-            </div>
-        </div>
-
-        <div class="flex items-center space-x-4">
-            <div class="relative hidden md:block">
-                <i class="fa-solid fa-search absolute left-3.5 top-3 text-slate-400 text-sm"></i>
-                <input type="text" id="globalSearch" placeholder="Search meetings, agendas..." class="bg-slate-900/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-brand-500 transition-all w-64 placeholder:text-slate-500 text-slate-200">
-            </div>
-
-            <button onclick="openModal()" class="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl font-medium text-sm transition-all shadow-lg shadow-brand-600/30 flex items-center gap-2 active:scale-95">
-                <i class="fa-solid fa-plus text-xs"></i> New Meeting
-            </button>
-
-            <div class="h-6 w-[1px] bg-slate-800"></div>
-
+    <!-- Top Navigation -->
+    <header class="border-b border-slate-800/80 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="h-9 w-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-sm font-semibold text-brand-400">
-                    AD
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center glow-accent">
+                    <i class="fa-solid fa-cube text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base tracking-tight flex items-center gap-2">
+                        Project Nexus <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Phase 1 & 2 Portal</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Enterprise Modernization & Self-Service Billing</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <!-- System Health Pill -->
+                <div id="system-health-pill" class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium cursor-pointer hover:bg-emerald-500/20 transition" onclick="switchTab('observability')">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="health-pill-text">All Systems Operational</span>
+                    <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>
+                </div>
+
+                <!-- User Profile dropdown mock -->
+                <div class="flex items-center space-x-3 border-l border-slate-800 pl-4">
+                    <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-sm font-bold text-blue-400">
+                        NX
+                    </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Layout Container -->
-    <div class="flex-1 flex overflow-hidden">
+    <!-- Main Workspace Layout -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Navigation Sidebar -->
+        <aside class="lg:col-span-3 space-y-6">
+            <div class="glass-panel rounded-2xl p-4 space-y-1">
+                <div class="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Navigation</div>
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition bg-blue-600 text-white shadow-lg shadow-blue-600/20">
+                    <i class="fa-solid fa-chart-line w-5 text-center"></i>
+                    <span>Portal & Telemetry</span>
+                </button>
+                <button onclick="switchTab('billing')" id="nav-billing" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
+                    <i class="fa-solid fa-credit-card w-5 text-center"></i>
+                    <span>Billing & Disputes</span>
+                </button>
+                <button onclick="switchTab('observability')" id="nav-observability" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
+                    <i class="fa-solid fa-server w-5 text-center"></i>
+                    <span>System Observability</span>
+                </button>
+            </div>
 
-        <!-- Sidebar Navigation -->
-        <aside class="w-64 border-r border-slate-800/80 bg-slate-950/50 hidden lg:flex flex-col justify-between p-4">
-            <div class="space-y-6">
-                <div>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">Overview</p>
-                    <nav class="space-y-1">
-                        <a href="#" onclick="filterView('all', this)" class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-brand-600/10 text-brand-400 border border-brand-500/20 transition-all">
-                            <i class="fa-solid fa-chart-pie w-5"></i>
-                            <span>Dashboard</span>
-                        </a>
-                        <a href="#" onclick="filterView('upcoming', this)" class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-all">
-                            <i class="fa-solid fa-calendar-days w-5"></i>
-                            <span>Upcoming Sessions</span>
-                        </a>
-                        <a href="#" onclick="filterView('completed', this)" class="sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-all">
-                            <i class="fa-solid fa-circle-check w-5"></i>
-                            <span>Archived & Notes</span>
-                        </a>
-                    </nav>
-                </div>
-
-                <div>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">Categories</p>
-                    <div class="space-y-1">
-                        <a href="#" onclick="filterCategory('Engineering', this)" class="category-link flex items-center justify-between px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-slate-900 transition-all">
-                            <span class="flex items-center gap-2"><i class="fa-solid fa-code text-indigo-400 text-xs"></i> Engineering</span>
-                            <span class="text-xs bg-slate-800 px-2 py-0.5 rounded-md text-slate-400">3</span>
-                        </a>
-                        <a href="#" onclick="filterCategory('Product', this)" class="category-link flex items-center justify-between px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-slate-900 transition-all">
-                            <span class="flex items-center gap-2"><i class="fa-solid fa-layer-group text-sky-400 text-xs"></i> Product</span>
-                            <span class="text-xs bg-slate-800 px-2 py-0.5 rounded-md text-slate-400">2</span>
-                        </a>
-                        <a href="#" onclick="filterCategory('Executive', this)" class="category-link flex items-center justify-between px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-slate-900 transition-all">
-                            <span class="flex items-center gap-2"><i class="fa-solid fa-chess text-emerald-400 text-xs"></i> Executive</span>
-                            <span class="text-xs bg-slate-800 px-2 py-0.5 rounded-md text-slate-400">1</span>
-                        </a>
+            <!-- Core Metrics Box -->
+            <div class="glass-panel rounded-2xl p-5 space-y-4">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                    <span>Core Web Vitals</span>
+                    <span class="text-emerald-400 text-[10px] bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">p95 Target Met</span>
+                </h3>
+                
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300">LCP (Largest Contentful Paint)</span>
+                            <span class="text-emerald-400 font-mono font-bold">1.8s ≤ 2.5s</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-emerald-500 h-full rounded-full" style="width: 72%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300">INP (Interaction to Next Paint)</span>
+                            <span class="text-emerald-400 font-mono font-bold">110ms ≤ 200ms</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-emerald-500 h-full rounded-full" style="width: 55%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-slate-300">CLS (Cumulative Layout Shift)</span>
+                            <span class="text-emerald-400 font-mono font-bold">0.02 ≤ 0.1</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-emerald-500 h-full rounded-full" style="width: 20%"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Storage/System status widget -->
-            <div class="p-3 rounded-2xl glass-card space-y-2">
-                <div class="flex justify-between text-xs font-medium text-slate-400">
-                    <span>Database Status</span>
-                    <span class="text-emerald-400">Synced</span>
-                </div>
-                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div class="bg-brand-500 h-full w-3/4 rounded-full"></div>
-                </div>
-                <p class="text-[10px] text-slate-500">POST /api/v1/meetings active</p>
+            <!-- Architecture Quick Info -->
+            <div class="glass-panel rounded-2xl p-5 space-y-3 border-l-4 border-l-blue-500">
+                <div class="text-xs font-semibold text-blue-400 uppercase tracking-wider">Architecture Note</div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    PCI compliance is offloaded to managed vendor portal. Binary file uploads bypass app workers via <strong class="text-white">AWS S3 Presigned URLs</strong>.
+                </p>
             </div>
         </aside>
 
-        <!-- Main Content Wrapper -->
-        <main class="flex-1 flex flex-col overflow-y-auto bg-slate-950 p-6 lg:p-8">
+        <!-- Main Dynamic Content Area -->
+        <main class="lg:col-span-9 space-y-6">
 
-            <!-- Metrics / KPI Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <div class="glass-card p-5 rounded-2xl relative overflow-hidden group hover:border-slate-700 transition-all">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-medium text-slate-400">Total Sessions</p>
-                            <h3 class="text-2xl font-bold mt-1 text-slate-100" id="totalCount">6</h3>
+            <!-- TAB 1: PORTAL & TELEMETRY -->
+            <div id="tab-dashboard" class="space-y-6">
+                <!-- Banner -->
+                <div class="glass-panel rounded-2xl p-6 relative overflow-hidden bg-gradient-to-r from-blue-900/20 via-slate-900/40 to-slate-900/80">
+                    <div class="absolute right-0 top-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 max-w-2xl space-y-3">
+                        <div class="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-semibold border border-blue-500/20">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>Phase 1 Retention Focus Active</span>
                         </div>
-                        <div class="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-                            <i class="fa-solid fa-calendar-check"></i>
+                        <h2 class="text-2xl font-bold tracking-tight text-white">Consumer Portal Modernization</h2>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            Engineered for high-speed edge delivery. Real-time telemetry is actively capturing user interaction funnels and session events to combat drop-offs.
+                        </p>
+                        <div class="pt-2 flex flex-wrap gap-3">
+                            <button onclick="triggerTelemetryEvent('portal_cta_clicked')" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-600/30 transition flex items-center space-x-2">
+                                <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                                <span>Simulate Telemetry Event (`POST /events`)</span>
+                            </button>
+                            <button onclick="switchTab('billing')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold rounded-xl border border-slate-700 transition">
+                                Manage Subscription & Billing
+                            </button>
                         </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-xs text-emerald-400 gap-1 font-medium">
-                        <i class="fa-solid fa-arrow-trend-up"></i> +12% from last week
                     </div>
                 </div>
 
-                <div class="glass-card p-5 rounded-2xl relative overflow-hidden group hover:border-slate-700 transition-all">
+                <!-- Telemetry Live Stream Table -->
+                <div class="glass-panel rounded-2xl p-6 space-y-4">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-medium text-slate-400">Upcoming Today</p>
-                            <h3 class="text-2xl font-bold mt-1 text-slate-100" id="todayCount">2</h3>
+                            <h3 class="text-lg font-bold text-white">Real User Telemetry & Funnel Ingest</h3>
+                            <p class="text-xs text-slate-400">Live events captured via <code class="text-blue-400">POST /api/v1/telemetry/events</code></p>
                         </div>
-                        <div class="h-10 w-10 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center border border-sky-500/20">
-                            <i class="fa-solid fa-clock"></i>
-                        </div>
+                        <button onclick="clearTelemetryLog()" class="text-xs text-slate-400 hover:text-slate-200 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                            Clear Feed
+                        </button>
                     </div>
-                    <div class="mt-4 flex items-center text-xs text-sky-400 gap-1 font-medium">
-                        <i class="fa-solid fa-bolt"></i> Next in 45 mins
-                    </div>
-                </div>
 
-                <div class="glass-card p-5 rounded-2xl relative overflow-hidden group hover:border-slate-700 transition-all">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-medium text-slate-400">Action Items Open</p>
-                            <h3 class="text-2xl font-bold mt-1 text-slate-100">14</h3>
-                        </div>
-                        <div class="h-10 w-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
-                            <i class="fa-solid fa-list-check"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-xs text-amber-400 gap-1 font-medium">
-                        <i class="fa-solid fa-triangle-exclamation"></i> 3 due today
-                    </div>
-                </div>
-
-                <div class="glass-card p-5 rounded-2xl relative overflow-hidden group hover:border-slate-700 transition-all">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-medium text-slate-400">Total Hours Logged</p>
-                            <h3 class="text-2xl font-bold mt-1 text-slate-100">24.5 hrs</h3>
-                        </div>
-                        <div class="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
-                            <i class="fa-solid fa-chart-line"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-xs text-slate-400 gap-1 font-medium">
-                        Optimized scheduling efficiency
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-300">
+                            <thead class="bg-slate-900/60 text-xs uppercase text-slate-400 font-semibold border-b border-slate-800">
+                                <tr>
+                                    <th class="px-4 py-3">Timestamp</th>
+                                    <th class="px-4 py-3">Event Action</th>
+                                    <th class="px-4 py-3">Session ID</th>
+                                    <th class="px-4 py-3">Device / Geo</th>
+                                    <th class="px-4 py-3 text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="telemetry-table-body" class="divide-y divide-slate-800/60 font-mono text-xs">
+                                <!-- Dynamic rows injected via JS -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Table Controls / Filter bar -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
-                <div class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0">
-                    <button onclick="switchTab('all', this)" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-md transition-all whitespace-nowrap">All Meetings</button>
-                    <button onclick="switchTab('upcoming', this)" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-slate-400 hover:text-white border border-slate-800 transition-all whitespace-nowrap">Upcoming</button>
-                    <button onclick="switchTab('completed', this)" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-slate-400 hover:text-white border border-slate-800 transition-all whitespace-nowrap">Completed</button>
+            <!-- TAB 2: BILLING & DISPUTES -->
+            <div id="tab-billing" class="space-y-6 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Managed Portal Card -->
+                    <div class="glass-panel rounded-2xl p-6 space-y-4 relative border-blue-500/30">
+                        <div class="absolute top-4 right-4">
+                            <span class="px-2 py-1 rounded bg-blue-500/10 text-blue-400 text-[10px] font-bold border border-blue-500/20">Mandated Default</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-credit-card"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Managed Customer Portal</h3>
+                            <p class="text-xs text-slate-400 mt-1">Stripe / Braintree Hosted Portal</p>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Zero PCI-DSS scope overhead. Handles payment tokenization, update workflows, and automated invoice PDF generation.
+                        </p>
+                        <button onclick="openManagedPortalModal()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl text-xs shadow-lg shadow-blue-600/20 transition flex items-center justify-center space-x-2">
+                            <span>Launch Secure Portal SSO</span>
+                            <i class="fa-solid fa-external-link text-[10px]"></i>
+                        </button>
+                    </div>
+
+                    <!-- Custom Billing Fallback Scope -->
+                    <div class="glass-panel rounded-2xl p-6 space-y-4 md:col-span-2 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-base font-bold text-white">Custom Billing Fallback Rules & MVP Scope</h3>
+                                <span class="text-xs text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-mono">Strict Caching Guardrails Active</span>
+                            </div>
+                            <p class="text-xs text-slate-300">
+                                If custom interface is required, scope is strictly capped at three capabilities: <strong class="text-white">1. View Billing History</strong>, <strong class="text-white">2. Update Payment Method</strong>, and <strong class="text-white">3. Cancel/Pause Subscription</strong>.
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3 pt-2">
+                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-center">
+                                <div class="text-emerald-400 font-bold text-sm">Active</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">Billing History</div>
+                            </div>
+                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-center">
+                                <div class="text-emerald-400 font-bold text-sm">Configured</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">Payment Method</div>
+                            </div>
+                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-center">
+                                <div class="text-emerald-400 font-bold text-sm">Protected</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">CDC Cache Guard</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="flex items-center space-x-3">
-                    <select id="categoryFilter" onchange="applyFilters()" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-medium text-slate-300 focus:outline-none focus:border-brand-500">
-                        <option value="">All Categories</option>
-                        <option value="Engineering">Engineering</option>
-                        <option value="Product">Product</option>
-                        <option value="Executive">Executive</option>
-                    </select>
-                    <button onclick="renderMeetings()" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-rotate"></i> Refresh
-                    </button>
+                <!-- Async Dispute Submission Form (Matching Spec Section 3.1) -->
+                <div class="glass-panel rounded-2xl p-6 space-y-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Submit Billing Dispute (Async Worker Pipeline)</h3>
+                        <p class="text-xs text-slate-400">Demonstrates Direct-to-S3 presigned URL upload & Asynchronous SQS Queue job processing.</p>
+                    </div>
+
+                    <form id="dispute-form" onsubmit="handleDisputeSubmission(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Dispute Reason</label>
+                                <select id="dispute-reason" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                                    <option value="incorrect_charge">incorrect_charge</option>
+                                    <option value="duplicate_billing">duplicate_billing</option>
+                                    <option value="unrecognized_transaction">unrecognized_transaction</option>
+                                    <option value="service_failure">service_failure</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Evidence Document (PDF/Receipt)</label>
+                                <input type="file" id="dispute-file" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-300 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="submit" id="submit-dispute-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-blue-600/30 transition flex items-center space-x-2">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <span>Request Presigned URL & Dispatch Job</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Active Jobs / Async Status Tracker -->
+                    <div id="async-jobs-container" class="mt-6 pt-6 border-t border-slate-800 space-y-3 hidden">
+                        <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Asynchronous Job Pipeline Status</h4>
+                        <div id="job-status-card" class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                            <div class="space-y-1">
+                                <div class="flex items-center space-x-2">
+                                    <span id="job-id-display" class="font-mono text-xs text-blue-400 font-bold">job-77123-abc</span>
+                                    <span id="job-status-badge" class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold">QUEUED</span>
+                                </div>
+                                <p id="job-status-desc" class="text-xs text-slate-400">File uploaded via AWS S3 Presigned URL. Dispatched to SQS Worker Pool.</p>
+                            </div>
+                            <button id="poll-job-btn" onclick="pollJobStatus()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 rounded-lg border border-slate-700 transition">
+                                Poll Status Endpoint
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Meeting Data Table -->
-            <div class="glass-card rounded-2xl overflow-hidden border border-slate-800/80 shadow-2xl flex-1 flex flex-col">
-                <div class="overflow-x-auto flex-1">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-b border-slate-800 bg-slate-900/50 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                                <th class="py-3.5 px-6">Meeting Title</th>
-                                <th class="py-3.5 px-6">Category</th>
-                                <th class="py-3.5 px-6">Organizer</th>
-                                <th class="py-3.5 px-6">Date & Time</th>
-                                <th class="py-3.5 px-6">Status</th>
-                                <th class="py-3.5 px-6 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="meetingsTableBody" class="divide-y divide-slate-800/60 text-sm">
-                            <!-- Populated dynamically via script -->
-                        </tbody>
-                    </table>
-                </div>
+            <!-- TAB 3: SYSTEM OBSERVABILITY & HEALTH -->
+            <div id="tab-observability" class="space-y-6 hidden">
+                <div class="glass-panel rounded-2xl p-6 space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">System Observability & Health Probes</h3>
+                            <p class="text-xs text-slate-400">Endpoints: <code class="text-blue-400">/healthz/live</code> & <code class="text-blue-400">/healthz/ready</code></p>
+                        </div>
+                        <button onclick="runHealthCheck()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl shadow transition flex items-center space-x-2">
+                            <i class="fa-solid fa-rotate"></i>
+                            <span>Run Probes Now</span>
+                        </button>
+                    </div>
 
-                <!-- Pagination footer -->
-                <div class="p-4 border-t border-slate-800 bg-slate-900/30 flex items-center justify-between text-xs text-slate-400">
-                    <div id="tableCounter">Showing 1 to 6 of 6 entries</div>
-                    <div class="flex items-center space-x-2">
-                        <button class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 disabled:opacity-50" disabled>Previous</button>
-                        <button class="px-3 py-1.5 rounded-lg bg-brand-600 text-white font-medium">1</button>
-                        <button class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700">Next</button>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Database Check -->
+                        <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-slate-400 font-medium">Database (RLS / Conn)</span>
+                                <span id="check-db" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            </div>
+                            <div class="text-sm font-bold text-white">UP</div>
+                            <p class="text-[10px] text-slate-500">Row-Level Security active & pre-filtered.</p>
+                        </div>
+
+                        <!-- Queue Lag Check -->
+                        <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-slate-400 font-medium">SQS Queue Depth / Lag</span>
+                                <span id="check-queue" class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                            </div>
+                            <div class="text-sm font-bold text-white">OK (0 msgs lag)</div>
+                            <p class="text-[10px] text-slate-500">Asynchronous background worker pool healthy.</p>
+                        </div>
+
+                        <!-- Billing Portal Check -->
+                        <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-slate-400 font-medium">Managed Billing Portal</span>
+                                <span id="check-billing" class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                            </div>
+                            <div class="text-sm font-bold text-white">UP</div>
+                            <p class="text-[10px] text-slate-500">PCI compliance scope fully offloaded.</p>
+                        </div>
+                    </div>
+
+                    <!-- Raw JSON Health Payload Output -->
+                    <div class="space-y-2">
+                        <div class="text-xs font-semibold text-slate-400">Live JSON Response (`GET /healthz/ready`)</div>
+                        <pre id="health-json-output" class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs font-mono text-emerald-400 overflow-x-auto">{
+  "status": "READY",
+  "checks": {
+    "database": "UP",
+    "queueLag": "OK",
+    "billingPortal": "UP"
+  }
+}</pre>
                     </div>
                 </div>
             </div>
@@ -271,450 +386,191 @@
         </main>
     </div>
 
-    <!-- Create/Edit Meeting Modal -->
-    <div id="meetingModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="glass-card w-full max-w-lg rounded-3xl border border-slate-700 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
-                <div class="flex items-center space-x-3">
-                    <div class="h-8 w-8 rounded-lg bg-brand-600/20 text-brand-400 flex items-center justify-center">
-                        <i class="fa-solid fa-calendar-plus"></i>
-                    </div>
-                    <h3 id="modalTitle" class="font-bold text-base text-slate-100">Schedule New Meeting</h3>
+    <!-- Managed Portal SSO Simulated Modal -->
+    <div id="managed-portal-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-panel max-w-lg w-full rounded-2xl p-6 space-y-6 border border-slate-700 shadow-2xl relative">
+            <button onclick="closeManagedPortalModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center">
+                    <i class="fa-solid fa-lock text-lg"></i>
                 </div>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-200 h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-800 transition-all">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <form id="meetingForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
-                <input type="hidden" id="meetingId">
-                
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Meeting Title</label>
-                    <input type="text" id="title" required placeholder="e.g. Q3 Architecture Review" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500 transition-all">
+                    <h3 class="text-base font-bold text-white">Managed Customer Portal SSO Redirect</h3>
+                    <p class="text-xs text-slate-400">PCI-DSS Scope Elimination Guardrail</p>
                 </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Category</label>
-                        <select id="category" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500 transition-all">
-                            <option value="Engineering">Engineering</option>
-                            <option value="Product">Product</option>
-                            <option value="Executive">Executive</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Organizer</label>
-                        <input type="text" id="organizer" required placeholder="e.g. Alex Mercer" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500 transition-all">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Date & Time</label>
-                        <input type="datetime-local" id="datetime" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500 transition-all">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Status</label>
-                        <select id="status" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500 transition-all">
-                            <option value="upcoming">Upcoming</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Agenda / Notes</label>
-                    <textarea id="agenda" rows="3" placeholder="Outline primary meeting objectives..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-brand-500 transition-all"></textarea>
-                </div>
-
-                <div class="pt-4 border-t border-slate-800 flex items-center justify-end space-x-3">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border border-slate-800 text-slate-300 text-xs font-medium hover:bg-slate-900 transition-all">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-medium shadow-lg shadow-brand-600/30 transition-all">Save Meeting</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Slide-over Details Drawer -->
-    <div id="detailsDrawer" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex justify-end">
-        <div class="glass-card w-full max-w-md h-full border-l border-slate-700 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200 bg-slate-950">
-            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
-                <div class="flex items-center space-x-3">
-                    <div class="h-8 w-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
-                        <i class="fa-solid fa-circle-info"></i>
-                    </div>
-                    <h3 class="font-bold text-base text-slate-100">Meeting Details</h3>
-                </div>
-                <button onclick="closeDetails()" class="text-slate-400 hover:text-slate-200 h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-800 transition-all">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
             </div>
-
-            <div id="drawerContent" class="p-6 space-y-6 overflow-y-auto flex-1">
-                <!-- Injected via JS -->
+            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-xs space-y-2 text-slate-300">
+                <p>You are securely exchanging session tokens to open the managed vendor billing portal (Stripe Customer Portal frame).</p>
+                <p class="text-slate-400 font-mono">Token Expiry: 300s | Secure SSO Hash Verified</p>
             </div>
-
-            <div class="p-4 border-t border-slate-800 bg-slate-900/30 flex items-center justify-between">
-                <button onclick="deleteMeetingFromDrawer()" class="text-rose-400 hover:text-rose-300 text-xs font-medium flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-rose-500/10 transition-all">
-                    <i class="fa-solid fa-trash"></i> Delete Meeting
-                </button>
-                <button onclick="closeDetails()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium transition-all">Close</button>
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeManagedPortalModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700 transition">Cancel</button>
+                <button onclick="confirmManagedPortalRedirect()" class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition">Proceed to Secure Portal</button>
             </div>
         </div>
     </div>
 
-    <!-- Notification Toast Container -->
-    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 bg-slate-900/30 py-6 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+            <div>Project Nexus Technical Specification Mockup &bull; Edge CDN Architecture</div>
+            <div class="flex items-center space-x-4">
+                <span>LCP &le; 2.5s</span>
+                <span>&bull;</span>
+                <span>INP &le; 200ms</span>
+                <span>&bull;</span>
+                <span>PCI-DSS Scope Offloaded</span>
+            </div>
+        </div>
+    </footer>
 
-    <!-- Script Application Logic -->
+    <!-- Interactive JavaScript Engine -->
     <script>
-        // Mock Database complying with /api/v1/meetings specification
-        let meetings = [
-            {
-                id: "m-101",
-                title: "Sprint 42 Retrospective",
-                category: "Engineering",
-                organizer: "Sarah Jenkins",
-                datetime: "2023-11-20T10:00",
-                status: "upcoming",
-                agenda: "Review velocity metrics, discuss blockers, analyze bug burn-down chart."
-            },
-            {
-                id: "m-102",
-                title: "Q4 Roadmap Strategy",
-                category: "Product",
-                organizer: "David Miller",
-                datetime: "2023-11-20T14:30",
-                status: "upcoming",
-                agenda: "Align core feature deliverables with target executive outcomes for Q4."
-            },
-            {
-                id: "m-103",
-                title: "Board Executive Briefing",
-                category: "Executive",
-                organizer: "Eleanor Vance",
-                datetime: "2023-11-21T09:00",
-                status: "upcoming",
-                agenda: "Financial performance summary and capital allocation strategy."
-            },
-            {
-                id: "m-104",
-                title: "API Gateway Migration",
-                category: "Engineering",
-                organizer: "Alex Mercer",
-                datetime: "2023-11-18T11:00",
-                status: "completed",
-                agenda: "Transition legacy REST endpoints to GraphQL gateway infrastructure."
-            },
-            {
-                id: "m-105",
-                title: "Design System Sync v2",
-                category: "Product",
-                organizer: "Chloe Grace",
-                datetime: "2023-11-17T15:00",
-                status: "completed",
-                agenda: "Token consolidation across Tailwind components and Figma variables."
-            },
-            {
-                id: "m-106",
-                title: "Database Indexing & Scaling",
-                category: "Engineering",
-                organizer: "Marcus Thorne",
-                datetime: "2023-11-16T16:30",
-                status: "completed",
-                agenda: "Review query execution plans and optimize high-traffic PostgreSQL tables."
-            }
+        // Tab switching logic
+        function switchTab(tabId) {
+            ['dashboard', 'billing', 'observability'].forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                const nav = document.getElementById(`nav-${t}`);
+                if (t === tabId) {
+                    el.classList.remove('hidden');
+                    nav.className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition bg-blue-600 text-white shadow-lg shadow-blue-600/20";
+                } else {
+                    el.classList.add('hidden');
+                    nav.className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition";
+                }
+            });
+        }
+
+        // Telemetry simulated feed mock data
+        let telemetryEvents = [
+            { timestamp: new Date(Date.now() - 120000).toISOString(), action: 'page_view: /portal/dashboard', sessionId: 'sess_99182a', device: 'Desktop / US-East', status: '204 No Content' },
+            { timestamp: new Date(Date.now() - 90000).toISOString(), action: 'interaction: subscription_tab_click', sessionId: 'sess_99182a', device: 'Desktop / US-East', status: '204 No Content' },
+            { timestamp: new Date(Date.now() - 45000).toISOString(), action: 'funnel_step: dispute_form_init', sessionId: 'sess_88310b', device: 'Mobile / EU-West', status: '204 No Content' },
+            { timestamp: new Date(Date.now() - 10000).toISOString(), action: 'telemetry: heartbeat_ping', sessionId: 'sess_88310b', device: 'Mobile / EU-West', status: '204 No Content' }
         ];
 
-        let currentFilter = 'all';
-        let currentCategory = '';
-        let searchQuery = '';
-        let activeMeetingId = null;
-
-        // Initialization
-        document.addEventListener('DOMContentLoaded', () => {
-            renderMeetings();
-            updateMetrics();
-
-            // Search listener
-            document.getElementById('globalSearch').addEventListener('input', (e) => {
-                searchQuery = e.target.value.toLowerCase();
-                renderMeetings();
-            });
-        });
-
-        function renderMeetings() {
-            const tbody = document.getElementById('meetingsTableBody');
-            tbody.innerHTML = '';
-
-            let filtered = meetings.filter(m => {
-                const matchesTab = currentFilter === 'all' || m.status === currentFilter;
-                const matchesCat = !currentCategory || m.category === currentCategory;
-                const matchesSearch = !searchQuery || m.title.toLowerCase().includes(searchQuery) || m.organizer.toLowerCase().includes(searchQuery) || m.agenda.toLowerCase().includes(searchQuery);
-                return matchesTab && matchesCat && matchesSearch;
-            });
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="text-center py-12 text-slate-500">
-                            <div class="flex flex-col items-center justify-center space-y-3">
-                                <div class="h-12 w-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 text-lg">
-                                    <i class="fa-solid fa-folder-open"></i>
-                                </div>
-                                <p class="text-sm font-medium">No meetings found matching parameters.</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                document.getElementById('tableCounter').innerText = `Showing 0 entries`;
-                return;
-            }
-
-            filtered.forEach(m => {
-                const badgeColor = m.status === 'upcoming' 
-                    ? 'bg-sky-500/10 text-sky-400 border-sky-500/20' 
-                    : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-
-                const categoryIcon = m.category === 'Engineering' ? 'fa-code text-indigo-400' : m.category === 'Product' ? 'fa-layer-group text-sky-400' : 'fa-chess text-emerald-400';
-
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-900/40 transition-all group cursor-pointer';
-                tr.onclick = (e) => {
-                    // Prevent trigger if clicking action buttons directly
-                    if(!e.target.closest('button')) openDetails(m.id);
-                };
-
-                tr.innerHTML = `
-                    <td class="py-4 px-6 font-medium text-slate-200">
-                        <div class="flex items-center gap-2.5">
-                            <span class="h-2 w-2 rounded-full ${m.status === 'upcoming' ? 'bg-sky-400' : 'bg-slate-600'}"></span>
-                            ${m.title}
-                        </div>
-                    </td>
-                    <td class="py-4 px-6 text-slate-300">
-                        <span class="inline-flex items-center gap-1.5 text-xs">
-                            <i class="fa-solid ${categoryIcon}"></i> ${m.category}
-                        </span>
-                    </td>
-                    <td class="py-4 px-6 text-slate-300 text-xs">${m.organizer}</td>
-                    <td class="py-4 px-6 text-slate-400 text-xs">${formatDate(m.datetime)}</td>
-                    <td class="py-4 px-6">
-                        <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold border ${badgeColor} capitalize">
-                            ${m.status}
-                        </span>
-                    </td>
-                    <td class="py-4 px-6 text-right">
-                        <div class="flex items-center justify-end space-x-2 opacity-80 group-hover:opacity-100 transition-all">
-                            <button onclick="openEditModal('${m.id}')" class="h-8 w-8 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center transition-all" title="Edit">
-                                <i class="fa-solid fa-pen-to-square text-xs"></i>
-                            </button>
-                            <button onclick="openDetails('${m.id}')" class="h-8 w-8 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center transition-all" title="Details">
-                                <i class="fa-solid fa-arrow-right text-xs"></i>
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            document.getElementById('tableCounter').innerText = `Showing ${filtered.length} of ${meetings.length} entries`;
+        function renderTelemetryTable() {
+            const tbody = document.getElementById('telemetry-table-body');
+            tbody.innerHTML = telemetryEvents.map(ev => `
+                <tr class="hover:bg-slate-900/40 transition">
+                    <td class="px-4 py-3 text-slate-400">${ev.timestamp.split('T')[1].slice(0, 8)}</td>
+                    <td class="px-4 py-3 text-blue-400 font-bold">${ev.action}</td>
+                    <td class="px-4 py-3 text-slate-300">${ev.sessionId}</td>
+                    <td class="px-4 py-3 text-slate-400">${ev.device}</td>
+                    <td class="px-4 py-3 text-right"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px]">${ev.status}</span></td>
+                </tr>
+            `).join('');
         }
 
-        function updateMetrics() {
-            document.getElementById('totalCount').innerText = meetings.length;
-            const upcomingCount = meetings.filter(m => m.status === 'upcoming').length;
-            document.getElementById('todayCount').innerText = upcomingCount;
-        }
-
-        function formatDate(dtStr) {
-            if(!dtStr) return '';
-            const options = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-            return new Date(dtStr).toLocaleDateString('en-US', options);
-        }
-
-        // Filters & Tabs
-        function switchTab(tab, btn) {
-            currentFilter = tab;
-            document.querySelectorAll('.tab-btn').forEach(b => {
-                b.className = 'tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-slate-400 hover:text-white border border-slate-800 transition-all whitespace-nowrap';
-            });
-            btn.className = 'tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-md transition-all whitespace-nowrap';
-            renderMeetings();
-        }
-
-        function filterView(tab, element) {
-            currentFilter = tab;
-            document.querySelectorAll('.sidebar-link').forEach(l => {
-                l.className = 'sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-all';
-            });
-            element.className = 'sidebar-link flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-brand-600/10 text-brand-400 border border-brand-500/20 transition-all';
-            renderMeetings();
-        }
-
-        function filterCategory(category, element) {
-            currentCategory = currentCategory === category ? '' : category;
-            document.querySelectorAll('.category-link').forEach(l => l.classList.remove('bg-slate-900', 'text-slate-200'));
-            if(currentCategory) {
-                element.classList.add('bg-slate-900', 'text-slate-200');
-            }
-            renderMeetings();
-        }
-
-        function applyFilters() {
-            currentCategory = document.getElementById('categoryFilter').value;
-            renderMeetings();
-        }
-
-        // Modal Actions
-        function openModal() {
-            document.getElementById('modalTitle').innerText = 'Schedule New Meeting';
-            document.getElementById('meetingForm').reset();
-            document.getElementById('meetingId').value = '';
-            // Set default date to now
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            document.getElementById('datetime').value = now.toISOString().slice(0,16);
-            document.getElementById('meetingModal').classList.remove('hidden');
-        }
-
-        function openEditModal(id) {
-            const m = meetings.find(item => item.id === id);
-            if(!m) return;
-
-            document.getElementById('modalTitle').innerText = 'Edit Meeting Record';
-            document.getElementById('meetingId').value = m.id;
-            document.getElementById('title').value = m.title;
-            document.getElementById('category').value = m.category;
-            document.getElementById('organizer').value = m.organizer;
-            document.getElementById('datetime').value = m.datetime;
-            document.getElementById('status').value = m.status;
-            document.getElementById('agenda').value = m.agenda;
-
-            document.getElementById('meetingModal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('meetingModal').classList.add('hidden');
-        }
-
-        // Form Submit Handler (API Mock POST / PUT)
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            const id = document.getElementById('meetingId').value;
-            const data = {
-                id: id ? id : 'm-' + Math.floor(Math.random() * 900 + 100),
-                title: document.getElementById('title').value,
-                category: document.getElementById('category').value,
-                organizer: document.getElementById('organizer').value,
-                datetime: document.getElementById('datetime').value,
-                status: document.getElementById('status').value,
-                agenda: document.getElementById('agenda').value
+        function triggerTelemetryEvent(actionName) {
+            const newEvent = {
+                timestamp: new Date().toISOString(),
+                action: `user_action: ${actionName}`,
+                sessionId: 'sess_' + Math.random().toString(36).substring(2, 8),
+                device: 'Desktop / Edge-CDN',
+                status: '204 No Content'
             };
-
-            if(id) {
-                const index = meetings.findIndex(m => m.id === id);
-                if(index !== -1) meetings[index] = data;
-                showToast('Meeting updated successfully via API PATCH', 'success');
-            } else {
-                meetings.unshift(data);
-                showToast('New meeting created successfully via API POST', 'success');
-            }
-
-            closeModal();
-            renderMeetings();
-            updateMetrics();
+            telemetryEvents.unshift(newEvent);
+            renderTelemetryTable();
         }
 
-        // Details Drawer
-        function openDetails(id) {
-            activeMeetingId = id;
-            const m = meetings.find(item => item.id === id);
-            if(!m) return;
-
-            const container = document.getElementById('drawerContent');
-            container.innerHTML = `
-                <div class="space-y-4">
-                    <div>
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Meeting Title</span>
-                        <h4 class="text-lg font-bold text-slate-100 mt-1">${m.title}</h4>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 pt-2">
-                        <div class="glass-card p-3 rounded-xl border border-slate-800">
-                            <span class="text-[11px] font-medium text-slate-400 block">Category</span>
-                            <span class="text-sm font-semibold text-slate-200 mt-1 inline-block">${m.category}</span>
-                        </div>
-                        <div class="glass-card p-3 rounded-xl border border-slate-800">
-                            <span class="text-[11px] font-medium text-slate-400 block">Status</span>
-                            <span class="text-sm font-semibold capitalize mt-1 inline-block ${m.status === 'upcoming' ? 'text-sky-400' : 'text-emerald-400'}">${m.status}</span>
-                        </div>
-                    </div>
-
-                    <div class="glass-card p-3 rounded-xl border border-slate-800 space-y-1">
-                        <span class="text-[11px] font-medium text-slate-400 block">Organizer</span>
-                        <div class="flex items-center space-x-2 text-sm text-slate-200 font-medium">
-                            <div class="h-6 w-6 rounded-full bg-slate-800 flex items-center justify-center text-xs text-brand-400">
-                                ${m.organizer.charAt(0)}
-                            </div>
-                            <span>${m.organizer}</span>
-                        </div>
-                    </div>
-
-                    <div class="glass-card p-3 rounded-xl border border-slate-800">
-                        <span class="text-[11px] font-medium text-slate-400 block">Scheduled Timestamp</span>
-                        <span class="text-sm font-semibold text-slate-200 mt-1 inline-block"><i class="fa-solid fa-calendar mr-1.5 text-brand-400"></i>${formatDate(m.datetime)}</span>
-                    </div>
-
-                    <div class="pt-2">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">Agenda & Objectives</span>
-                        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-sm text-slate-300 leading-relaxed">
-                            ${m.agenda || 'No agenda recorded for this session.'}
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('detailsDrawer').classList.remove('hidden');
+        function clearTelemetryLog() {
+            telemetryEvents = [];
+            renderTelemetryTable();
         }
 
-        function closeDetails() {
-            document.getElementById('detailsDrawer').classList.add('hidden');
-            activeMeetingId = null;
-        }
+        // Dispute form submission & async job lifecycle simulation
+        let currentJobStatus = 'QUEUED';
 
-        function deleteMeetingFromDrawer() {
-            if(!activeMeetingId) return;
-            if(confirm('Are you sure you want to delete this meeting record?')) {
-                meetings = meetings.filter(m => m.id !== activeMeetingId);
-                closeDetails();
-                renderMeetings();
-                updateMetrics();
-                showToast('Meeting record deleted successfully', 'error');
-            }
-        }
-
-        // Toast Notification System
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            const icon = type === 'success' ? 'fa-circle-check text-emerald-400' : 'fa-circle-exclamation text-rose-400';
-            const border = type === 'success' ? 'border-emerald-500/30 bg-emerald-950/40' : 'border-rose-500/30 bg-rose-950/40';
-
-            toast.className = `glass-card pointer-events-auto flex items-center space-x-3 px-4 py-3 rounded-xl border ${border} text-xs text-slate-200 shadow-xl animate-in slide-in-from-bottom duration-200`;
-            toast.innerHTML = `
-                <i class="fa-solid ${icon} text-base"></i>
-                <span class="font-medium">${message}</span>
-            `;
-
-            container.appendChild(toast);
+        function handleDisputeSubmission(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-dispute-btn');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i><span>Requesting Presigned URL...</span>`;
 
             setTimeout(() => {
-                toast.classList.add('opacity-0', 'transition-all', 'duration-300');
-                setTimeout(() => toast.remove(), 300);
-            }, 3500);
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i><span>Request Presigned URL & Dispatch Job</span>`;
+                
+                // Reveal container
+                document.getElementById('async-jobs-container').classList.remove('hidden');
+                currentJobStatus = 'QUEUED';
+                updateJobCardState();
+                
+                alert("Success: Presigned URL generated, binary uploaded directly to S3, and async job dispatched to SQS with 202 Accepted!");
+            }, 1000);
         }
+
+        function updateJobCardState() {
+            const badge = document.getElementById('job-status-badge');
+            const desc = document.getElementById('job-status-desc');
+            
+            if (currentJobStatus === 'QUEUED') {
+                badge.className = "px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-bold";
+                badge.innerText = "QUEUED";
+                desc.innerText = "File uploaded via AWS S3 Presigned URL. Dispatched to SQS Worker Pool.";
+            } else if (currentJobStatus === 'PROCESSING') {
+                badge.className = "px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-bold";
+                badge.innerText = "PROCESSING";
+                desc.innerText = "Background worker pool parsing evidentiary PDF document out-of-band.";
+            } else if (currentJobStatus === 'COMPLETED') {
+                badge.className = "px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold";
+                badge.innerText = "COMPLETED";
+                desc.innerText = "Job successfully completed. Dispute evidence registered in database.";
+            }
+        }
+
+        function pollJobStatus() {
+            const pollBtn = document.getElementById('poll-job-btn');
+            pollBtn.innerText = "Polling...";
+            
+            setTimeout(() => {
+                if (currentJobStatus === 'QUEUED') currentJobStatus = 'PROCESSING';
+                else if (currentJobStatus === 'PROCESSING') currentJobStatus = 'COMPLETED';
+                else currentJobStatus = 'COMPLETED';
+                
+                updateJobCardState();
+                pollBtn.innerText = "Poll Status Endpoint";
+            }, 600);
+        }
+
+        // Managed portal modal control
+        function openManagedPortalModal() {
+            document.getElementById('managed-portal-modal').classList.remove('hidden');
+        }
+
+        function closeManagedPortalModal() {
+            document.getElementById('managed-portal-modal').classList.add('hidden');
+        }
+
+        function confirmManagedPortalRedirect() {
+            closeManagedPortalModal();
+            alert("Redirecting securely to Stripe / Braintree Customer Portal via SSO token exchange...");
+        }
+
+        // Health check simulation
+        function runHealthCheck() {
+            const output = document.getElementById('health-json-output');
+            output.innerText = `Checking dependencies...`;
+            setTimeout(() => {
+                output.innerText = JSON.stringify({
+                    "status": "READY",
+                    "checks": {
+                        "database": "UP",
+                        "queueLag": "OK (0 msgs)",
+                        "billingPortal": "UP"
+                    },
+                    "timestamp": new Date().toISOString()
+                }, null, 2);
+            }, 400);
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            renderTelemetryTable();
+        };
     </script>
 </body>
 </html>

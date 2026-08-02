@@ -13,7 +13,8 @@ export const backendAdapter = {
         output: null
       });
 
-      const { jobId } = await api.generate(type, instructions);
+      const activeProject = localStorage.getItem('activeProject') || 'sdd-enterprise-dev';
+      const { jobId } = await api.generate(type, instructions, activeProject);
       
       updatePageState(type, {
         logs: [`[Client] Request enqueued. Job ID: ${jobId}`, `[Queue] Job accepted. Polling status...`]

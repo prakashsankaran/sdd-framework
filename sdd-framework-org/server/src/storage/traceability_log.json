@@ -1,0 +1,60 @@
+[
+  {
+    "id": "1785687006085297",
+    "timestamp": "2026-08-02T16:10:06.085Z",
+    "agentId": "spec-to-story",
+    "filename": "User_Stories.md",
+    "format": "md",
+    "activeSpec": "001-meeting-manager"
+  },
+  {
+    "id": "178568720222828",
+    "timestamp": "2026-08-02T16:13:22.228Z",
+    "agentId": "user-stories",
+    "filename": "JIRA_Backlog.md",
+    "format": "md",
+    "activeSpec": "001-meeting-manager"
+  },
+  {
+    "id": "1785687680008865",
+    "timestamp": "2026-08-02T16:21:20.008Z",
+    "agentId": "ux-wireframe",
+    "filename": "wireframe_prototype.html",
+    "format": "html",
+    "activeSpec": "001-meeting-manager"
+  },
+  {
+    "id": "1785688394678371",
+    "timestamp": "2026-08-02T16:33:14.678Z",
+    "agentId": "spec-to-story",
+    "filename": "User_Stories.md",
+    "format": "md",
+    "activeSpec": "001-meeting-manager"
+  },
+  {
+    "id": "1785688401506192",
+    "timestamp": "2026-08-02T16:33:21.506Z",
+    "agentId": "user-stories",
+    "filename": "JIRA_Backlog.md",
+    "format": "md",
+    "activeSpec": "001-meeting-manager"
+  },
+  {
+    "id": "1785688588115545",
+    "timestamp": "2026-08-02T16:36:28.115Z",
+    "agentId": "ux-wireframe",
+    "filename": "wireframe_prototype.html",
+    "format": "html",
+    "activeSpec": "001-meeting-manager",
+    "activeProject": "sdd-enterprise-dev"
+  },
+  {
+    "id": "1785688620204844",
+    "timestamp": "2026-08-02T16:37:00.204Z",
+    "agentId": "user-stories",
+    "filename": "JIRA_Backlog.md",
+    "format": "md",
+    "activeSpec": "001-meeting-manager",
+    "activeProject": "sdd-enterprise-dev"
+  }
+]

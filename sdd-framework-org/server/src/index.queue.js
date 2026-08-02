@@ -11,6 +11,7 @@ const { indexDocument, indexBrownfieldItem } = require('./services/vectorDb.serv
 const tokenTracker = require('./services/tokenTracker.service');
 const codeToSpecService = require('./services/codeToSpec.service');
 const impactAnalysisService = require('./services/impactAnalysis.service');
+const traceabilityService = require('./services/traceability.service');
 const AdmZip = require('adm-zip');
 
 
@@ -70,6 +71,17 @@ app.delete('/api/tokens/clear', (req, res) => {
   try {
     const result = tokenTracker.clearHistory();
     res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Traceability Logs API endpoint
+app.get('/api/traceability/logs', (req, res) => {
+  try {
+    const projectFilter = req.query.project || '';
+    const logs = traceabilityService.getLogs(projectFilter);
+    res.json({ success: true, logs });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -2364,7 +2376,7 @@ TABLE OF CONTENTS (always include)
   }
 }
 
-async function saveAndIndexJob(type, result) {
+async function saveAndIndexJob(type, result, activeProject = 'sdd-enterprise-dev') {
   if (!result) return;
   
   let filename = '';
@@ -2467,7 +2479,7 @@ async function saveAndIndexJob(type, result) {
   }
 
   try {
-    await indexDocument(type, filename, format, text, activeSpecDirName);
+    await indexDocument(type, filename, format, text, activeSpecDirName, activeProject);
     console.log(`[SaveAndIndex] Successfully archived and indexed ${filename} for ${type}`);
 
     // Also save raw JSON state to disk
@@ -2489,7 +2501,7 @@ async function saveAndIndexJob(type, result) {
 // Generate Job Route
 app.post('/api/generate/:type', (req, res) => {
   const { type } = req.params;
-  const { instructions } = req.body;
+  const { instructions, activeProject = 'sdd-enterprise-dev' } = req.body;
   const jobId = `job-${Date.now()}`;
   
   // Read workspace spec content for reference
@@ -2542,7 +2554,7 @@ app.post('/api/generate/:type', (req, res) => {
           jobs[jobId].result = output;
           jobs[jobId].status = 'completed';
           jobs[jobId].logs.push(`[Queue] Job ${jobId} finished successfully.`);
-          saveAndIndexJob(type, output);
+          saveAndIndexJob(type, output, activeProject);
         } catch (e) {
           jobs[jobId].status = 'failed';
           jobs[jobId].logs.push(`[Queue] Job failed: ${e.message}`);
@@ -2558,6 +2570,7 @@ app.post('/api/generate/:type', (req, res) => {
 // Alias for non-api route format
 app.post('/generate/:type', (req, res) => {
   const { type } = req.params;
+  const { instructions, activeProject = 'sdd-enterprise-dev' } = req.body || {};
   const jobId = `job-${Date.now()}`;
   
   let specContent = '';
@@ -2594,7 +2607,7 @@ app.post('/generate/:type', (req, res) => {
           jobs[jobId].result = output;
           jobs[jobId].status = 'completed';
           jobs[jobId].logs.push(`[Queue] Job finished successfully.`);
-          saveAndIndexJob(type, output);
+          saveAndIndexJob(type, output, activeProject);
         } catch (e) {
           jobs[jobId].status = 'failed';
           jobs[jobId].logs.push(`[Queue] Job failed: ${e.message}`);

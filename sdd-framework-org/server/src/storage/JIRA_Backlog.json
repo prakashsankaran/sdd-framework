@@ -2,12 +2,408 @@
   "spreadsheet": [
     {
       "id": 1,
-      "summary": "SYS-001: Core System Implementation",
-      "description": "Establish foundation setups matching main layout specs.",
+      "summary": "PRO-001: **Phase 1: Consumer Portal Modernization & Telemetry (Retent...",
+      "description": "Verify and automate processing logic for: **Phase 1: Consumer Portal Modernization & Telemetry (Retention Focus)**",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Dynamic, 12PhasedRo"
+    },
+    {
+      "id": 2,
+      "summary": "PRO-002: Re-architect the web frontend using a modern responsive fram...",
+      "description": "Verify and automate processing logic for: Re-architect the web frontend using a modern responsive framework delivered via Edge CDN.",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Dynamic, 12PhasedRo"
+    },
+    {
+      "id": 3,
+      "summary": "PRO-003: Embed comprehensive product analytics telemetry (session tra...",
+      "description": "Verify and automate processing logic for: Embed comprehensive product analytics telemetry (session tracking, user interaction funnels, drop-off points) to validate whether performance improvements directly correlate with retention recovery.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 3,
+      "labels": "Dynamic, 12PhasedRo"
+    },
+    {
+      "id": 4,
+      "summary": "PRO-004: **Phase 2: Self-Service Billing Capabilities**",
+      "description": "Verify and automate processing logic for: **Phase 2: Self-Service Billing Capabilities**",
+      "issueType": "Task",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Dynamic, 12PhasedRo"
+    },
+    {
+      "id": 5,
+      "summary": "PRO-005: Integrate self-service billing, payment method management, s...",
+      "description": "Verify and automate processing logic for: Integrate self-service billing, payment method management, subscription management, and billing dispute capabilities.",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Dynamic, 12PhasedRo"
+    },
+    {
+      "id": 6,
+      "summary": "PRO-006: **Edge Delivery**: Global Edge CDN and serverless edge runti...",
+      "description": "Verify and automate processing logic for: **Edge Delivery**: Global Edge CDN and serverless edge runtime to serve static assets and perform edge-side rendering/caching.",
       "issueType": "Story",
       "priority": "High",
       "storyPoints": 5,
-      "labels": "Setup, Core"
+      "labels": "Dynamic, 21EdgeDeli"
+    },
+    {
+      "id": 7,
+      "summary": "PRO-007: **Responsive Framework**: Mobile-first design principles gua...",
+      "description": "Verify and automate processing logic for: **Responsive Framework**: Mobile-first design principles guaranteeing fluid adaptability across desktop, tablet, and mobile viewport sizes.",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Dynamic, 21EdgeDeli"
+    },
+    {
+      "id": 8,
+      "summary": "PRO-008: **Scope Offloaded**: PCI compliance, payment method collecti...",
+      "description": "Verify and automate processing logic for: **Scope Offloaded**: PCI compliance, payment method collection/updates, payment method tokenization, PDF invoice generation, and transactional billing state management.",
+      "issueType": "Task",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Dynamic, 22BillingI"
+    },
+    {
+      "id": 9,
+      "summary": "PRO-009: **Integration Method**: Secure SSO/session token exchange re...",
+      "description": "Verify and automate processing logic for: **Integration Method**: Secure SSO/session token exchange redirecting or embedding vendor portal frames securely.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 3,
+      "labels": "Dynamic, 22BillingI"
+    },
+    {
+      "id": 10,
+      "summary": "PRO-010: **MVP Scope Boundary**: Custom billing scope is strictly cap...",
+      "description": "Verify and automate processing logic for: **MVP Scope Boundary**: Custom billing scope is strictly capped at three capabilities:",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Dynamic, 22BillingI"
+    },
+    {
+      "id": 11,
+      "summary": "PRO-011: **Transactional Caching Guardrail**: Volatile transactional ...",
+      "description": "Verify and automate processing logic for: **Transactional Caching Guardrail**: Volatile transactional billing states (e.g., real-time account balance, current invoice status, payment completion states) **MUST NOT** be cached in Redis or in-memory dynamic caches without strict event-driven invalidation. Any allowed caching must use explicit Change Data Capture (CDC) or Pub/Sub event-driven cache invalidation triggers directly connected to the transactional database.",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Dynamic, 22BillingI"
+    },
+    {
+      "id": 12,
+      "summary": "PRO-012: **`POST /api/v1/telemetry/events`**",
+      "description": "Verify and automate processing logic for: **`POST /api/v1/telemetry/events`**",
+      "issueType": "Task",
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 13,
+      "summary": "PRO-013: *Description*: Captures user interaction, route changes, and...",
+      "description": "Verify and automate processing logic for: *Description*: Captures user interaction, route changes, and funnel drop-off events.",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 14,
+      "summary": "PRO-014: *Response*: `204 No Content`",
+      "description": "Verify and automate processing logic for: *Response*: `204 No Content`",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 15,
+      "summary": "PRO-015: **`POST /api/v1/billing/disputes/upload-url`**",
+      "description": "Verify and automate processing logic for: **`POST /api/v1/billing/disputes/upload-url`**",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 3,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 16,
+      "summary": "PRO-016: *Request Body*:",
+      "description": "Verify and automate processing logic for: *Request Body*:",
+      "issueType": "Task",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 17,
+      "summary": "PRO-017: *Response*: `200 OK`",
+      "description": "Verify and automate processing logic for: *Response*: `200 OK`",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 18,
+      "summary": "PRO-018: **`POST /api/v1/billing/disputes`**",
+      "description": "Verify and automate processing logic for: **`POST /api/v1/billing/disputes`**",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 19,
+      "summary": "PRO-019: *Request Body*:",
+      "description": "Verify and automate processing logic for: *Request Body*:",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 20,
+      "summary": "PRO-020: *Response*: `202 Accepted`",
+      "description": "Verify and automate processing logic for: *Response*: `202 Accepted`",
+      "issueType": "Task",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 21,
+      "summary": "PRO-021: **`GET /api/v1/jobs/{jobId}`**",
+      "description": "Verify and automate processing logic for: **`GET /api/v1/jobs/{jobId}`**",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 3,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 22,
+      "summary": "PRO-022: *Response*: `200 OK`",
+      "description": "Verify and automate processing logic for: *Response*: `200 OK`",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 23,
+      "summary": "PRO-023: **`GET /healthz/live`**",
+      "description": "Verify and automate processing logic for: **`GET /healthz/live`**",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 24,
+      "summary": "PRO-024: *Description*: Liveness probe verifying server instance exec...",
+      "description": "Verify and automate processing logic for: *Description*: Liveness probe verifying server instance execution.",
+      "issueType": "Task",
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 25,
+      "summary": "PRO-025: *Response*: `200 OK` -> `{\"status\": \"UP\"}`",
+      "description": "Verify and automate processing logic for: *Response*: `200 OK` -> `{\"status\": \"UP\"}`",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 26,
+      "summary": "PRO-026: **`GET /healthz/ready`**",
+      "description": "Verify and automate processing logic for: **`GET /healthz/ready`**",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 27,
+      "summary": "PRO-027: *Description*: Readiness probe evaluating backend dependenci...",
+      "description": "Verify and automate processing logic for: *Description*: Readiness probe evaluating backend dependencies, billing service connectivity, and message queue lag.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 3,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 28,
+      "summary": "PRO-028: *Response*: `200 OK` or `503 Service Unavailable`",
+      "description": "Verify and automate processing logic for: *Response*: `200 OK` or `503 Service Unavailable`",
+      "issueType": "Task",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Dynamic, 31RESTAPIS"
+    },
+    {
+      "id": 29,
+      "summary": "PRO-029: **Largest Contentful Paint (LCP)**: $\\le 2.5$ seconds.",
+      "description": "Verify and automate processing logic for: **Largest Contentful Paint (LCP)**: $\\le 2.5$ seconds.",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Dynamic, 41CoreWebV"
+    },
+    {
+      "id": 30,
+      "summary": "PRO-030: **Interaction to Next Paint (INP)**: $\\le 200$ milliseconds....",
+      "description": "Verify and automate processing logic for: **Interaction to Next Paint (INP)**: $\\le 200$ milliseconds.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "Dynamic, 41CoreWebV"
+    },
+    {
+      "id": 31,
+      "summary": "PRO-031: **Cumulative Layout Shift (CLS)**: $\\le 0.1$.",
+      "description": "Verify and automate processing logic for: **Cumulative Layout Shift (CLS)**: $\\le 0.1$.",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Dynamic, 41CoreWebV"
+    },
+    {
+      "id": 32,
+      "summary": "PRO-032: **Standard Web Portal APIs**: Response latency $\\le 200$ ms ...",
+      "description": "Verify and automate processing logic for: **Standard Web Portal APIs**: Response latency $\\le 200$ ms at p99.",
+      "issueType": "Task",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Dynamic, 42APIPerfo"
+    },
+    {
+      "id": 33,
+      "summary": "PRO-033: **Billing Query Endpoints (Fallback Custom Billing)**: Respo...",
+      "description": "Verify and automate processing logic for: **Billing Query Endpoints (Fallback Custom Billing)**: Response latency $\\le 300$ ms at p99.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 3,
+      "labels": "Dynamic, 42APIPerfo"
+    },
+    {
+      "id": 34,
+      "summary": "PRO-034: **Asynchronous Processing Handshake**: Direct upload presign...",
+      "description": "Verify and automate processing logic for: **Asynchronous Processing Handshake**: Direct upload presigned URL request & job submission endpoints latency $\\le 100$ ms at p99.",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Dynamic, 42APIPerfo"
+    },
+    {
+      "id": 35,
+      "summary": "PRO-035: **PCI-DSS Scope Elimination**: Fully offloaded to managed cu...",
+      "description": "Verify and automate processing logic for: **PCI-DSS Scope Elimination**: Fully offloaded to managed customer portal vendor (Stripe/Braintree).",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Dynamic, 43Security"
+    },
+    {
+      "id": 36,
+      "summary": "PRO-036: **Data Access Authorization**: Mandate Row-Level Security (R...",
+      "description": "Verify and automate processing logic for: **Data Access Authorization**: Mandate Row-Level Security (RLS) or session metadata pre-filtering on all data layer and vector/search queries based on the authenticated user's verified identity.",
+      "issueType": "Task",
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "Dynamic, 43Security"
+    },
+    {
+      "id": 37,
+      "summary": "PRO-037: **Automated Performance Audits**: Every pull request and rel...",
+      "description": "Verify and automate processing logic for: **Automated Performance Audits**: Every pull request and release build must run synthetic Lighthouse / Core Web Vitals tests in headless runners. Builds failing LCP, INP, or CLS targets are automatically rejected.",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Dynamic, 51CICDQual"
+    },
+    {
+      "id": 38,
+      "summary": "PRO-038: **Security & Compliance Scanning**: Automated static analysi...",
+      "description": "Verify and automate processing logic for: **Security & Compliance Scanning**: Automated static analysis to prevent inclusion of custom card collection forms or volatile database caching without event triggers.",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Dynamic, 51CICDQual"
+    },
+    {
+      "id": 39,
+      "summary": "PRO-039: **Canary Deployments**: Route 5% of user traffic to new web ...",
+      "description": "Verify and automate processing logic for: **Canary Deployments**: Route 5% of user traffic to new web builds, scaling progressively (10% -> 25% -> 50% -> 100%) over defined evaluation windows.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 3,
+      "labels": "Dynamic, 52Progress"
+    },
+    {
+      "id": 40,
+      "summary": "PRO-040: **Automated Rollback Triggers**: Automated deployment rollba...",
+      "description": "Verify and automate processing logic for: **Automated Rollback Triggers**: Automated deployment rollback is executed immediately if:",
+      "issueType": "Task",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Dynamic, 52Progress"
+    },
+    {
+      "id": 41,
+      "summary": "PRO-041: HTTP 5xx error rates exceed 0.5% over a 5-minute window.",
+      "description": "Verify and automate processing logic for: HTTP 5xx error rates exceed 0.5% over a 5-minute window.",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Dynamic, 52Progress"
+    },
+    {
+      "id": 42,
+      "summary": "PRO-042: API p99 latency spikes above 500ms.",
+      "description": "Verify and automate processing logic for: API p99 latency spikes above 500ms.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 5,
+      "labels": "Dynamic, 52Progress"
+    },
+    {
+      "id": 43,
+      "summary": "PRO-043: Health check `/healthz/ready` reports readiness failures.",
+      "description": "Verify and automate processing logic for: Health check `/healthz/ready` reports readiness failures.",
+      "issueType": "Story",
+      "priority": "Medium",
+      "storyPoints": 3,
+      "labels": "Dynamic, 52Progress"
+    },
+    {
+      "id": 44,
+      "summary": "PRO-044: **Queue Depth & Lag Tracking**: Continuous monitoring of job...",
+      "description": "Verify and automate processing logic for: **Queue Depth & Lag Tracking**: Continuous monitoring of job queue depths and worker processing delays with alerting thresholds.",
+      "issueType": "Task",
+      "priority": "Medium",
+      "storyPoints": 5,
+      "labels": "Dynamic, 53Observab"
+    },
+    {
+      "id": 45,
+      "summary": "PRO-045: **Real User Monitoring (RUM)**: Real-time telemetry ingest t...",
+      "description": "Verify and automate processing logic for: **Real User Monitoring (RUM)**: Real-time telemetry ingest to track Core Web Vitals and user drop-off funnels across distinct device classes and geographies.",
+      "issueType": "Story",
+      "priority": "High",
+      "storyPoints": 3,
+      "labels": "Dynamic, 53Observab"
     }
   ]
 }
