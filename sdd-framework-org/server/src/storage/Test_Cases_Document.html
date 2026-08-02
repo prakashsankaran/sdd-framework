@@ -1,78 +1,511 @@
-<div style="background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px;">
+<article style="background-color: #0f172a; color: #e2e8f0; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; padding: 2rem; line-height: 1.6;">
 
-    <h1 style="color: #6366f1; border-bottom: 2px solid #6366f1; padding-bottom: 10px;">QA Strategy & Engineering Blueprint: Visitor Management System</h1>
+  <!-- HEADER & METADATA -->
+  <header style="background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 2rem; margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <span style="background-color: #22d3ee; color: #0f172a; padding: 0.25rem 0.75rem; border-radius: 9999px; font-weight: 700; font-size: 0.875rem;">PROJECT NEXUS</span>
+      <span style="color: #94a3b8; font-size: 0.875rem;">Status: Approved for Execution</span>
+    </div>
+    <h1 style="color: #6366f1; font-size: 2.25rem; font-weight: 800; margin-top: 0; margin-bottom: 1rem;">Test Strategy & Test Cases Document</h1>
+    <p style="color: #94a3b8; margin-bottom: 1.5rem;">Enterprise Quality Assurance Architecture & Execution Blueprint for Project Nexus Modernization.</p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; border-top: 1px solid #334155; padding-top: 1rem; font-size: 0.875rem;">
+      <div><strong>Version:</strong> 1.0</div>
+      <div><strong>Author:</strong> Principal QA Architect & Senior Test Engineer</div>
+      <div><strong>Reviewers:</strong> Core Architecture Team, DevOps Lead</div>
+      <div><strong>Approvers:</strong> VP of Engineering, Director of Product Quality</div>
+    </div>
+  </header>
 
-    <div style="background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-        <h2 style="color: #22d3ee;">1. Test Strategy Summary</h2>
-        <p><strong>Objective:</strong> Ensure 100% data integrity, secure PII handling, and strict compliance with the defense-in-depth architecture.</p>
-        <p><strong>Approach:</strong> Shift-left testing with automated contract testing for APIs (Pact), RLS policy verification, and automated PII anonymization validation. Performance testing focuses on sub-2s response latency under simulated load.</p>
-        <p><strong>Entry Criteria:</strong> API contract definitions approved, Mock S3 service available, Auth service configured.</p>
-        <p><strong>Exit Criteria:</strong> 100% pass rate on P1/P2 test cases, all security vulnerabilities (CRITICAL/HIGH) resolved, performance benchmarks met.</p>
+  <!-- TABLE OF CONTENTS -->
+  <nav style="background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="color: #22d3ee; font-size: 1.25rem; font-weight: 700; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">Table of Contents</h2>
+    <ol style="margin: 0; padding-left: 1.5rem; color: #cbd5e1;">
+      <li><a href="#section-1" style="color: #6366f1; text-decoration: none;">Test Strategy Summary</a></li>
+      <li><a href="#section-2" style="color: #6366f1; text-decoration: none;">Test Environment</a></li>
+      <li><a href="#section-3" style="color: #6366f1; text-decoration: none;">Test Scenarios</a></li>
+      <li><a href="#section-4" style="color: #6366f1; text-decoration: none;">Detailed Test Cases</a></li>
+      <li><a href="#section-5" style="color: #6366f1; text-decoration: none;">Negative Test Cases</a></li>
+      <li><a href="#section-8" style="color: #6366f1; text-decoration: none;">Security Test Cases</a></li>
+      <li><a href="#section-9" style="color: #6366f1; text-decoration: none;">Performance Test Cases</a></li>
+      <li><a href="#section-11" style="color: #6366f1; text-decoration: none;">Compatibility Test Cases</a></li>
+      <li><a href="#section-12" style="color: #6366f1; text-decoration: none;">Regression Suite</a></li>
+      <li><a href="#section-13" style="color: #6366f1; text-decoration: none;">Smoke Suite</a></li>
+      <li><a href="#section-14" style="color: #6366f1; text-decoration: none;">Sanity Suite</a></li>
+    </ol>
+  </nav>
+
+  <!-- SECTION 1 -->
+  <section id="section-1" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="color: #22d3ee; font-size: 1.5rem; font-weight: 700; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">1. Test Strategy Summary</h2>
+    
+    <h3 style="color: #6366f1; font-size: 1.1rem; margin-top: 1rem;">Scope</h3>
+    <ul style="color: #cbd5e1;">
+      <li><strong>In-Scope:</strong> Modernized consumer web portal (Phase 1 & Phase 2), Edge CDN delivery, product analytics telemetry, managed billing portal SSO integration, fallback custom billing (history, payment method updates, subscription cancel/pause), direct S3 presigned URL binary uploads, asynchronous background job queues, and system health endpoints.</li>
+      <li><strong>Out-of-Scope:</strong> Core legacy monolith backend services not touched by Project Nexus APIs; physical hardware infrastructure provisioning.</li>
+    </ul>
+
+    <h3 style="color: #6366f1; font-size: 1.1rem; margin-top: 1rem;">Objectives</h3>
+    <p style="color: #cbd5e1;">Validate functional correctness, robust asynchronous pipeline execution, stringent API latency SLAs (&le;200ms standard, &le;300ms billing, &le;100ms handshake), strict Core Web Vitals performance benchmarks (LCP &le;2.5s, INP &le;200ms, CLS &le;0.1), and complete PCI-DSS compliance verification through offloaded managed vendor routing.</p>
+
+    <h3 style="color: #6366f1; font-size: 1.1rem; margin-top: 1rem;">Entry & Exit Criteria</h3>
+    <p style="color: #cbd5e1;"><strong>Entry Criteria:</strong> Code successfully merged to release branches, unit test coverage &ge;85%, successful automated security SAST scans, and readiness probes returning healthy.</p>
+    <p style="color: #cbd5e1;"><strong>Exit Criteria:</strong> 100% execution of Critical/High test cases, 0 unresolved P1/P2 defects, performance test SLAs successfully met under peak load profiles, and sign-off from QA Architect.</p>
+
+    <h3 style="color: #6366f1; font-size: 1.1rem; margin-top: 1rem;">Test Approach & Levels</h3>
+    <p style="color: #cbd5e1;">A hybrid testing approach combining automated CI/CD gating (Lighthouse, API contract testing, unit & integration suites) with rigorous manual exploratory and E2E system testing. Levels comprise Unit Testing (Developer), Integration & Contract Testing, System E2E Testing, Performance/Load Testing, and UAT.</p>
+
+    <h3 style="color: #6366f1; font-size: 1.1rem; margin-top: 1rem;">Defect Management</h3>
+    <p style="color: #cbd5e1;">Defects logged in Jira with severity ratings (P1-Blocker, P2-Critical, P3-Major, P4-Minor). Triaged daily during active sprints; P1/P2 defects block promotion across environments.</p>
+
+    <h3 style="color: #6366f1; font-size: 1.1rem; margin-top: 1rem;">Risks & Mitigations</h3>
+    <ul style="color: #cbd5e1;">
+      <li><strong>Risk:</strong> Third-party managed billing vendor downtime during testing. <strong>Mitigation:</strong> Implement robust mock services and sandbox endpoints for staging/QA environments.</li>
+      <li><strong>Risk:</strong> Asynchronous background job queue lag affecting verification. <strong>Mitigation:</strong> Automated telemetry monitoring and explicit polling assertion loops in test scripts.</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section id="section-2" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="color: #22d3ee; font-size: 1.5rem; font-weight: 700; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">2. Test Environment</h2>
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 2px solid #334155; color: #6366f1;">
+            <th style="padding: 0.75rem;">Environment</th>
+            <th style="padding: 0.75rem;">Build Version</th>
+            <th style="padding: 0.75rem;">Database</th>
+            <th style="padding: 0.75rem;">External Dependencies</th>
+            <th style="padding: 0.75rem;">Test Data Sources</th>
+          </tr>
+        </thead>
+        <tbody style="color: #cbd5e1;">
+          <tr style="border-bottom: 1px solid #334155;">
+            <td style="padding: 0.75rem;"><strong>DEV</strong></td>
+            <td style="padding: 0.75rem;">v1.1.0-dev</td>
+            <td style="padding: 0.75rem;">PostgreSQL 15 (Containerized)</td>
+            <td style="padding: 0.75rem;">Stripe Sandbox, Mock S3</td>
+            <td style="padding: 0.75rem;">Synthetic seed dataset (1k users)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #334155;">
+            <td style="padding: 0.75rem;"><strong>QA / Staging</strong></td>
+            <td style="padding: 0.75rem;">v1.1.0-rc1</td>
+            <td style="padding: 0.75rem;">AWS Aurora PostgreSQL 15</td>
+            <td style="padding: 0.75rem;">Stripe Test Portal, AWS S3, AWS SQS</td>
+            <td style="padding: 0.75rem;">Anonymized staging mirror (10k users)</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.75rem;"><strong>Prod-Like (Perf)</strong></td>
+            <td style="padding: 0.75rem;">v1.1.0-release</td>
+            <td style="padding: 0.75rem;">AWS Aurora Multi-AZ Cluster</td>
+            <td style="padding: 0.75rem;">Stripe Live Sandbox, AWS S3 Enterprise</td>
+            <td style="padding: 0.75rem;">Scaled synthetic load dataset (100k+ users)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section id="section-3" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="color: #22d3ee; font-size: 1.5rem; font-weight: 700; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">3. Test Scenarios</h2>
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 2px solid #334155; color: #6366f1;">
+            <th style="padding: 0.75rem;">Scenario ID</th>
+            <th style="padding: 0.75rem;">Module / Feature Area</th>
+            <th style="padding: 0.75rem;">Scenario Description</th>
+            <th style="padding: 0.75rem;">Priority</th>
+            <th style="padding: 0.75rem;">Test Types</th>
+          </tr>
+        </thead>
+        <tbody style="color: #cbd5e1;">
+          <tr style="border-bottom: 1px solid #334155;">
+            <td style="padding: 0.75rem;">TS-001</td>
+            <td style="padding: 0.75rem;">Telemetry & Analytics</td>
+            <td style="padding: 0.75rem;">Verify session tracking and funnel drop-off events capture accurately via POST endpoint.</td>
+            <td style="padding: 0.75rem; color: #f59e0b;">High</td>
+            <td style="padding: 0.75rem;">Functional, Integration</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #334155;">
+            <td style="padding: 0.75rem;">TS-002</td>
+            <td style="padding: 0.75rem;">Billing / Dispute Uploads</td>
+            <td style="padding: 0.75rem;">Validate presigned URL generation for direct client S3 dispute document uploads.</td>
+            <td style="padding: 0.75rem; color: #ef4444;">Critical</td>
+            <td style="padding: 0.75rem;">Functional, Security</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #334155;">
+            <td style="padding: 0.75rem;">TS-003</td>
+            <td style="padding: 0.75rem;">Asynchronous Processing</td>
+            <td style="padding: 0.75rem;">Verify 202 Accepted response and asynchronous background worker queue processing for disputes.</td>
+            <td style="padding: 0.75rem; color: #ef4444;">Critical</td>
+            <td style="padding: 0.75rem;">Integration, E2E</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #334155;">
+            <td style="padding: 0.75rem;">TS-004</td>
+            <td style="padding: 0.75rem;">System Health & Observability</td>
+            <td style="padding: 0.75rem;">Test liveness and readiness probes under normal and degraded dependency conditions.</td>
+            <td style="padding: 0.75rem; color: #f59e0b;">High</td>
+            <td style="padding: 0.75rem;">Smoke, Resiliency</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.75rem;">TS-005</td>
+            <td style="padding: 0.75rem;">Performance & Core Web Vitals</td>
+            <td style="padding: 0.75rem;">Verify LCP, INP, and CLS thresholds across mobile and desktop viewport profiles.</td>
+            <td style="padding: 0.75rem; color: #ef4444;">Critical</td>
+            <td style="padding: 0.75rem;">Performance</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SECTION 4 -->
+  <section id="section-4" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="color: #22d3ee; font-size: 1.5rem; font-weight: 700; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">4. Detailed Test Cases</h2>
+    
+    <!-- Test Case Card 1 -->
+    <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 0.375rem; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">
+        <div><strong style="color: #22d3ee;">TC-001</strong> | <span style="color: #6366f1;">REQ-001</span></div>
+        <div><span style="background-color: #ef4444; color: white; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">Critical</span></div>
+      </div>
+      <table style="width: 100%; font-size: 0.875rem; border-collapse: collapse; color: #cbd5e1;">
+        <tr><td style="width: 200px; padding: 0.25rem 0; color: #94a3b8;">Module:</td><td>Telemetry & Analytics</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Feature:</td><td>Event Capture API</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Type:</td><td>Functional / Integration</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Objective:</td><td>Verify that `POST /api/v1/telemetry/events` successfully captures user interaction and route changes returning 204 No Content.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Preconditions:</td><td>User is authenticated and web portal session is active with telemetry SDK initialized.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Data:</td><td>JSON payload containing eventType: "route_change", path: "/billing", timestamp.</td></tr>
+        <tr>
+          <td style="padding: 0.25rem 0; color: #94a3b8; vertical-align: top;">Steps:</td>
+          <td>
+            <ol style="margin: 0; padding-left: 1rem;">
+              <li>Construct HTTP POST request to `/api/v1/telemetry/events`.</li>
+              <li>Attach valid session auth token and JSON event payload.</li>
+              <li>Send request and inspect response status code.</li>
+            </ol>
+          </td>
+        </tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Expected Result:</td><td>HTTP status code `204 No Content` is returned immediately with empty response body. Event is successfully recorded in analytics data store.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Actual Result:</td><td>TBD</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Status:</td><td>Not Run</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Executed By / Date:</td><td>— / —</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Automation Status:</td><td>Automated</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Defect ID / Comments:</td><td>— / Validates core telemetry ingestion pipeline for Phase 1 retention tracking.</td></tr>
+      </table>
     </div>
 
-    <div style="background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-        <h2 style="color: #22d3ee;">2. Detailed Test Cases</h2>
-        <table style="width: 100%; border-collapse: collapse; color: #e2e8f0; font-size: 0.9em;">
-            <thead>
-                <tr style="background: #334155;">
-                    <th style="padding: 12px; border: 1px solid #475569;">TC ID</th>
-                    <th style="padding: 12px; border: 1px solid #475569;">Req ID</th>
-                    <th style="padding: 12px; border: 1px solid #475569;">Scenario</th>
-                    <th style="padding: 12px; border: 1px solid #475569;">Priority</th>
-                    <th style="padding: 12px; border: 1px solid #475569;">Expected Result</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #475569;">TC-001</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">FR-01</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">Unique mobile constraint for active visits</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">P0</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">DB rejects duplicate mobile for active session</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #475569;">TC-002</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">SEC-01</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">Verify RLS enforcement on API</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">P0</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">User cannot access records owned by others</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #475569;">TC-003</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">SEC-02</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">S3 Presigned URL expiration</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">P1</td>
-                    <td style="padding: 10px; border: 1px solid #475569;">Upload fails after URL lifetime</td>
-                </tr>
-            </tbody>
-        </table>
+    <!-- Test Case Card 2 -->
+    <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 0.375rem; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">
+        <div><strong style="color: #22d3ee;">TC-002</strong> | <span style="color: #6366f1;">REQ-002</span></div>
+        <div><span style="background-color: #ef4444; color: white; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">Critical</span></div>
+      </div>
+      <table style="width: 100%; font-size: 0.875rem; border-collapse: collapse; color: #cbd5e1;">
+        <tr><td style="width: 200px; padding: 0.25rem 0; color: #94a3b8;">Module:</td><td>Billing Dispute Uploads</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Feature:</td><td>Presigned URL Generation</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Type:</td><td>Functional / Security</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Objective:</td><td>Verify `POST /api/v1/billing/disputes/upload-url` returns a valid, short-lived S3 presigned URL bypassing application worker threads.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Preconditions:</td><td>Client authenticated with valid billing session.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Data:</td><td>`{"filename": "receipt_statement.pdf", "contentType": "application/pdf", "contentLengthBytes": 2048576}`</td></tr>
+        <tr>
+          <td style="padding: 0.25rem 0; color: #94a3b8; vertical-align: top;">Steps:</td>
+          <td>
+            <ol style="margin: 0; padding-left: 1rem;">
+              <li>Send POST request to `/api/v1/billing/disputes/upload-url` with valid JSON payload.</li>
+              <li>Inspect response status code and body structure.</li>
+              <li>Verify presence of `uploadUrl`, `fileKey`, and `expiresInSeconds` (300s).</li>
+            </ol>
+          </td>
+        </tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Expected Result:</td><td>HTTP `200 OK` returned with valid AWS S3 presigned URL matching requested metadata and 300-second expiration.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Actual Result:</td><td>TBD</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Status:</td><td>Not Run</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Executed By / Date:</td><td>— / —</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Automation Status:</td><td>Automated</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Defect ID / Comments:</td><td>— / Ensures binary payload architecture bypasses application workers to prevent 504 timeouts.</td></tr>
+      </table>
     </div>
 
-    <div style="background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-        <h2 style="color: #22d3ee;">3. Specialized Test Suites</h2>
-        
-        <h3 style="color: #6366f1;">Security & Privacy Testing</h3>
-        <ul>
-            <li><strong>BOLA/IDOR:</strong> Attempt accessing `/api/visitors/{id}` with a token from a different department.</li>
-            <li><strong>PII Anonymization:</strong> Verify nightly batch job correctly scrubs DB fields older than 30 days.</li>
-            <li><strong>Token Handling:</strong> Verify refresh token rotation and HttpOnly cookie attributes.</li>
-        </ul>
-
-        <h3 style="color: #6366f1;">Performance & Boundary Testing</h3>
-        <ul>
-            <li><strong>Constraint Stress:</strong> Attempt visit duration > 480 minutes (Expect 400 Bad Request).</li>
-            <li><strong>Chronology:</strong> Ensure check_out time cannot be earlier than check_in time (DB Trigger check).</li>
-            <li><strong>SLA Monitoring:</strong> Measure 95th percentile response time for `GET /api/reports/export`.</li>
-        </ul>
+    <!-- Test Case Card 3 -->
+    <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 0.375rem; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">
+        <div><strong style="color: #22d3ee;">TC-003</strong> | <span style="color: #6366f1;">REQ-003</span></div>
+        <div><span style="background-color: #ef4444; color: white; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">Critical</span></div>
+      </div>
+      <table style="width: 100%; font-size: 0.875rem; border-collapse: collapse; color: #cbd5e1;">
+        <tr><td style="width: 200px; padding: 0.25rem 0; color: #94a3b8;">Module:</td><td>Billing Disputes Async Processing</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Feature:</td><td>Asynchronous Job Trigger & Polling</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Type:</td><td>Integration / E2E</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Objective:</td><td>Verify dispute submission returns `202 Accepted` with job ID and that status endpoint successfully tracks background worker completion.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Preconditions:</td><td>File successfully uploaded to S3 via presigned URL yielding valid `fileKey`.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Data:</td><td>`{"disputeReason": "incorrect_charge", "fileKey": "disputes/doc-98234.pdf"}`</td></tr>
+        <tr>
+          <td style="padding: 0.25rem 0; color: #94a3b8; vertical-align: top;">Steps:</td>
+          <td>
+            <ol style="margin: 0; padding-left: 1rem;">
+              <li>POST to `/api/v1/billing/disputes` with dispute payload.</li>
+              <li>Verify response returns `202 Accepted`, `jobId`, and `statusEndpoint`.</li>
+              <li>Poll `GET /api/v1/jobs/{jobId}` until status transitions to `COMPLETED`.</li>
+            </ol>
+          </td>
+        </tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Expected Result:</td><td>Immediate `202 Accepted` received. Subsequent polling on job status endpoint reflects asynchronous worker execution reaching `COMPLETED`.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Actual Result:</td><td>TBD</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Status:</td><td>Not Run</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Executed By / Date:</td><td>— / —</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Automation Status:</td><td>Automated</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Defect ID / Comments:</td><td>— / Validates async queue handoff and non-blocking worker architecture.</td></tr>
+      </table>
     </div>
 
-    <div style="background: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px;">
-        <h2 style="color: #22d3ee;">4. Execution Plan</h2>
-        <ul style="list-style: none;">
-            <li><span style="color: #6366f1;">✔ Smoke:</span> Critical paths (Check-in flow, Auth).</li>
-            <li><span style="color: #6366f1;">✔ Sanity:</span> Emp portal access and notification dispatch.</li>
-            <li><span style="color: #6366f1;">✔ Regression:</span> Full suite including RLS policy edge cases and audit log integrity.</li>
-        </ul>
+    <!-- Test Case Card 4 -->
+    <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 0.375rem; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">
+        <div><strong style="color: #22d3ee;">TC-004</strong> | <span style="color: #6366f1;">REQ-004</span></div>
+        <div><span style="background-color: #f59e0b; color: white; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">High</span></div>
+      </div>
+      <table style="width: 100%; font-size: 0.875rem; border-collapse: collapse; color: #cbd5e1;">
+        <tr><td style="width: 200px; padding: 0.25rem 0; color: #94a3b8;">Module:</td><td>System Observability</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Feature:</td><td>Liveness & Readiness Health Probes</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Type:</td><td>Smoke / Sanity</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Objective:</td><td>Verify `/healthz/live` and `/healthz/ready` return correct health statuses and dependency checks under normal operating conditions.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Preconditions:</td><td>All backend services, database, billing vendor API, and message queue are fully running and connected.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Data:</td><td>None (GET requests)</td></tr>
+        <tr>
+          <td style="padding: 0.25rem 0; color: #94a3b8; vertical-align: top;">Steps:</td>
+          <td>
+            <ol style="margin: 0; padding-left: 1rem;">
+              <li>Send GET request to `/healthz/live`. Verify `200 OK` and `{"status": "UP"}`.</li>
+              <li>Send GET request to `/healthz/ready`. Verify `200 OK`, status `READY`, and check states for database, queueLag, and billingPortal.</li>
+            </ol>
+          </td>
+        </tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Expected Result:</td><td>Both endpoints return HTTP `200 OK` with JSON payloads confirming operational status across all dependent systems.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Actual Result:</td><td>TBD</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Status:</td><td>Not Run</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Executed By / Date:</td><td>— / —</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Automation Status:</td><td>Automated</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Defect ID / Comments:</td><td>— / Essential for automated deployment rollback triggers and Kubernetes probes.</td></tr>
+      </table>
     </div>
 
-</div>
+  </section>
+
+  <!-- SECTION 5 -->
+  <section id="section-5" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="color: #22d3ee; font-size: 1.5rem; font-weight: 700; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">5. Negative Test Cases</h2>
+    
+    <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 0.375rem; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">
+        <div><strong style="color: #22d3ee;">TC-NEG-001</strong> | <span style="color: #6366f1;">REQ-002</span></div>
+        <div><span style="background-color: #f59e0b; color: white; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">High</span></div>
+      </div>
+      <table style="width: 100%; font-size: 0.875rem; border-collapse: collapse; color: #cbd5e1;">
+        <tr><td style="width: 200px; padding: 0.25rem 0; color: #94a3b8;">Module:</td><td>Billing Dispute Uploads</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Feature:</td><td>Presigned URL Input Validation</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Type:</td><td>Negative / Validation</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Objective:</td><td>Verify `POST /api/v1/billing/disputes/upload-url` rejects invalid content types or missing parameters with appropriate 4xx status.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Preconditions:</td><td>Authenticated client session.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Data:</td><td>`{"filename": "malicious.exe", "contentType": "application/x-msdownload", "contentLengthBytes": -500}`</td></tr>
+        <tr>
+          <td style="padding: 0.25rem 0; color: #94a3b8; vertical-align: top;">Steps:</td>
+          <td>
+            <ol style="margin: 0; padding-left: 1rem;">
+              <li>Send POST request with unauthorized file format and invalid size.</li>
+              <li>Inspect response status code and error messaging.</li>
+            </ol>
+          </td>
+        </tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Expected Result:</td><td>API returns HTTP `400 Bad Request` with descriptive validation error preventing generation of unauthorized S3 storage links.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Actual Result:</td><td>TBD</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Status:</td><td>Not Run</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Executed By / Date:</td><td>— / —</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Automation Status:</td><td>Automated</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Defect ID / Comments:</td><td>— / Prevents arbitrary file upload security risks.</td></tr>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- SECTION 8 -->
+  <section id="section-8" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="color: #22d3ee; font-size: 1.5rem; font-weight: 700; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">8. Security Test Cases</h2>
+    
+    <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 0.375rem; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">
+        <div><strong style="color: #22d3ee;">TC-SEC-001</strong> | <span style="color: #6366f1;">REQ-005</span></div>
+        <div><span style="background-color: #ef4444; color: white; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">Critical</span></div>
+      </div>
+      <table style="width: 100%; font-size: 0.875rem; border-collapse: collapse; color: #cbd5e1;">
+        <tr><td style="width: 200px; padding: 0.25rem 0; color: #94a3b8;">Module:</td><td>Security & Compliance</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Feature:</td><td>PCI-DSS Scope Elimination & Managed Portal SSO</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Type:</td><td>Security / Compliance</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Objective:</td><td>Verify that credit card collection forms or PAN data are entirely offloaded to the managed vendor portal and never touch Project Nexus application servers.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Preconditions:</td><td>Static code analysis tools and network traffic interceptors (Burp Suite / OWASP ZAP) configured.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Data:</td><td>Simulated payment card data input forms.</td></tr>
+        <tr>
+          <td style="padding: 0.25rem 0; color: #94a3b8; vertical-align: top;">Steps:</td>
+          <td>
+            <ol style="margin: 0; padding-left: 1rem;">
+              <li>Inspect consumer web portal DOM and network requests during billing method update.</li>
+              <li>Verify that card input fields are rendered via secured vendor iframe (Stripe/Braintree).</li>
+              <li>Confirm no raw credit card data passes through Project Nexus API endpoints.</li>
+            </ol>
+          </td>
+        </tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Expected Result:</td><td>Zero cardholder data touches Project Nexus servers; all payment forms are securely embedded or redirected via managed vendor portal, satisfying PCI-DSS scope elimination.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Actual Result:</td><td>TBD</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Status:</td><td>Not Run</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Executed By / Date:</td><td>— / —</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Automation Status:</td><td>Automated (SAST & DAST)</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Defect ID / Comments:</td><td>— / Mandated architectural requirement for PCI compliance.</td></tr>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- SECTION 9 -->
+  <section id="section-9" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="color: #22d3ee; font-size: 1.5rem; font-weight: 700; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">9. Performance Test Cases</h2>
+    
+    <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 0.375rem; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">
+        <div><strong style="color: #22d3ee;">TC-PERF-001</strong> | <span style="color: #6366f1;">REQ-006</span></div>
+        <div><span style="background-color: #ef4444; color: white; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">Critical</span></div>
+      </div>
+      <table style="width: 100%; font-size: 0.875rem; border-collapse: collapse; color: #cbd5e1;">
+        <tr><td style="width: 200px; padding: 0.25rem 0; color: #94a3b8;">Module:</td><td>Core Web Vitals & Client Performance</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Feature:</td><td>Synthetic Lighthouse Audits (LCP, INP, CLS)</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Type:</td><td>Performance / CI Quality Gate</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Objective:</td><td>Verify that consumer portal views comply with p95 thresholds: LCP &le; 2.5s, INP &le; 200ms, and CLS &le; 0.1.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Preconditions:</td><td>Headless browser runner with simulated mobile viewport and throttled network conditions.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Data:</td><td>Production-equivalent build deployed to staging Edge CDN.</td></tr>
+        <tr>
+          <td style="padding: 0.25rem 0; color: #94a3b8; vertical-align: top;">Steps:</td>
+          <td>
+            <ol style="margin: 0; padding-left: 1rem;">
+              <li>Trigger automated synthetic Lighthouse performance audit on portal root and billing routes.</li>
+              <li>Measure Largest Contentful Paint (LCP), Interaction to Next Paint (INP), and Cumulative Layout Shift (CLS).</li>
+              <li>Evaluate against defined p95 thresholds.</li>
+            </ol>
+          </td>
+        </tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Expected Result:</td><td>LCP &le; 2.5s, INP &le; 200ms, and CLS &le; 0.1. Build passes CI quality gate without automated rejection.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Actual Result:</td><td>TBD</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Status:</td><td>Not Run</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Executed By / Date:</td><td>— / —</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Automation Status:</td><td>Automated (CI Quality Gate)</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Defect ID / Comments:</td><td>— / Directly addresses user retention drop by guaranteeing mobile performance.</td></tr>
+      </table>
+    </div>
+
+    <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 0.375rem; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">
+        <div><strong style="color: #22d3ee;">TC-PERF-002</strong> | <span style="color: #6366f1;">REQ-007</span></div>
+        <div><span style="background-color: #ef4444; color: white; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">Critical</span></div>
+      </div>
+      <table style="width: 100%; font-size: 0.875rem; border-collapse: collapse; color: #cbd5e1;">
+        <tr><td style="width: 200px; padding: 0.25rem 0; color: #94a3b8;">Module:</td><td>API Latency & SLAs</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Feature:</td><td>Endpoint Latency Under Load</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Type:</td><td>Performance / Load</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Objective:</td><td>Verify Standard APIs meet &le;200ms p99 latency, custom billing endpoints meet &le;300ms p99, and upload/handshake endpoints meet &le;100ms p99.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Preconditions:</td><td>Load testing tool (k6 / JMeter) configured against staging environment.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Data:</td><td>Virtual user concurrency ramps up to 5,000 concurrent users.</td></tr>
+        <tr>
+          <td style="padding: 0.25rem 0; color: #94a3b8; vertical-align: top;">Steps:</td>
+          <td>
+            <ol style="margin: 0; padding-left: 1rem;">
+              <li>Execute load test script targeting telemetry, upload-url, and dispute submission APIs.</li>
+              <li>Record response latencies across percentile distributions under peak concurrency.</li>
+            </ol>
+          </td>
+        </tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Expected Result:</td><td>Standard APIs &le; 200ms p99, Custom billing &le; 300ms p99, Presigned URL handshake &le; 100ms p99. Zero 504 gateway timeouts or OOM worker crashes.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Actual Result:</td><td>TBD</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Status:</td><td>Not Run</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Executed By / Date:</td><td>— / —</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Automation Status:</td><td>Automated</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Defect ID / Comments:</td><td>— / Validates non-blocking architecture and binary offloading guardrails.</td></tr>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- SECTION 11 -->
+  <section id="section-11" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="color: #22d3ee; font-size: 1.5rem; font-weight: 700; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">11. Compatibility Test Cases</h2>
+    
+    <div style="background-color: #0f172a; border: 1px solid #334155; border-radius: 0.375rem; padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">
+        <div><strong style="color: #22d3ee;">TC-COMP-001</strong> | <span style="color: #6366f1;">REQ-008</span></div>
+        <div><span style="background-color: #f59e0b; color: white; padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">High</span></div>
+      </div>
+      <table style="width: 100%; font-size: 0.875rem; border-collapse: collapse; color: #cbd5e1;">
+        <tr><td style="width: 200px; padding: 0.25rem 0; color: #94a3b8;">Module:</td><td>Frontend & Edge Delivery</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Feature:</td><td>Responsive Viewport Adaptability</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Type:</td><td>Compatibility / Responsive</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Objective:</td><td>Verify mobile-first responsive framework guarantees fluid adaptability across desktop, tablet, and mobile viewports.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Preconditions:</td><td>Cross-browser testing matrix (Chrome, Safari, Firefox, Edge) and mobile device emulators.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Test Data:</td><td>Viewport dimensions: Mobile (375x667), Tablet (768x1024), Desktop (1920x1080).</td></tr>
+        <tr>
+          <td style="padding: 0.25rem 0; color: #94a3b8; vertical-align: top;">Steps:</td>
+          <td>
+            <ol style="margin: 0; padding-left: 1rem;">
+              <li>Load portal home and billing views across target browser and viewport combinations.</li>
+              <li>Inspect UI layout fluidity, typography scaling, and touch target alignments.</li>
+            </ol>
+          </td>
+        </tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Expected Result:</td><td>UI adapts fluidly across all viewports without horizontal scrolling, clipping, or broken layouts, optimizing mobile experience per business objectives.</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Actual Result:</td><td>TBD</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Status:</td><td>Not Run</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Executed By / Date:</td><td>— / —</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Automation Status:</td><td>Candidate for Automation</td></tr>
+        <tr><td style="padding: 0.25rem 0; color: #94a3b8;">Defect ID / Comments:</td><td>— / Directly supports mobile experience optimization strategy.</td></tr>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- SECTION 12 -->
+  <section id="section-12" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="color: #22d3ee; font-size: 1.5rem; font-weight: 700; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">12. Regression Suite</h2>
+    <p style="color: #cbd5e1; margin-bottom: 1rem;">The core regression suite comprises all automated functional, integration, security, and performance verification test cases required prior to progressive canary deployment milestones:</p>
+    <ul style="color: #cbd5e1; list-style-type: square;">
+      <li><strong>TC-001</strong> (Telemetry Event Capture API)</li>
+      <li><strong>TC-002</strong> (Billing Dispute Presigned URL Generation)</li>
+      <li><strong>TC-003</strong> (Asynchronous Dispute Job Processing & Polling)</li>
+      <li><strong>TC-004</strong> (System Health & Readiness Probes)</li>
+      <li><strong>TC-NEG-001</strong> (Presigned URL Input Validation & Negative Path)</li>
+      <li><strong>TC-SEC-001</strong> (PCI-DSS Scope Elimination & Managed Portal SSO)</li>
+      <li><strong>TC-PERF-001</strong> (Core Web Vitals Lighthouse Quality Gate)</li>
+      <li><strong>TC-PERF-002</strong> (API Latency SLAs Under Load)</li>
+      <li><strong>TC-COMP-001</strong> (Responsive Viewport Adaptability)</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 13 -->
+  <section id="section-13" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="color: #22d3ee; font-size: 1.5rem; font-weight: 700; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">13. Smoke Suite</h2>
+    <p style="color: #cbd5e1; margin-bottom: 1rem;">The minimal set of critical test cases executed immediately following any new deployment to staging or canary environments to verify basic system stability:</p>
+    <ul style="color: #cbd5e1; list-style-type: square;">
+      <li><strong>TC-004</strong> (System Health & Readiness Probes — `/healthz/live` & `/healthz/ready`)</li>
+      <li><strong>TC-001</strong> (Telemetry Event Capture API — basic 204 response check)</li>
+      <li><strong>TC-002</strong> (Presigned URL Generation — basic 200 response check)</li>
+    </ul>
+  </section>
+
+  <!-- SECTION 14 -->
+  <section id="section-14" style="background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="color: #22d3ee; font-size: 1.5rem; font-weight: 700; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">14. Sanity Suite</h2>
+    <p style="color: #cbd5e1; margin-bottom: 1rem;">A focused subset of test cases executed after minor hotfixes or targeted component updates:</p>
+    <ul style="color: #cbd5e1; list-style-type: square;">
+      <li><strong>TC-003</strong> (Asynchronous Dispute Job Processing & Polling) — when billing backend or worker queues are patched.</li>
+      <li><strong>TC-NEG-001</strong> (Presigned URL Input Validation) — when dispute upload validation rules are modified.</li>
+    </ul>
+  </section>
+
+</article>

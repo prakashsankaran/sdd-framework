@@ -1,0 +1,1983 @@
+Next, the UI components. Please create the following files:
+
+
+
+## src/components/AdminLayout.jsx
+```
+import React, { useState } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+
+export default function AdminLayout() {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const navigationItems = [
+    { path: '/admin/dashboard', label: 'Dashboard', icon: 'fas fa-tachometer-alt', desc: 'System Metrics' },
+    { path: '/admin/personas', label: 'Persona Management', icon: 'fas fa-users-cog', desc: 'Manage Roles' },
+    { path: '/admin/projects', label: 'Project Management', icon: 'fas fa-briefcase', desc: 'Manage Projects' },
+    { path: '/admin/users', label: 'User Management', icon: 'fas fa-user-shield', desc: 'Provision Users' },
+    { path: '/admin/agents', label: 'Agent Definition', icon: 'fas fa-robot', desc: 'Configure Agents' },
+    { path: '/admin/agent-mapping', label: 'Agent Mapping', icon: 'fas fa-project-diagram', desc: 'Map Agents' },
+    { path: '/admin/workflows', label: 'Agent Workflow', icon: 'fas fa-network-wired', desc: 'Pipeline Setup' },
+    { path: '/admin/debate-circles', label: 'Debate Circles', icon: 'fas fa-balance-scale', desc: 'Configure Debates' },
+  ];
+
+  const handleLogout = () => {
+    navigate('/login');
+  };
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-[#070a13] text-[#f3f4f6]">
+      {/* Sidebar Navigation */}
+      <aside 
+        className={`${
+          isSidebarCollapsed ? 'w-16' : 'w-64'
+        } border-r border-slate-800 bg-[#0b0f19] flex flex-col justify-between shrink-0 transition-all duration-300 ease-in-out`}
+      >
+        <div>
+          {/* Brand header */}
+          <div className={`px-4 py-4 border-b border-slate-800 flex items-center bg-slate-950/20 ${
+              isSidebarCollapsed ? 'justify-center' : 'space-x-3'
+            }`}>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 shrink-0 text-white font-bold">
+              S
+            </div>
+            {!isSidebarCollapsed && (
+              <div className="truncate">
+                <h1 className="text-xs font-black uppercase tracking-widest bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Frugal Forge</h1>
+                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Admin Control Center</p>
+              </div>
+            )}
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="p-2 space-y-1 mt-4">
+            <span className={`block px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 ${isSidebarCollapsed ? 'text-center' : ''}`}>
+              {isSidebarCollapsed ? 'CFG' : 'Configuration'}
+            </span>
+            {navigationItems.map((item) => {
+              const isActive = location.pathname.startsWith(item.path);
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  title={isSidebarCollapsed ? item.label : undefined}
+                  className={`flex items-center rounded-xl transition duration-200 group ${
+                    isSidebarCollapsed ? 'justify-center p-2.5' : 'space-x-3 px-3 py-2.5'
+                  } ${
+                    isActive
+                      ? 'bg-gradient-to-r from-indigo-950/40 to-slate-900 border border-indigo-500/30 text-white font-semibold'
+                      : 'border border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
+                  }`}
+                >
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition duration-200 shrink-0 ${
+                    isActive 
+                      ? 'bg-indigo-500/10 text-indigo-400' 
+                      : 'bg-slate-900/50 text-slate-500 group-hover:bg-slate-900 group-hover:text-slate-300'
+                  }`}>
+                    <i className={`${item.icon} text-xs`}></i>
+                  </div>
+                  {!isSidebarCollapsed && (
+                    <div className="truncate flex-1 min-w-0">
+                      <p className="text-xs truncate">{item.label}</p>
+                      <p className="text-[9px] text-slate-500 group-hover:text-slate-400 transition truncate">{item.desc}</p>
+                    </div>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Footer System Status & Collapse Toggle */}
+        <div className="p-3 border-t border-slate-800 bg-slate-950/20 space-y-2">
+          {!isSidebarCollapsed && (
+            <div className="mb-4 px-2 py-3 rounded-lg bg-slate-900/40 border border-slate-800 flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex flex-shrink-0 items-center justify-center font-bold text-white text-xs">
+                SA
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-white truncate">Super Administrator</p>
+                <p className="text-[10px] text-slate-400 truncate">superadmin@sddframework.io</p>
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={handleLogout}
+            className="w-full py-2 mb-2 rounded-lg bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 hover:border-rose-500/40 text-rose-400 hover:text-rose-300 text-xs flex items-center justify-center transition cursor-pointer gap-2"
+          >
+            <i className="fas fa-sign-out-alt"></i>
+            {!isSidebarCollapsed && <span>Log Out</span>}
+          </button>
+
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="w-full py-1.5 rounded-lg bg-slate-900/60 border border-slate-800/80 hover:bg-slate-800 text-slate-400 hover:text-white text-xs flex items-center justify-center transition cursor-pointer"
+            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            <i className={`fas ${isSidebarCollapsed ? 'fa-angle-double-right' : 'fa-angle-double-left'}`}></i>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Workspace Frame */}
+      <main className="flex-1 flex flex-col min-w-0 bg-[#070a13] relative">
+        {/* Top bar header */}
+        <header className="h-14 border-b border-slate-800 bg-[#0b0f19]/80 backdrop-blur flex justify-between items-center px-6 shrink-0 min-w-0">
+          <div className="flex items-center space-x-3 min-w-0">
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500/50 flex items-center justify-center text-slate-400 hover:text-white transition duration-200 cursor-pointer shrink-0"
+            >
+              <i className={`fas ${isSidebarCollapsed ? 'fa-bars text-indigo-400' : 'fa-outdent'} text-xs`}></i>
+            </button>
+            <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest hidden lg:block shrink-0">
+              Super Admin Dashboard
+            </h2>
+
+            <div className="h-5 w-px bg-slate-800 mx-3 hidden lg:block"></div>
+
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 text-[10px] bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-full">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-slate-300 font-semibold uppercase tracking-wider">System Online</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Dynamic page contents wrapper */}
+        <div className="flex-1 p-6 overflow-y-auto custom-scroll">
+          <Outlet />
+        </div>
+      </main>
+    </div>
+  );
+}
+```
+
+
+## src/components/ChatbotWidget.jsx
+```
+import React, { useState, useEffect, useRef } from 'react';
+import { api } from '../services/api';
+
+export default function ChatbotWidget() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState([
+    {
+      id: 'welcome',
+      sender: 'assistant',
+      text: 'Hello! I am your **SDD AI Assistant**. Ask me any question about enqueued requirements, database schemas, JIRA user stories, or compliance reports, and I will search the vector database and summarize the answers for you.',
+      citations: [],
+      timestamp: new Date()
+    }
+  ]);
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  // Auto-scroll to bottom of chat
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading, isOpen]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!message.trim() || isLoading) return;
+
+    const userMessage = {
+      id: `user-${Date.now()}`,
+      sender: 'user',
+      text: message,
+      citations: [],
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    const currentQuery = message;
+    setMessage('');
+    setIsLoading(true);
+
+    try {
+      // POST chat route to backend enqueuing RAG pipeline
+      const response = await fetch('http://localhost:7001/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: currentQuery })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Chat API error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      const assistantMessage = {
+        id: `assistant-${Date.now()}`,
+        sender: 'assistant',
+        text: data.answer || 'I am sorry, but I was unable to retrieve a response.',
+        citations: data.citations || [],
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (err) {
+      console.error(err);
+      const errorMessage = {
+        id: `err-${Date.now()}`,
+        sender: 'assistant',
+        text: `❌ **Failed to retrieve answer:** ${err.message}. Please make sure the backend server is running and your Gemini API key is configured.`,
+        citations: [],
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Basic helper to convert markdown bold/bullets to JSX elements
+  const renderFormattedText = (text) => {
+    if (!text) return '';
+    
+    // Split into lines to parse list blocks
+    const lines = text.split('\n');
+    return lines.map((line, idx) => {
+      let content = line;
+      
+      // Check for bullet list item
+      const isBullet = content.trim().startsWith('* ') || content.trim().startsWith('- ');
+      if (isBullet) {
+        content = content.replace(/^[\s*-]+/, '').trim();
+      }
+
+      // Check for bold styling
+      const boldRegex = /\*\*(.*?)\*\*/g;
+      const parts = [];
+      let lastIndex = 0;
+      let match;
+      
+      while ((match = boldRegex.exec(content)) !== null) {
+        if (match.index > lastIndex) {
+          parts.push(content.substring(lastIndex, match.index));
+        }
+        parts.push(<strong key={match.index} className="text-white font-bold">{match[1]}</strong>);
+        lastIndex = boldRegex.lastIndex;
+      }
+      
+      if (lastIndex < content.length) {
+        parts.push(content.substring(lastIndex));
+      }
+
+      if (isBullet) {
+        return (
+          <li key={idx} className="ml-4 list-disc text-slate-300 text-[11px] leading-relaxed mb-1.5">
+            {parts.length > 0 ? parts : content}
+          </li>
+        );
+      }
+
+      return (
+        <p key={idx} className="text-slate-300 text-[11px] leading-relaxed mb-2">
+          {parts.length > 0 ? parts : content}
+        </p>
+      );
+    });
+  };
+
+  return (
+    <div class="fixed bottom-6 right-6 z-[9999] flex flex-col items-end">
+      
+      {/* Expanded Chat Box Window */}
+      {isOpen && (
+        <div class="w-[380px] h-[520px] bg-[#0b0f19]/95 border border-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden mb-4 animate-fade-in transition duration-300 ease-in-out">
+          
+          {/* Header */}
+          <div class="px-4 py-3 bg-slate-950 border-b border-slate-850 flex justify-between items-center shrink-0">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+              <div>
+                <h3 class="text-xs font-black text-white uppercase tracking-wider">SDD AI Assistant</h3>
+                <p class="text-[9px] text-slate-500 font-semibold font-mono">Qdrant & Gemini RAG</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setIsOpen(false)}
+              class="p-1 text-slate-400 hover:text-white rounded transition"
+            >
+              <i class="fas fa-times text-xs"></i>
+            </button>
+          </div>
+
+          {/* Messages Body */}
+          <div class="flex-1 p-4 overflow-y-auto space-y-4 custom-scroll bg-slate-950/20">
+            {messages.map((msg) => (
+              <div 
+                key={msg.id}
+                class={`flex flex-col ${
+                  msg.sender === 'user' ? 'items-end' : 'items-start'
+                }`}
+              >
+                {/* Message Bubble */}
+                <div 
+                  class={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs shadow-md border ${
+                    msg.sender === 'user'
+                      ? 'bg-indigo-600/90 border-indigo-500/30 text-white rounded-br-none'
+                      : 'bg-slate-900/90 border-slate-800/80 text-slate-200 rounded-bl-none'
+                  }`}
+                >
+                  {renderFormattedText(msg.text)}
+
+                  {/* Document Citations links */}
+                  {msg.citations && msg.citations.length > 0 && (
+                    <div class="mt-2.5 pt-2 border-t border-slate-800/60 flex flex-col space-y-1">
+                      <span class="text-[8px] text-slate-500 font-bold uppercase tracking-wider flex items-center">
+                        <i class="fas fa-bookmark mr-1"></i> Referenced Context:
+                      </span>
+                      <div class="flex flex-wrap gap-1">
+                        {msg.citations.map((cit, idx) => (
+                          <a
+                            key={idx}
+                            href={api.getDocumentDownloadUrl(cit.filename)}
+                            download
+                            class="px-2 py-0.5 bg-slate-950 hover:bg-slate-900 border border-slate-800/50 hover:border-slate-700 text-[9px] text-indigo-400 font-semibold rounded flex items-center space-x-1 transition"
+                            title={`Download source file (Cosine Score: ${Math.round(cit.score * 100)}%)`}
+                          >
+                            <i class="far fa-file-alt text-[8px] text-indigo-500"></i>
+                            <span class="truncate max-w-[120px]">{cit.filename}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <span class="text-[8px] text-slate-600 mt-1 px-1">
+                  {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            ))}
+            
+            {/* Loading / Typing indicator */}
+            {isLoading && (
+              <div class="flex flex-col items-start">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl rounded-bl-none px-4 py-3 flex space-x-1.5 items-center shadow-md">
+                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                  <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                </div>
+                <span class="text-[8px] text-slate-600 mt-1 px-1">Thinking...</span>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input Footer Area */}
+          <form onSubmit={handleSubmit} class="p-3 bg-slate-950 border-t border-slate-850 flex space-x-2 shrink-0">
+            <input
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Ask SDD AI Assistant..."
+              class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-300 transition"
+              disabled={isLoading}
+            />
+            <button
+              type="submit"
+              class={`w-8.5 h-8.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white flex items-center justify-center transition shrink-0 ${
+                isLoading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              disabled={isLoading}
+            >
+              <i class="fas fa-paper-plane text-xs"></i>
+            </button>
+          </form>
+
+        </div>
+      )}
+
+      {/* Floating Chat Bubble Toggle Button */}
+      <button
+        onClick={() => setIsOpen(prev => !prev)}
+        class="w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white flex items-center justify-center shadow-lg shadow-indigo-500/40 cursor-pointer transition-all duration-300 transform hover:scale-105 relative border border-indigo-400/20 group"
+      >
+        {/* Pulsing indicator if chat is closed */}
+        {!isOpen && (
+          <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-500 border-2 border-[#070a13] rounded-full animate-pulse z-10"></span>
+        )}
+        
+        {isOpen ? (
+          <i class="fas fa-chevron-down text-lg"></i>
+        ) : (
+          <i class="fas fa-comments text-lg group-hover:rotate-6 transition duration-200"></i>
+        )}
+      </button>
+
+    </div>
+  );
+}
+```
+
+
+## src/components/ConfluencePublishModal.jsx
+```
+import React, { useState, useEffect } from 'react';
+
+export const ConfluencePublishModal = ({ isOpen, onClose, stageType, onSuccess, onError }) => {
+  const [spaces, setSpaces] = useState([]);
+  const [spaceKey, setSpaceKey] = useState('SDD');
+  const [parentPageId, setParentPageId] = useState('');
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [isLoadingSpaces, setIsLoadingSpaces] = useState(false);
+  const [selectedAccount] = useState('prakash.s89@gmail.com');
+  const [resultUrl, setResultUrl] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchSpaces();
+    }
+  }, [isOpen]);
+
+  const fetchSpaces = async () => {
+    setIsLoadingSpaces(true);
+    try {
+      const response = await fetch('http://localhost:7001/api/confluence/spaces');
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setSpaces(data.spaces);
+        if (data.spaces.length > 0) {
+          // If our current spaceKey is not in the fetched list, select the first one
+          const spaceExists = data.spaces.some(s => s.key === spaceKey);
+          if (!spaceExists) {
+            setSpaceKey(data.spaces[0].key);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load Confluence spaces:', err);
+    } finally {
+      setIsLoadingSpaces(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    setResultUrl('');
+    try {
+      const response = await fetch('http://localhost:7001/api/confluence/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          stageType,
+          spaceKey,
+          parentPageId: parentPageId || undefined
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setResultUrl(data.pageUrl);
+        if (onSuccess) {
+          onSuccess(data);
+        }
+      } else {
+        throw new Error(data.error || 'Failed to publish to Confluence.');
+      }
+    } catch (err) {
+      if (onError) {
+        onError(err.message);
+      }
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div class="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+      <div class="glass-panel max-w-md w-full mx-4 p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-4">
+        
+        {/* Header */}
+        <div class="flex justify-between items-center border-b border-slate-850 pb-3">
+          <h3 class="text-sm font-bold text-slate-200 flex items-center">
+            <i class="fab fa-confluence mr-2 text-indigo-400"></i> Publish to Confluence
+          </h3>
+          <button onClick={onClose} class="text-slate-400 hover:text-white transition">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        {resultUrl ? (
+          /* Success Screen */
+          <div class="space-y-4 text-center py-2 animate-fade-in">
+            <div class="w-12 h-12 bg-green-500/10 text-green-400 rounded-full flex items-center justify-center mx-auto text-xl">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="space-y-1">
+              <p class="text-xs font-bold text-slate-200">Document Published Successfully!</p>
+              <p class="text-[10px] text-slate-500">Your spec page was pushed to workspace space [{spaceKey}]</p>
+            </div>
+            <a 
+              href={resultUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="inline-block w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition duration-150 text-center shadow-lg border border-indigo-500/30"
+            >
+              Open Confluence Page <i class="fas fa-external-link-alt ml-1"></i>
+            </a>
+            <button 
+              onClick={() => { setResultUrl(''); onClose(); }}
+              class="w-full py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-bold rounded-lg transition"
+            >
+              Close
+            </button>
+          </div>
+        ) : (
+          /* Configuration Screen */
+          <div class="space-y-4">
+            
+            {/* Choose Account */}
+            <div class="space-y-1.5">
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Choose Authenticated Account</label>
+              <div class="relative">
+                <select 
+                  value={selectedAccount}
+                  class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-250 font-semibold appearance-none"
+                  disabled
+                >
+                  <option value="prakash.s89@gmail.com">prakash.s89@gmail.com (Atlassian Cloud)</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                  <i class="fas fa-chevron-down text-xs"></i>
+                </div>
+              </div>
+            </div>
+
+            {/* Space Key Selector */}
+            <div class="space-y-1.5">
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Confluence Space</label>
+              {isLoadingSpaces ? (
+                <div class="text-xs text-slate-500 flex items-center space-x-1.5 py-2">
+                  <i class="fas fa-circle-notch animate-spin"></i>
+                  <span>Retrieving workspaces...</span>
+                </div>
+              ) : spaces.length === 0 ? (
+                // Fallback to text input if space list load fails or has no values
+                <input 
+                  type="text" 
+                  value={spaceKey}
+                  onChange={(e) => setSpaceKey(e.target.value.toUpperCase())}
+                  placeholder="E.g. SDD" 
+                  class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-350 font-mono"
+                />
+              ) : (
+                <div class="relative">
+                  <select 
+                    value={spaceKey}
+                    onChange={(e) => setSpaceKey(e.target.value)}
+                    class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-250 font-semibold appearance-none font-mono"
+                  >
+                    {spaces.map(space => (
+                      <option key={space.id || space.key} value={space.key}>
+                        {space.name} ({space.key})
+                      </option>
+                    ))}
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                    <i class="fas fa-chevron-down text-xs"></i>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Parent Page ID */}
+            <div class="space-y-1.5">
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Parent Page ID (Optional)</label>
+              <input 
+                type="text" 
+                value={parentPageId}
+                onChange={(e) => setParentPageId(e.target.value)}
+                placeholder="Leave blank for Root space page" 
+                class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-300 font-mono"
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div class="flex space-x-2 pt-2 justify-end border-t border-slate-850">
+              <button 
+                onClick={onClose}
+                disabled={isPublishing}
+                class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handlePublish}
+                disabled={isPublishing || !spaceKey}
+                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-lg border border-indigo-500/30 transition flex items-center space-x-1.5"
+              >
+                {isPublishing ? (
+                  <>
+                    <i class="fas fa-circle-notch animate-spin"></i>
+                    <span>Publishing...</span>
+                  </>
+                ) : (
+                  <>
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>Publish & Move</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+};
+```
+
+
+## src/components/FileUpload.jsx
+```
+import React, { useRef, useState, useEffect } from 'react';
+
+export const FileUpload = ({ 
+  pageKey, 
+  title = "Upload Reference Specifications",
+  subtitle = "Drag and drop PDF, Docx, or MD requirement documents", 
+  files = [], 
+  logs = [], 
+  isLoading = false, 
+  onFileSelect, 
+  onFileDelete, 
+  onTriggerGenerate 
+}) => {
+  const fileInputRef = useRef(null);
+
+  const [inheritedInputs, setInheritedInputs] = useState([]);
+
+  useEffect(() => {
+    try {
+      const activeProject = localStorage.getItem('activeProject');
+      const saved = localStorage.getItem('sdd_project_workflows');
+      if (saved && activeProject && pageKey) {
+        const mappings = JSON.parse(saved);
+        const workflowData = mappings[activeProject];
+        if (workflowData && workflowData.nodes) {
+          const { nodes, edges } = workflowData;
+          const targetNode = nodes.find(n => n.data.id === pageKey);
+          if (targetNode && edges) {
+            const incomingEdges = edges.filter(e => e.target === targetNode.id);
+            const inputs = [];
+            incomingEdges.forEach(edge => {
+              const sourceNode = nodes.find(n => n.id === edge.source);
+              if (sourceNode) {
+                inputs.push({
+                  sourceAgent: sourceNode.data.label,
+                  artifact: edge.sourceHandle ? edge.sourceHandle.replace('out-', '') : 'Data'
+                });
+              }
+            });
+            setInheritedInputs(inputs);
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [pageKey]);
+
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      Array.from(e.dataTransfer.files).forEach(file => {
+        onFileSelect(file);
+      });
+    }
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      Array.from(e.target.files).forEach(file => {
+        onFileSelect(file);
+      });
+    }
+  };
+
+  return (
+    <div class="glass-panel p-5 rounded-2xl flex flex-col space-y-4 shadow-xl border border-slate-800">
+      <h3 class="text-sm font-bold tracking-wide text-slate-300 uppercase">{title}</h3>
+      
+      {/* Drag & Drop Area */}
+      <div 
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
+        class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-900/40 hover:bg-slate-900/80 rounded-xl p-6 text-center cursor-pointer transition duration-300 group flex flex-col items-center justify-center space-y-2"
+      >
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={handleFileChange} 
+          class="hidden" 
+          multiple 
+        />
+        <div class="p-3 bg-indigo-500/10 text-indigo-400 group-hover:scale-110 transition duration-300 rounded-full">
+          <i class="fas fa-cloud-upload-alt text-2xl"></i>
+        </div>
+        <p class="text-xs font-semibold text-slate-300">{subtitle}</p>
+        <p class="text-[10px] text-slate-500">Supports up to 50MB files</p>
+      </div>
+
+      {/* Inherited Inputs list */}
+      {inheritedInputs.length > 0 && (
+        <div class="space-y-2 pb-2">
+          <p class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center">
+            <i class="fas fa-link mr-1.5"></i> Inherited Inputs
+          </p>
+          <div class="space-y-1.5">
+            {inheritedInputs.map((input, idx) => (
+              <div key={idx} class="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-2 flex justify-between items-center text-xs">
+                <div class="flex items-center space-x-2 truncate">
+                  <i class="fas fa-file-export text-emerald-400"></i>
+                  <span class="text-emerald-300 font-medium truncate">{input.artifact}</span>
+                </div>
+                <span class="text-[10px] text-emerald-500 font-semibold px-2 py-0.5 rounded border border-emerald-500/20 bg-emerald-500/10">
+                  {input.sourceAgent}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Uploaded Files list */}
+      {files.length > 0 && (
+        <div class="space-y-2">
+          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Uploaded Documents ({files.length})</p>
+          <div class="max-h-28 overflow-y-auto space-y-1.5 custom-scroll">
+            {files.map((file, idx) => (
+              <div key={idx} class="bg-slate-950/80 border border-slate-800 rounded-lg p-2 flex justify-between items-center text-xs">
+                <div class="flex items-center space-x-2 truncate">
+                  <i class="far fa-file-alt text-indigo-400"></i>
+                  <span class="text-slate-300 font-medium truncate">{file.name}</span>
+                  <span class="text-[10px] text-slate-500">({(file.size / 1024).toFixed(1)} KB)</span>
+                </div>
+                <button 
+                  onClick={() => onFileDelete(idx)}
+                  class="text-slate-500 hover:text-red-400 p-1"
+                >
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Compilation Console logs */}
+      {(isLoading || logs.length > 0) && (
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+              <i class="fas fa-terminal mr-1 text-pink-400"></i> Execution log console
+            </p>
+            {isLoading && (
+              <span class="text-[10px] bg-indigo-900/30 text-indigo-400 border border-indigo-800 px-2 py-0.5 rounded-full flex items-center">
+                <i class="fas fa-circle-notch animate-spin mr-1"></i> Running Spec Compilation...
+              </span>
+            )}
+          </div>
+          <div class="bg-slate-950 font-mono text-[10px] text-slate-300 p-3 rounded-lg border border-slate-800/80 h-44 overflow-y-auto custom-scroll flex flex-col space-y-1">
+            {logs.map((log, idx) => (
+              <div key={idx} class={`whitespace-pre-wrap ${
+                log.includes('[Error]') ? 'text-red-400' :
+                log.includes('[Queue]') ? 'text-yellow-400' :
+                log.includes('[Worker]') ? 'text-green-400 font-medium' :
+                log.includes('[Resiliency]') || log.includes('[HTML]') ? 'text-pink-400 font-medium' :
+                'text-slate-400'
+              }`}>
+                {log}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Action Trigger Button */}
+      <button
+        onClick={onTriggerGenerate}
+        disabled={isLoading || (files.length === 0 && inheritedInputs.length === 0)}
+        class={`w-full py-3 font-semibold rounded-xl text-xs flex items-center justify-center space-x-2 transition duration-300 ${
+          isLoading || (files.length === 0 && inheritedInputs.length === 0)
+            ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+            : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-indigo-500/20 glow-indigo border border-indigo-500/40'
+        }`}
+      >
+        {isLoading ? (
+          <>
+            <i class="fas fa-circle-notch animate-spin text-sm"></i>
+            <span>Compiling Agent Specifications...</span>
+          </>
+        ) : (
+          <>
+            <i class="fas fa-bolt text-sm"></i>
+            <span>Execute AI Spec Generation</span>
+          </>
+        )}
+      </button>
+    </div>
+  );
+};
+```
+
+
+## src/components/GeneratedOutput.jsx
+```
+import React from 'react';
+
+export const GeneratedOutput = ({ 
+  title = "Generated Output Review", 
+  subtitle = "Inspect and export compiles", 
+  actions = null, 
+  children 
+}) => {
+  return (
+    <div class="glass-panel rounded-2xl flex flex-col h-full overflow-hidden shadow-xl border border-slate-800">
+      {/* Header bar */}
+      <div class="px-5 py-4 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 bg-slate-900/60 backdrop-blur-md">
+        <div>
+          <h2 class="text-sm font-bold tracking-wider text-slate-200 uppercase flex items-center">
+            <span class="w-1.5 h-3 bg-indigo-500 rounded-full mr-2"></span> {title}
+          </h2>
+          <p class="text-[10px] text-slate-500 font-medium">{subtitle}</p>
+        </div>
+        {/* Header Actions (PDF, Excel, SQL scripts exporters etc.) */}
+        {actions && (
+          <div class="flex items-center space-x-1.5 self-end sm:self-auto">
+            {actions}
+          </div>
+        )}
+      </div>
+
+      {/* Main output viewport */}
+      <div class="flex-1 p-5 overflow-auto custom-scroll bg-slate-950/40">
+        {children}
+      </div>
+    </div>
+  );
+};
+```
+
+
+## src/components/HeaderTokenBadge.jsx
+```
+import React, { useState, useEffect } from 'react';
+
+const API_BASE = 'http://localhost:7001';
+
+export default function HeaderTokenBadge({ onClick }) {
+  const [totalTokens, setTotalTokens] = useState(0);
+  const [threshold, setThreshold] = useState(() => {
+    return parseInt(localStorage.getItem('token_alert_threshold') || '10000', 10);
+  });
+  const [alertsEnabled, setAlertsEnabled] = useState(() => {
+    return localStorage.getItem('token_alerts_enabled') !== 'false';
+  });
+
+  const fetchSummary = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/tokens/summary`);
+      const data = await res.json();
+      if (data.success) {
+        setTotalTokens(data.grandTotalTokens || 0);
+      }
+    } catch (err) {}
+  };
+
+  useEffect(() => {
+    fetchSummary();
+    const interval = setInterval(fetchSummary, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setThreshold(parseInt(localStorage.getItem('token_alert_threshold') || '10000', 10));
+      setAlertsEnabled(localStorage.getItem('token_alerts_enabled') !== 'false');
+    };
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('token_threshold_updated', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('token_threshold_updated', handleStorageChange);
+    };
+  }, []);
+
+  const formatTokens = (num) => {
+    if (!num) return '0';
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}k`;
+    return num.toString();
+  };
+
+  const isExceeded = alertsEnabled && threshold > 0 && totalTokens >= threshold;
+
+  return (
+    <button
+      onClick={onClick}
+      class={`flex items-center space-x-1.5 px-3 py-1 rounded-xl transition duration-300 shadow-sm cursor-pointer ${
+        isExceeded
+          ? 'bg-red-950/80 border border-red-500/60 text-red-300 hover:bg-red-900 animate-pulse'
+          : 'bg-indigo-950/60 border border-indigo-500/30 text-indigo-300 hover:text-white hover:bg-indigo-900/60 hover:border-indigo-500/50'
+      }`}
+      title={isExceeded ? `Token limit exceeded! (${totalTokens.toLocaleString()} / ${threshold.toLocaleString()})` : "View Model Token Consumption & History Log"}
+    >
+      <i class={`fas ${isExceeded ? 'fa-exclamation-triangle text-red-400' : 'fa-bolt text-amber-400'} text-xs animate-pulse`}></i>
+      <span class="text-[10px] font-black font-mono tracking-wider">
+        {formatTokens(totalTokens)} Tokens {isExceeded ? '⚠️ Limit' : ''}
+      </span>
+    </button>
+  );
+}
+```
+
+
+## src/components/JiraPublishModal.jsx
+```
+import React, { useState, useEffect } from 'react';
+
+export const JiraPublishModal = ({ isOpen, onClose, onSuccess, onError }) => {
+  const [boards, setBoards] = useState([]);
+  const [sprints, setSprints] = useState([]);
+  const [selectedBoardId, setSelectedBoardId] = useState('');
+  const [selectedSprintId, setSelectedSprintId] = useState('');
+  const [isLoadingBoards, setIsLoadingBoards] = useState(false);
+  const [isLoadingSprints, setIsLoadingSprints] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [selectedAccount] = useState('prakash.s89@gmail.com');
+  const [projectKey] = useState('SDD');
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchBoards();
+    }
+  }, [isOpen]);
+
+  const fetchBoards = async () => {
+    setIsLoadingBoards(true);
+    try {
+      const response = await fetch('http://localhost:7001/api/jira/boards');
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setBoards(data.boards);
+        if (data.boards.length > 0) {
+          setSelectedBoardId(data.boards[0].id.toString());
+          fetchSprints(data.boards[0].id.toString());
+        }
+      } else {
+        throw new Error(data.error || 'Failed to retrieve Jira boards.');
+      }
+    } catch (err) {
+      console.error(err);
+      if (onError) onError(err.message);
+    } finally {
+      setIsLoadingBoards(false);
+    }
+  };
+
+  const fetchSprints = async (boardId) => {
+    setIsLoadingSprints(true);
+    setSprints([]);
+    setSelectedSprintId('');
+    try {
+      const response = await fetch(`http://localhost:7001/api/jira/board/${boardId}/sprints`);
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setSprints(data.sprints);
+        if (data.sprints.length > 0) {
+          // Select the first sprint or active one by default
+          const activeSprint = data.sprints.find(s => s.state === 'active');
+          if (activeSprint) {
+            setSelectedSprintId(activeSprint.id.toString());
+          } else {
+            setSelectedSprintId(data.sprints[0].id.toString());
+          }
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoadingSprints(false);
+    }
+  };
+
+  const handleBoardChange = (boardId) => {
+    setSelectedBoardId(boardId);
+    fetchSprints(boardId);
+  };
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+      const response = await fetch('http://localhost:7001/api/jira/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sprintId: selectedSprintId ? parseInt(selectedSprintId) : undefined
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        if (onSuccess) {
+          onSuccess(data.createdIssues);
+        }
+        onClose();
+      } else {
+        throw new Error(data.error || 'Failed to upload user stories.');
+      }
+    } catch (err) {
+      if (onError) {
+        onError(err.message);
+      }
+      onClose();
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  const showSprintSelector = isLoadingSprints || sprints.length > 0;
+
+  return (
+    <div class="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+      <div class="glass-panel max-w-md w-full mx-4 p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-4">
+
+        {/* Header */}
+        <div class="flex justify-between items-center border-b border-slate-850 pb-3">
+          <h3 class="text-sm font-bold text-slate-200 flex items-center">
+            <i class="fab fa-jira mr-2 text-indigo-400"></i> Push Backlog to JIRA Board
+          </h3>
+          <button onClick={onClose} class="text-slate-400 hover:text-white transition">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        {/* Configuration Screen */}
+        <div class="space-y-4">
+
+          {/* Choose Account */}
+          <div class="space-y-1.5">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jira Account & Project</label>
+            <div class="p-2.5 bg-slate-950/60 border border-slate-900 rounded-lg text-xs text-slate-300 flex justify-between items-center">
+              <div>
+                <p class="font-semibold text-slate-200">{selectedAccount}</p>
+                <p class="text-[10px] text-slate-500">Project Space Key: <span class="text-indigo-400 font-mono font-bold">{projectKey}</span></p>
+              </div>
+              <span class="px-2 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-bold rounded">Connected</span>
+            </div>
+          </div>
+
+          {/* Select JIRA Board */}
+          <div class="space-y-1.5">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Select Agile/Scrum Board</label>
+            {isLoadingBoards ? (
+              <div class="text-xs text-slate-500 flex items-center space-x-1.5 py-2">
+                <i class="fas fa-circle-notch animate-spin"></i>
+                <span>Loading boards from Atlassian...</span>
+              </div>
+            ) : boards.length === 0 ? (
+              <p class="text-xs text-red-400">No boards found for project key {projectKey}</p>
+            ) : (
+              <div class="relative">
+                <select
+                  value={selectedBoardId}
+                  onChange={(e) => handleBoardChange(e.target.value)}
+                  class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-250 font-semibold appearance-none"
+                >
+                  {boards.map(board => (
+                    <option key={board.id} value={board.id}>
+                      {board.name} ({board.type.toUpperCase()})
+                    </option>
+                  ))}
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                  <i class="fas fa-chevron-down text-xs"></i>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Select Sprint (If Scrum Board) */}
+          {showSprintSelector && (
+            <div class="space-y-1.5 animate-fade-in">
+              <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Select Active/Future Sprint (To show under "TO DO" Board)
+              </label>
+              {isLoadingSprints ? (
+                <div class="text-xs text-slate-500 flex items-center space-x-1.5 py-2">
+                  <i class="fas fa-circle-notch animate-spin"></i>
+                  <span>Retrieving sprint lists...</span>
+                </div>
+              ) : sprints.length === 0 ? (
+                <div class="p-2.5 bg-yellow-950/20 border border-yellow-900/40 rounded-lg text-[11px] text-yellow-400">
+                  No active sprints found on this scrum board. Issues will default to the board Backlog view. Create a sprint in Jira to link them directly to the board.
+                </div>
+              ) : (
+                <div class="relative">
+                  <select
+                    value={selectedSprintId}
+                    onChange={(e) => setSelectedSprintId(e.target.value)}
+                    class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-250 font-semibold appearance-none"
+                  >
+                    <option value="">-- Send to Backlog --</option>
+                    {sprints.map(sprint => (
+                      <option key={sprint.id} value={sprint.id}>
+                        {sprint.name} ({sprint.state.toUpperCase()})
+                      </option>
+                    ))}
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                    <i class="fas fa-chevron-down text-xs"></i>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div class="flex space-x-2 pt-2 justify-end border-t border-slate-850">
+            <button
+              onClick={onClose}
+              disabled={isSyncing}
+              class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSync}
+              disabled={isSyncing || isLoadingBoards || boards.length === 0}
+              class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-lg border border-indigo-500/30 transition flex items-center space-x-1.5"
+            >
+              {isSyncing ? (
+                <>
+                  <i class="fas fa-circle-notch animate-spin"></i>
+                  <span>Syncing to Jira...</span>
+                </>
+              ) : (
+                <>
+                  <i class="fab fa-jira"></i>
+                  <span>Push to Board</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+```
+
+
+## src/components/MissingDependencyView.jsx
+```
+import React from 'react';
+
+export default function MissingDependencyView({ missing }) {
+  return (
+    <div className="flex flex-col items-center justify-center h-full text-slate-500 fade-in">
+      <div className="w-20 h-20 rounded-2xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20 mb-6 shadow-[0_0_30px_rgba(244,63,94,0.15)] relative">
+        <i className="fas fa-lock text-3xl text-rose-400"></i>
+        <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-[#0b0f19] flex items-center justify-center border border-slate-800">
+          <i className="fas fa-exclamation text-rose-500 text-sm"></i>
+        </div>
+      </div>
+      
+      <h2 className="text-2xl font-black text-white mb-2 tracking-tight">Agent Locked</h2>
+      <p className="text-sm mt-2 max-w-md text-center text-slate-400 leading-relaxed mb-8">
+        This agent cannot be run because it depends on artifacts that have not yet been generated in the workflow pipeline.
+      </p>
+
+      <div className="bg-[#0b0f19] border border-rose-500/30 rounded-xl w-full max-w-md overflow-hidden shadow-xl">
+        <div className="bg-rose-500/10 px-4 py-3 border-b border-rose-500/20">
+          <h3 className="text-xs font-bold text-rose-400 uppercase tracking-widest flex items-center">
+            <i className="fas fa-network-wired mr-2"></i> Missing Dependencies
+          </h3>
+        </div>
+        <div className="p-4 space-y-3">
+          {missing.map((dep, idx) => (
+            <div key={idx} className="flex items-start space-x-3 bg-slate-900/50 p-3 rounded-lg border border-slate-800">
+              <div className="mt-0.5 text-rose-500">
+                <i className="fas fa-times-circle"></i>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-200">{dep.artifact}</p>
+                <p className="text-xs text-slate-500 mt-0.5">Required from <span className="text-indigo-400">{dep.sourceAgent}</span></p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+
+## src/components/TokenThresholdAlert.jsx
+```
+import React, { useState, useEffect } from 'react';
+
+const API_BASE = 'http://localhost:7001';
+
+export default function TokenThresholdAlert({ onOpenWidget }) {
+  const [totalTokens, setTotalTokens] = useState(0);
+  const [threshold, setThreshold] = useState(() => {
+    return parseInt(localStorage.getItem('token_alert_threshold') || '10000', 10);
+  });
+  const [alertsEnabled, setAlertsEnabled] = useState(() => {
+    return localStorage.getItem('token_alerts_enabled') !== 'false';
+  });
+  const [isDismissed, setIsDismissed] = useState(false);
+
+  // Poll server for total tokens
+  useEffect(() => {
+    const checkThreshold = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/tokens/summary`);
+        const data = await res.json();
+        if (data.success) {
+          setTotalTokens(data.grandTotalTokens || 0);
+        }
+      } catch (err) {}
+    };
+
+    checkThreshold();
+    const interval = setInterval(checkThreshold, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Listen for storage / threshold updates and reset dismissal state
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newThreshold = parseInt(localStorage.getItem('token_alert_threshold') || '10000', 10);
+      const newAlertsEnabled = localStorage.getItem('token_alerts_enabled') !== 'false';
+      setThreshold(newThreshold);
+      setAlertsEnabled(newAlertsEnabled);
+      setIsDismissed(false); // Reset dismissal on threshold update
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('token_threshold_updated', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('token_threshold_updated', handleStorageChange);
+    };
+  }, []);
+
+  const isExceeded = alertsEnabled && threshold > 0 && totalTokens >= threshold;
+
+  if (!isExceeded || isDismissed) return null;
+
+  const pct = Math.round((totalTokens / threshold) * 100);
+
+  return (
+    <div class="fixed top-16 right-6 z-[9999] max-w-md w-full bg-[#111625]/95 border-2 border-red-500/70 text-slate-100 rounded-2xl shadow-2xl p-4 backdrop-blur-md transition-all duration-300">
+      <div class="flex items-start space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-red-500/20 border border-red-500/50 flex items-center justify-center shrink-0 shadow-lg shadow-red-500/30 mt-0.5">
+          <i class="fas fa-exclamation-triangle text-red-400 text-lg animate-pulse"></i>
+        </div>
+
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-black uppercase tracking-wider text-red-400">Token Limit Exceeded Alert</h4>
+            <div class="flex items-center space-x-2">
+              <span class="text-[10px] font-mono font-bold bg-red-500/20 text-red-300 px-2 py-0.5 rounded-full border border-red-500/40">
+                {pct}% of Limit
+              </span>
+              <button
+                onClick={() => setIsDismissed(true)}
+                class="text-slate-400 hover:text-white transition text-xs p-0.5"
+                title="Close Alert"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-300 mt-1">
+            Total LLM consumption has reached <strong class="text-white font-mono">{totalTokens.toLocaleString()}</strong> tokens, exceeding your configured threshold of <strong class="text-white font-mono">{threshold.toLocaleString()}</strong> tokens.
+          </p>
+
+          {/* Progress bar */}
+          <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden mt-2.5">
+            <div class="h-full bg-gradient-to-r from-amber-500 to-red-500 transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%` }}></div>
+          </div>
+
+          {/* Action buttons */}
+          <div class="flex items-center justify-end space-x-2 mt-3 pt-2 border-t border-slate-800/80">
+            <button
+              onClick={() => setIsDismissed(true)}
+              class="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white text-xs font-semibold transition cursor-pointer"
+            >
+              Dismiss
+            </button>
+            <button
+              onClick={() => {
+                if (onOpenWidget) onOpenWidget();
+              }}
+              class="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition shadow-md shadow-red-600/30 cursor-pointer"
+            >
+              Configure Limit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+
+## src/components/TokenTrackerWidget.jsx
+```
+import React, { useState, useEffect } from 'react';
+
+const API_BASE = 'http://localhost:7001';
+
+export default function TokenTrackerWidget({ isOpen, onClose }) {
+  const [summary, setSummary] = useState({
+    grandTotalTokens: 0,
+    grandTotalPromptTokens: 0,
+    grandTotalCompletionTokens: 0,
+    totalCalls: 0,
+    byModel: []
+  });
+  const [history, setHistory] = useState([]);
+  const [selectedModel, setSelectedModel] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('summary'); // 'summary' | 'history' | 'settings'
+
+  // Threshold Alert state
+  const [thresholdInput, setThresholdInput] = useState(() => {
+    return localStorage.getItem('token_alert_threshold') || '10000';
+  });
+  const [alertsEnabled, setAlertsEnabled] = useState(() => {
+    return localStorage.getItem('token_alerts_enabled') !== 'false';
+  });
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const handleSaveThreshold = (e) => {
+    e.preventDefault();
+    const val = parseInt(thresholdInput, 10);
+    if (isNaN(val) || val < 0) return;
+
+    localStorage.setItem('token_alert_threshold', val.toString());
+    localStorage.setItem('token_alerts_enabled', alertsEnabled ? 'true' : 'false');
+    window.dispatchEvent(new Event('token_threshold_updated'));
+
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 2500);
+  };
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [sumRes, histRes] = await Promise.all([
+        fetch(`${API_BASE}/api/tokens/summary`),
+        fetch(`${API_BASE}/api/tokens/history${selectedModel ? `?model=${encodeURIComponent(selectedModel)}` : ''}`)
+      ]);
+
+      const sumData = await sumRes.json();
+      const histData = await histRes.json();
+
+      if (sumData.success) {
+        setSummary(sumData);
+      }
+      if (histData.success) {
+        setHistory(histData.history || []);
+      }
+    } catch (err) {
+      console.error('[TokenTrackerWidget] Fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchData();
+      const interval = setInterval(fetchData, 4000);
+      return () => clearInterval(interval);
+    }
+  }, [isOpen, selectedModel]);
+
+  const handleClearHistory = async () => {
+    if (window.confirm('Are you sure you want to clear all token usage history?')) {
+      try {
+        await fetch(`${API_BASE}/api/tokens/clear`, { method: 'DELETE' });
+        fetchData();
+      } catch (err) {
+        console.error('Failed to clear token history:', err);
+      }
+    }
+  };
+
+  if (!isOpen) return null;
+
+  const filteredHistory = history.filter(item => {
+    const matchesModel = !selectedModel || item.model.toLowerCase() === selectedModel.toLowerCase();
+    const matchesSearch = !searchTerm || 
+      item.agentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.model.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesModel && matchesSearch;
+  });
+
+  const formatNumber = (num) => (num || 0).toLocaleString();
+
+  const getModelBadgeColor = (modelName) => {
+    const lower = (modelName || '').toLowerCase();
+    if (lower.includes('2.0-flash')) return 'bg-purple-500/10 text-purple-400 border-purple-500/30';
+    if (lower.includes('3.5-flash') || lower.includes('3.1-flash')) return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
+    if (lower.includes('1.5-flash')) return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+    if (lower.includes('gpt-4')) return 'bg-green-500/10 text-green-400 border-green-500/30';
+    if (lower.includes('claude')) return 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+    return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30';
+  };
+
+  return (
+    <div class="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fadeIn">
+      <div 
+        class="w-full max-w-2xl bg-[#0b0f19] border-l border-slate-800 text-slate-100 flex flex-col h-full shadow-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modal Top Header */}
+        <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <i class="fas fa-coins text-white text-sm"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-black uppercase tracking-wider text-white">Token Usage & History</h2>
+              <p class="text-[10px] text-slate-400">Real-time model token consumption telemetry</p>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <button
+              onClick={fetchData}
+              class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition cursor-pointer text-xs"
+              title="Refresh Data"
+            >
+              <i class={`fas fa-sync-alt ${loading ? 'animate-spin text-indigo-400' : ''}`}></i>
+            </button>
+            <button
+              onClick={onClose}
+              class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition cursor-pointer text-xs"
+              title="Close Panel"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+
+        {/* Global Summary KPI Bar */}
+        <div class="grid grid-cols-4 gap-3 p-4 border-b border-slate-800/80 bg-slate-900/30">
+          <div class="bg-indigo-950/30 border border-indigo-900/50 rounded-xl p-3">
+            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Tokens</div>
+            <div class="text-base font-black text-indigo-400 mt-1 font-mono">{formatNumber(summary.grandTotalTokens)}</div>
+          </div>
+          <div class="bg-blue-950/30 border border-blue-900/50 rounded-xl p-3">
+            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Prompt (In)</div>
+            <div class="text-base font-black text-blue-400 mt-1 font-mono">{formatNumber(summary.grandTotalPromptTokens)}</div>
+          </div>
+          <div class="bg-purple-950/30 border border-purple-900/50 rounded-xl p-3">
+            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Completion (Out)</div>
+            <div class="text-base font-black text-purple-400 mt-1 font-mono">{formatNumber(summary.grandTotalCompletionTokens)}</div>
+          </div>
+          <div class="bg-emerald-950/30 border border-emerald-900/50 rounded-xl p-3">
+            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">LLM Calls</div>
+            <div class="text-base font-black text-emerald-400 mt-1 font-mono">{formatNumber(summary.totalCalls)}</div>
+          </div>
+        </div>
+
+        {/* Tab Navigation & Filters Header */}
+        <div class="px-6 py-3 border-b border-slate-800/60 bg-slate-950/20 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+            <button
+              onClick={() => setActiveTab('summary')}
+              class={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                activeTab === 'summary'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <i class="fas fa-chart-pie mr-1.5"></i> Model Grouping
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              class={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                activeTab === 'history'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <i class="fas fa-history mr-1.5"></i> Call History ({filteredHistory.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              class={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                activeTab === 'settings'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <i class="fas fa-bell mr-1.5"></i> Alert Limits
+            </button>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            {/* Model Filter Dropdown */}
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              class="bg-slate-900 border border-slate-800 text-slate-300 text-xs px-2.5 py-1.5 rounded-xl font-medium focus:outline-none focus:border-indigo-500 cursor-pointer"
+            >
+              <option value="">All Models</option>
+              {summary.byModel.map(m => (
+                <option key={m.model} value={m.model}>{m.model}</option>
+              ))}
+            </select>
+
+            {activeTab === 'history' && (
+              <button
+                onClick={handleClearHistory}
+                class="px-2.5 py-1.5 rounded-xl bg-red-950/40 border border-red-900/50 text-red-400 hover:bg-red-900/40 text-xs font-semibold transition cursor-pointer"
+                title="Clear History Logs"
+              >
+                <i class="fas fa-trash-alt mr-1"></i> Clear
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Tab Content Wrapper */}
+        <div class="flex-1 overflow-y-auto p-6 space-y-4 custom-scroll">
+          {/* TAB 1: MODEL GROUPING ACCORDION / CARDS */}
+          {activeTab === 'summary' && (
+            <div class="space-y-4">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Consumption Grouped by Model</h3>
+
+              {summary.byModel.length === 0 ? (
+                <div class="text-center py-12 bg-slate-900/20 border border-slate-800/60 rounded-2xl">
+                  <i class="fas fa-robot text-3xl text-slate-600 mb-3"></i>
+                  <p class="text-xs text-slate-400 font-medium">No LLM token consumption recorded yet.</p>
+                  <p class="text-[10px] text-slate-500 mt-1">Run an agent or scaffolding task to start tracking.</p>
+                </div>
+              ) : (
+                summary.byModel.map((m) => {
+                  const pct = summary.grandTotalTokens > 0 
+                    ? Math.round((m.totalTokens / summary.grandTotalTokens) * 100) 
+                    : 0;
+
+                  return (
+                    <div key={m.model} class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-4 space-y-3 hover:border-slate-700 transition">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2.5">
+                          <span class={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold border ${getModelBadgeColor(m.model)}`}>
+                            {m.model}
+                          </span>
+                          <span class="text-[10px] font-semibold text-slate-400 bg-slate-800/60 px-2 py-0.5 rounded-full">
+                            {m.callCount} {m.callCount === 1 ? 'call' : 'calls'}
+                          </span>
+                        </div>
+
+                        <div class="text-right">
+                          <span class="text-sm font-black text-white font-mono">{formatNumber(m.totalTokens)}</span>
+                          <span class="text-[10px] text-slate-500 ml-1">tokens ({pct}%)</span>
+                        </div>
+                      </div>
+
+                      {/* Usage Breakdown Bar */}
+                      <div class="space-y-1">
+                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden flex">
+                          <div 
+                            class="h-full bg-blue-500" 
+                            style={{ width: `${m.totalTokens ? (m.promptTokens / m.totalTokens) * 100 : 0}%` }}
+                            title={`Prompt Tokens: ${formatNumber(m.promptTokens)}`}
+                          ></div>
+                          <div 
+                            class="h-full bg-purple-500" 
+                            style={{ width: `${m.totalTokens ? (m.completionTokens / m.totalTokens) * 100 : 0}%` }}
+                            title={`Completion Tokens: ${formatNumber(m.completionTokens)}`}
+                          ></div>
+                        </div>
+
+                        <div class="flex justify-between text-[10px] text-slate-400 font-mono pt-1">
+                          <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-blue-500 mr-1"></span> Prompt: {formatNumber(m.promptTokens)}</span>
+                          <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-purple-500 mr-1"></span> Completion: {formatNumber(m.completionTokens)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+
+          {/* TAB 2: CHRONOLOGICAL HISTORY TIMELINE */}
+          {activeTab === 'history' && (
+            <div class="space-y-3">
+              {/* Search Bar */}
+              <div class="relative">
+                <i class="fas fa-search absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                <input
+                  type="text"
+                  placeholder="Search by agent or model name..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              {filteredHistory.length === 0 ? (
+                <div class="text-center py-12 bg-slate-900/20 border border-slate-800/60 rounded-2xl">
+                  <i class="fas fa-clock text-3xl text-slate-600 mb-3"></i>
+                  <p class="text-xs text-slate-400 font-medium">No matching history records found.</p>
+                </div>
+              ) : (
+                <div class="space-y-2">
+                  {filteredHistory.map((item) => {
+                    const formattedTime = new Date(item.timestamp).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit'
+                    });
+                    const formattedDate = new Date(item.timestamp).toLocaleDateString([], {
+                      month: 'short',
+                      day: 'numeric'
+                    });
+
+                    return (
+                      <div 
+                        key={item.id}
+                        class="bg-slate-900/40 border border-slate-800/80 hover:border-slate-700/80 rounded-xl p-3 flex items-center justify-between transition"
+                      >
+                        <div class="space-y-1 min-w-0 pr-2">
+                          <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold text-white truncate">{item.agentName}</span>
+                            <span class={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${getModelBadgeColor(item.model)}`}>
+                              {item.model}
+                            </span>
+                          </div>
+                          <div class="text-[10px] text-slate-500 font-mono">
+                            <i class="far fa-clock mr-1"></i>{formattedDate} at {formattedTime}
+                          </div>
+                        </div>
+
+                        <div class="text-right shrink-0">
+                          <div class="text-xs font-black text-indigo-400 font-mono">
+                            ⚡ {formatNumber(item.totalTokens)}
+                          </div>
+                          <div class="text-[9px] text-slate-500 font-mono space-x-1.5">
+                            <span>In: {formatNumber(item.promptTokens)}</span>
+                            <span>•</span>
+                            <span>Out: {formatNumber(item.completionTokens)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: ALERT LIMIT SETTINGS */}
+          {activeTab === 'settings' && (
+            <div class="space-y-5">
+              <div class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-5 space-y-4">
+                <div class="flex items-center space-x-3">
+                  <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+                    <i class="fas fa-bell text-amber-400 text-sm"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-xs font-black uppercase tracking-wider text-white">Token Usage Alert Threshold</h3>
+                    <p class="text-[10px] text-slate-400">Receive automatic pop-up alerts when total token consumption exceeds this limit.</p>
+                  </div>
+                </div>
+
+                {/* Meter Progress Card */}
+                {(() => {
+                  const tVal = parseInt(thresholdInput, 10) || 10000;
+                  const pct = Math.round((summary.grandTotalTokens / tVal) * 100);
+                  const isOver = summary.grandTotalTokens >= tVal;
+
+                  return (
+                    <div class={`p-4 rounded-xl border ${isOver ? 'bg-red-950/20 border-red-900/50' : 'bg-slate-950/40 border-slate-800'} space-y-2`}>
+                      <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Current Limit Status</span>
+                        <span class={`font-mono font-bold text-xs ${isOver ? 'text-red-400' : pct > 75 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                          {summary.grandTotalTokens.toLocaleString()} / {tVal.toLocaleString()} tokens ({pct}%)
+                        </span>
+                      </div>
+
+                      <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div 
+                          class={`h-full transition-all duration-500 ${isOver ? 'bg-red-500 animate-pulse' : pct > 75 ? 'bg-amber-500' : 'bg-indigo-500'}`}
+                          style={{ width: `${Math.min(pct, 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Configuration Form */}
+                <form onSubmit={handleSaveThreshold} class="space-y-4 pt-2">
+                  <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-300 block">
+                      Token Limit Threshold (Tokens)
+                    </label>
+                    <input
+                      type="number"
+                      min="100"
+                      step="500"
+                      value={thresholdInput}
+                      onChange={(e) => setThresholdInput(e.target.value)}
+                      class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
+                    />
+                    <p class="text-[10px] text-slate-500">Default: 10,000 tokens. (Set to 0 to disable alerts).</p>
+                  </div>
+
+                  <div class="flex items-center space-x-3 pt-1">
+                    <input
+                      type="checkbox"
+                      id="alertsEnabled"
+                      checked={alertsEnabled}
+                      onChange={(e) => setAlertsEnabled(e.target.checked)}
+                      class="w-4 h-4 rounded bg-slate-900 border-slate-800 text-indigo-600 focus:ring-0 cursor-pointer"
+                    />
+                    <label htmlFor="alertsEnabled" class="text-xs text-slate-300 font-medium cursor-pointer">
+                      Enable Pop-up Alert Banners when limit is reached
+                    </label>
+                  </div>
+
+                  <div class="flex items-center space-x-3 pt-3">
+                    <button
+                      type="submit"
+                      class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-lg shadow-indigo-600/30 cursor-pointer"
+                    >
+                      <i class="fas fa-save mr-1.5"></i> Save Alert Threshold
+                    </button>
+
+                    {saveSuccess && (
+                      <span class="text-xs text-emerald-400 font-semibold animate-fadeIn flex items-center">
+                        <i class="fas fa-check-circle mr-1"></i> Threshold Saved!
+                      </span>
+                    )}
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+
+## src/components/WipPlaceholder.jsx
+```
+import React from 'react';
+
+export default function WipPlaceholder({ title, description, icon, badge = 'WIP' }) {
+  return (
+    <div class="p-8 max-w-5xl mx-auto my-12">
+      <div class="bg-[#0b0f19] border border-dashed border-amber-500/30 rounded-3xl p-12 text-center space-y-6 shadow-2xl backdrop-blur relative overflow-hidden">
+        {/* Background Ambient Glow */}
+        <div class="absolute -top-24 -left-24 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        {/* Icon Header */}
+        <div class="relative">
+          <div class="w-20 h-20 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto text-3xl shadow-xl shadow-amber-500/10">
+            <i class={`${icon || 'fa-tools'} animate-pulse`}></i>
+          </div>
+          <span class="absolute -top-2 right-1/2 translate-x-12 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-500 text-slate-950 shadow-md">
+            {badge}
+          </span>
+        </div>
+
+        {/* Title & Description */}
+        <div class="space-y-2 max-w-xl mx-auto">
+          <h2 class="text-xl font-bold text-white tracking-wide">{title}</h2>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            {description || 'This Brownfield capability is currently under active development. Upcoming features will enable automated delta synthesis and regression test matrix generation.'}
+          </p>
+        </div>
+
+        {/* Status Callout Box */}
+        <div class="inline-flex items-center space-x-3 px-4 py-2.5 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+          <span>Status: <strong>Planned for Next Sprint Release</strong></span>
+        </div>
+
+        {/* Quick Workflow Action Hint */}
+        <div class="pt-6 border-t border-slate-800/80 flex flex-wrap justify-center gap-4 text-xs text-slate-400">
+          <div class="flex items-center space-x-2 bg-slate-900/60 px-3.5 py-2 rounded-xl border border-slate-800">
+            <i class="fas fa-check-circle text-emerald-400"></i>
+            <span>Step 1: Project Context Attached</span>
+          </div>
+          <div class="flex items-center space-x-2 bg-slate-900/60 px-3.5 py-2 rounded-xl border border-slate-800">
+            <i class="fas fa-check-circle text-emerald-400"></i>
+            <span>Step 2: Code-to-Spec Baseline Generated</span>
+          </div>
+          <div class="flex items-center space-x-2 bg-slate-900/60 px-3.5 py-2 rounded-xl border border-slate-800">
+            <i class="fas fa-check-circle text-emerald-400"></i>
+            <span>Step 3: Impact Analysis Engine Active</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+
+## src/components/WorkflowStatusTracker.jsx
+```
+import React, { useMemo } from 'react';
+import { usePageContext } from '../context/PageContext';
+
+export default function WorkflowStatusTracker({ activeProject }) {
+  const { pages } = usePageContext();
+
+  const workflowData = useMemo(() => {
+    try {
+      const saved = localStorage.getItem('sdd_project_workflows');
+      if (saved) {
+        const mappings = JSON.parse(saved);
+        return mappings[activeProject] || { nodes: [], edges: [] };
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return { nodes: [], edges: [] };
+  }, [activeProject]);
+
+  // Topological sort to determine sequence
+  const sortedNodes = useMemo(() => {
+    const { nodes, edges } = workflowData;
+    if (!nodes || nodes.length === 0) return [];
+
+    const adj = {};
+    const inDegree = {};
+    nodes.forEach(n => {
+      adj[n.id] = [];
+      inDegree[n.id] = 0;
+    });
+
+    if (edges) {
+      edges.forEach(e => {
+        if (adj[e.source] && inDegree[e.target] !== undefined) {
+          adj[e.source].push(e.target);
+          inDegree[e.target]++;
+        }
+      });
+    }
+
+    const queue = [];
+    nodes.forEach(n => {
+      if (inDegree[n.id] === 0) queue.push(n.id);
+    });
+
+    const sorted = [];
+    while(queue.length > 0) {
+      const u = queue.shift();
+      const node = nodes.find(n => n.id === u);
+      if (node) sorted.push(node);
+
+      if (adj[u]) {
+        adj[u].forEach(v => {
+          inDegree[v]--;
+          if (inDegree[v] === 0) queue.push(v);
+        });
+      }
+    }
+
+    // In case of any un-added nodes (e.g., disjoint graphs or weird edge cases)
+    if (sorted.length < nodes.length) {
+       nodes.forEach(n => {
+         if (!sorted.find(s => s.id === n.id)) sorted.push(n);
+       });
+    }
+
+    return sorted;
+  }, [workflowData]);
+
+  if (sortedNodes.length === 0) return null;
+
+  return (
+    <div className="bg-slate-900/60 border-b border-slate-800/80 px-6 py-3 flex items-center overflow-x-auto custom-scroll shrink-0 shadow-inner z-10">
+      <div className="flex items-center space-x-3 mr-6 shrink-0">
+        <i className="fas fa-project-diagram text-indigo-400 text-sm"></i>
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Workflow Sequence</span>
+      </div>
+      
+      <div className="flex items-center space-x-3">
+        {sortedNodes.map((node, idx) => {
+          const agentId = node.data.id;
+          const isGenerated = pages[agentId] && pages[agentId].output !== null;
+          
+          return (
+            <React.Fragment key={node.id}>
+              {idx > 0 && (
+                <i className="fas fa-arrow-right text-slate-600 text-[10px] shrink-0"></i>
+              )}
+              <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg border shrink-0 transition-colors ${
+                isGenerated 
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.1)]' 
+                  : 'bg-amber-500/10 border-amber-500/30 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.1)]'
+              }`}>
+                <i className={`fas ${isGenerated ? 'fa-check-circle' : 'fa-hourglass-half'} text-xs`}></i>
+                <span className="text-[11px] font-bold whitespace-nowrap">{node.data.label}</span>
+              </div>
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+```
+

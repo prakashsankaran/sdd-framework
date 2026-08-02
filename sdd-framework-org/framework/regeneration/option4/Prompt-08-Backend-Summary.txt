@@ -1,0 +1,3 @@
+We are now going to create the frontend services that communicate with the backend. 
+Please pay attention to these next files as they define the API interactions, payloads, and endpoints needed by the application.
+

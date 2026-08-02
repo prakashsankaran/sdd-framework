@@ -1,0 +1,132 @@
+Next, we will create a UI View / Page component. 
+Create the file **src/pages/FunctionalSpec.jsx** with the following exact code:
+
+## src/pages/FunctionalSpec.jsx
+```jsx
+import React, { useEffect, useState } from 'react';
+import { usePageContext } from '../context/PageContext';
+import { backendAdapter } from '../agents/backendAdapter';
+import { FileUpload } from '../components/FileUpload';
+import { GeneratedOutput } from '../components/GeneratedOutput';
+import { pdfGenerator } from '../utils/pdfGenerator';
+import { api } from '../services/api';
+import { ConfluencePublishModal } from '../components/ConfluencePublishModal';
+
+export default function FunctionalSpec() {
+  const { pages, updatePageState } = usePageContext();
+  const pageState = pages['functional-spec'];
+  const [isConfluenceOpen, setIsConfluenceOpen] = useState(false);
+
+  // Auto load latest workspace spec as reference on load
+  useEffect(() => {
+    const importSpec = async () => {
+      try {
+        const data = await api.getWorkspaceSpec();
+        if (pageState.files.length === 0 && data.content) {
+          updatePageState('functional-spec', {
+            files: [{ name: 'spec.md', size: data.content.length * 2 }]
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load spec file:', err);
+      }
+    };
+    importSpec();
+  }, []);
+
+  const handleFileSelect = (file) => {
+    updatePageState('functional-spec', {
+      files: [...pageState.files, file]
+    });
+  };
+
+  const handleFileDelete = (idx) => {
+    const updated = [...pageState.files];
+    updated.splice(idx, 1);
+    updatePageState('functional-spec', { files: updated });
+  };
+
+  const handleTriggerGenerate = async () => {
+    await backendAdapter.runGeneration('functional-spec', updatePageState);
+  };
+
+  const handleDownloadPDF = () => {
+    if (!pageState.output) return;
+    pdfGenerator.download('Functional_Specification_Document.pdf', pageState.output);
+  };
+
+  return (
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-100px)]">
+      
+      {/* Left panel: Upload & console */}
+      <div class="lg:col-span-4 flex flex-col space-y-4">
+        <FileUpload
+          pageKey="functional-spec"
+          title="Upload Specifications Document"
+          subtitle="Drop spec.md, requirement reports, or FSD frameworks"
+          files={pageState.files}
+          logs={pageState.logs}
+          isLoading={pageState.isLoading}
+          onFileSelect={handleFileSelect}
+          onFileDelete={handleFileDelete}
+          onTriggerGenerate={handleTriggerGenerate}
+        />
+      </div>
+
+      {/* Right panel: Viewport preview */}
+      <div class="lg:col-span-8 h-full flex flex-col overflow-hidden">
+        <GeneratedOutput
+          title="Rendered Functional Specification Document (FSD)"
+          subtitle="High fidelity 2-pass compiled specification sheet"
+          actions={
+            pageState.output && (
+              <div class="flex items-center space-x-1.5">
+                <button 
+                  onClick={() => setIsConfluenceOpen(true)}
+                  class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 text-xs font-bold rounded-lg border border-slate-700 flex items-center space-x-1.5"
+                >
+                  <i class="fab fa-confluence"></i>
+                  <span>Confluence</span>
+                </button>
+                <button 
+                  onClick={handleDownloadPDF}
+                  class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-red-400 text-xs font-bold rounded-lg border border-slate-700 flex items-center space-x-1.5"
+                >
+                  <i class="far fa-file-pdf"></i>
+                  <span>Download PDF</span>
+                </button>
+              </div>
+            )
+          }
+        >
+          {!pageState.output ? (
+            <div class="flex flex-col items-center justify-center h-full p-8 text-center space-y-4">
+              <div class="p-4 bg-indigo-500/5 text-indigo-400 rounded-full">
+                <i class="fas fa-file-invoice text-3xl"></i>
+              </div>
+              <div class="max-w-xs space-y-1.5">
+                <p class="text-xs font-bold text-slate-300">No FSD Compiled Yet</p>
+                <p class="text-[11px] text-slate-500">Add documents and run the compilation on the left to review the high-fidelity dark-themed functional spec.</p>
+              </div>
+            </div>
+          ) : (
+            <iframe
+              srcDoc={pageState.output}
+              title="FSD Document Preview"
+              class="w-full h-full border border-slate-800 rounded-xl bg-white"
+            />
+          )}
+        </GeneratedOutput>
+      </div>
+
+      <ConfluencePublishModal 
+        isOpen={isConfluenceOpen}
+        onClose={() => setIsConfluenceOpen(false)}
+        stageType="functional-spec"
+      />
+
+    </div>
+  );
+}
+```
+
